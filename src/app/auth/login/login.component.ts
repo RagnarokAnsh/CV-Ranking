@@ -6,9 +6,7 @@ import { CommonModule } from '@angular/common';
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
-import { FloatLabelModule } from 'primeng/floatlabel';
 
 @Component({
   selector: 'app-login',
@@ -18,9 +16,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
     ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
-    PasswordModule,
-    CardModule,
-    FloatLabelModule
+    CardModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -28,6 +24,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   loading = false;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -70,5 +67,9 @@ export class LoginComponent implements OnInit {
   onRegister() {
     // Navigate to register page
     this.router.navigate(['/register']);
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 }

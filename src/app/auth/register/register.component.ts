@@ -1,15 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-// PrimeNG Imports
+// PrimeNG Imports - Only keeping Calendar for date picker
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 
 interface CountryCode {
@@ -32,10 +29,7 @@ interface DropdownOption {
     ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
-    PasswordModule,
     CardModule,
-    FloatLabelModule,
-    DropdownModule,
     CalendarModule
   ],
   templateUrl: './register.component.html',
@@ -44,6 +38,12 @@ interface DropdownOption {
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   loading = false;
+  showCountryDropdown = false;
+  showGenderDropdown = false;
+  showCountryFieldDropdown = false;
+  showNationalityDropdown = false;
+  showPassword = false;
+  showConfirmPassword = false;
 
   countryCodes: CountryCode[] = [
     { label: '+1', value: '+1', flag: 'https://flagcdn.com/w20/us.png', display: 'US +1' },
@@ -150,6 +150,105 @@ export class RegisterComponent implements OnInit {
     const selectedCode = this.registerForm.get('countryCode')?.value;
     const country = this.countryCodes.find(c => c.value === selectedCode);
     return country?.flag || this.countryCodes[0].flag;
+  }
+
+  getSelectedCountryCode(): CountryCode {
+    const selectedCode = this.registerForm.get('countryCode')?.value;
+    const country = this.countryCodes.find(c => c.value === selectedCode);
+    return country || this.countryCodes[0];
+  }
+
+  toggleCountryDropdown() {
+    this.showCountryDropdown = !this.showCountryDropdown;
+    // Close other dropdowns
+    this.showGenderDropdown = false;
+    this.showCountryFieldDropdown = false;
+    this.showNationalityDropdown = false;
+  }
+
+  selectCountryCode(country: CountryCode) {
+    this.registerForm.patchValue({ countryCode: country.value });
+    this.showCountryDropdown = false;
+  }
+
+  toggleGenderDropdown() {
+    this.showGenderDropdown = !this.showGenderDropdown;
+    // Close other dropdowns
+    this.showCountryDropdown = false;
+    this.showCountryFieldDropdown = false;
+    this.showNationalityDropdown = false;
+  }
+
+  selectGender(option: DropdownOption) {
+    this.registerForm.patchValue({ gender: option.value });
+    this.showGenderDropdown = false;
+  }
+
+  toggleCountryFieldDropdown() {
+    this.showCountryFieldDropdown = !this.showCountryFieldDropdown;
+    // Close other dropdowns
+    this.showCountryDropdown = false;
+    this.showGenderDropdown = false;
+    this.showNationalityDropdown = false;
+  }
+
+  selectCountryField(option: DropdownOption) {
+    this.registerForm.patchValue({ country: option.value });
+    this.showCountryFieldDropdown = false;
+  }
+
+  toggleNationalityDropdown() {
+    this.showNationalityDropdown = !this.showNationalityDropdown;
+    // Close other dropdowns
+    this.showCountryDropdown = false;
+    this.showGenderDropdown = false;
+    this.showCountryFieldDropdown = false;
+  }
+
+  selectNationality(option: DropdownOption) {
+    this.registerForm.patchValue({ nationality: option.value });
+    this.showNationalityDropdown = false;
+  }
+
+  getSelectedGender(): string {
+    const selectedValue = this.registerForm.get('gender')?.value;
+    if (!selectedValue) return 'Select Gender';
+    const option = this.genderOptions.find(o => o.value === selectedValue);
+    return option?.label || 'Select Gender';
+  }
+
+  getSelectedCountryField(): string {
+    const selectedValue = this.registerForm.get('country')?.value;
+    if (!selectedValue) return 'Select Country';
+    const option = this.countries.find(o => o.value === selectedValue);
+    return option?.label || 'Select Country';
+  }
+
+  getSelectedNationality(): string {
+    const selectedValue = this.registerForm.get('nationality')?.value;
+    if (!selectedValue) return 'Select Nationality';
+    const option = this.nationalities.find(o => o.value === selectedValue);
+    return option?.label || 'Select Nationality';
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    // Close all dropdowns when clicking outside
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-dropdown')) {
+      this.showCountryDropdown = false;
+      this.showGenderDropdown = false;
+      this.showCountryFieldDropdown = false;
+      this.showNationalityDropdown = false;
+    }
   }
 
   onRegister() {

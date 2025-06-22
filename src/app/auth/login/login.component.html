@@ -26,14 +26,18 @@
       <!-- Password Field -->
       <div class="form-field">
         <label for="password">Password *</label>
-        <p-password 
-          formControlName="password"
-          inputId="password"
-          placeholder=""
-          [toggleMask]="true"
-          [feedback]="false"
-          styleClass="password-field"
-        ></p-password>
+        <div class="custom-password password-field">
+          <input 
+            id="password" 
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder=""
+            class="form-input password-input"
+          />
+          <div class="password-toggle" (click)="togglePasswordVisibility()">
+            <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+          </div>
+        </div>
       </div>
 
       <!-- Forgot Password Link -->

@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -6,7 +7,6 @@ import { CommonModule } from '@angular/common';
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
 
 @Component({
@@ -17,7 +17,6 @@ import { CardModule } from 'primeng/card';
     ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
-    PasswordModule,
     CardModule
   ],
   templateUrl: './reset-password.component.html',
@@ -28,6 +27,9 @@ export class ResetPasswordComponent implements OnInit {
   loading = false;
   passwordReset = false;
   token: string | null = null;
+  showOldPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -92,5 +94,17 @@ export class ResetPasswordComponent implements OnInit {
   get showPasswordMismatchError(): boolean {
     const confirmPassword = this.resetPasswordForm.get('confirmPassword');
     return !!(confirmPassword?.touched && !this.passwordsMatch && confirmPassword?.value);
+  }
+
+  toggleOldPasswordVisibility() {
+    this.showOldPassword = !this.showOldPassword;
+  }
+
+  toggleNewPasswordVisibility() {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 }

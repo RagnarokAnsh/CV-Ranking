@@ -1,0 +1,347 @@
+// Navbar/Sidebar Component Styles
+// Based on Figma design with sidebar and top header
+::ng-deep .p-popover {
+    background-color: var(--primary-dark) !important;
+}
+.app-layout {
+  display: flex;
+  height: 100vh;
+  background-color: var(--background-gray);
+}
+
+/* ===== SIDEBAR STYLES ===== */
+.sidebar {
+  width: 200px;
+  background-color: var(--primary-dark);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  text-align: center;
+//   border-bottom: 1px solid var(--medium-gray);
+  
+  h2 {
+    color: var(--white);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-bold);
+    font-size: 1.2rem;
+    line-height: 1.3;
+    margin: 0;
+  }
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    color: var(--divider-gray); // #BABABA - default text color
+    text-decoration: none;
+    padding: 1rem 1.5rem;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    background: transparent;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    
+    &:hover {
+      color: var(--white); // White text on hover
+      background-color: var(--primary-blue); // #5B92E5 - hover background
+      
+      
+      i {
+        color: var(--white); // White icon on hover
+      }
+    }
+    
+    &.active {
+      color: var(--black) !important; // Black text on active
+      background-color: var(--primary-blue) !important; // #5B92E5 - active background
+      
+      i {
+        color: var(--black) !important; // Black icon on active
+      }
+    }
+    
+    i {
+      margin-right: 0.75rem;
+      width: 20px;
+      font-size: 1rem;
+      color: var(--divider-gray); // #BABABA - default icon color
+      transition: color 0.3s ease;
+    }
+    
+    span {
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+  }
+}
+
+/* ===== MAIN CONTENT STYLES ===== */
+.main-content {
+  flex: 1;
+  margin-left: 200px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ===== TOP HEADER STYLES ===== */
+.top-header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--border-gray);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  height: 70px;
+  background-color: #D2DAE9;
+}
+
+.page-title h1 {
+  color: var(--black);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* ===== USER PROFILE STYLES ===== */
+.user-profile {
+  position: relative;
+}
+
+.profile-button {
+  background: none;
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: var(--primary-blue-light);
+    border-color: var(--primary-blue);
+  }
+  
+  .profile-icon {
+    font-size: 1.2rem;
+    color: var(--black);
+  }
+}
+
+/* ===== USER MENU OVERLAY STYLES ===== */
+::ng-deep .user-menu-panel {
+  .p-overlaypanel {
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--border-gray);
+    min-width: 250px;
+  }
+  
+  .p-overlaypanel-content {
+    padding: 0;
+  }
+}
+
+.user-menu-content {
+  .user-info {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--primary-dark);
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--primary-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.75rem;
+      
+      i {
+        color: var(--white);
+        font-size: 1.2rem;
+      }
+    }
+    
+    .user-details {
+      .user-name {
+        font-weight: var(--font-weight-semibold);
+        color: var(--muted-gray);
+        margin: 0 0 0.25rem 0;
+        font-size: 0.9rem;
+      }
+      
+      .user-email {
+        color: var(--muted-gray);
+        margin: 0;
+        font-size: 0.8rem;
+      }
+    }
+  }
+  
+  .menu-divider {
+    height: 1px;
+    background-color: var(--border-gray);
+  }
+  
+  .menu-items {
+    padding: 0.5rem 0;
+    
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: var(--muted-gray);
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      
+      &:hover {
+        background-color: var(--primary-blue) !important;
+        color: var(--white) !important;
+
+        i {
+            color: var(--white) !important;
+        }
+      }
+      
+      i {
+        margin-right: 0.75rem;
+        width: 16px;
+        font-size: 0.9rem;
+        color: var(--muted-gray);
+      }
+      
+      span {
+        font-size: 0.9rem;
+        font-weight: var(--font-weight-medium);
+      }
+    }
+  }
+}
+
+
+
+/* ===== CONTENT AREA STYLES ===== */
+.content-area {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--background-gray);
+  overflow-y: auto;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 180px;
+  }
+  
+  .main-content {
+    margin-left: 180px;
+  }
+  
+  .header-content {
+    padding: 1rem 1.5rem;
+  }
+  
+  .content-area {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 160px;
+  }
+  
+  .main-content {
+    margin-left: 160px;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1rem;
+  }
+  
+  .sidebar-nav .nav-item {
+    padding: 0.75rem 1rem;
+    
+    span {
+      font-size: 0.8rem;
+    }
+  }
+  
+  .header-content {
+    padding: 1rem;
+  }
+  
+  .page-title h1 {
+    font-size: 1.25rem;
+  }
+  
+  .content-area {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 60px;
+    
+    .sidebar-header h2 {
+      font-size: 0.7rem;
+      line-height: 1.2;
+    }
+    
+    .nav-item span {
+      display: none;
+    }
+    
+    .nav-item {
+      justify-content: center;
+      padding: 1rem 0.5rem;
+    }
+  }
+  
+  .main-content {
+    margin-left: 60px;
+  }
+  
+  .header-content {
+    padding: 0.75rem;
+  }
+  
+  .page-title h1 {
+    font-size: 1.1rem;
+  }
+  
+  .content-area {
+    padding: 0.75rem;
+  }
+}

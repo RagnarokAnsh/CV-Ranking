@@ -52,28 +52,30 @@
         <div class="form-field half-width">
           <label for="phone">Phone/Mobile *</label>
           <div class="phone-input-container">
-            <p-dropdown 
-              [options]="countryCodes" 
-              formControlName="countryCode"
-              optionLabel="display" 
-              optionValue="value"
-              styleClass="country-dropdown"
-              [showClear]="false">
-              <ng-template pTemplate="selectedItem" let-selectedOption>
-                <div class="country-item" *ngIf="selectedOption">
-                  <img [src]="selectedOption.flag" alt="flag" class="flag-icon">
-                  <span class="country-code">{{ selectedOption.value }}</span>
+            <div class="custom-dropdown country-dropdown" [class.open]="showCountryDropdown" (click)="toggleCountryDropdown(); $event.stopPropagation()">
+              <div class="dropdown-selected">
+                <div class="country-item" *ngIf="getSelectedCountryCode()">
+                  <img [src]="getSelectedCountryCode().flag" alt="flag" class="flag-icon">
+                  <span class="country-code">{{ getSelectedCountryCode().value }}</span>
                 </div>
-              </ng-template>
-              <ng-template let-country pTemplate="item">
-                <div class="country-item">
-                  <img [src]="country.flag" alt="flag" class="flag-icon">
-                  <span>{{ country.display }}</span>
+              </div>
+              <div class="dropdown-icon">
+                <i class="pi pi-chevron-down"></i>
+              </div>
+              <div class="dropdown-panel" *ngIf="showCountryDropdown" (click)="$event.stopPropagation()">
+                <div 
+                  class="dropdown-item" 
+                  *ngFor="let country of countryCodes"
+                  (click)="selectCountryCode(country); $event.stopPropagation()"
+                  [class.selected]="country.value === registerForm.get('countryCode')?.value">
+                  <div class="country-item">
+                    <img [src]="country.flag" alt="flag" class="flag-icon">
+                    <span>{{ country.display }}</span>
+                  </div>
                 </div>
-              </ng-template>
-            </p-dropdown>
+              </div>
+            </div>
             <input 
-              pInputText 
               id="phone" 
               type="tel"
               formControlName="phone"
@@ -88,26 +90,38 @@
       <div class="form-row">
         <div class="form-field half-width">
           <label for="dateOfBirth">Date of Birth *</label>
-          <p-calendar 
-            formControlName="dateOfBirth"
-            inputId="dateOfBirth"
-            [showIcon]="true"
-            iconDisplay="input"
-            styleClass="date-field"
-            placeholder=""
-            dateFormat="dd/mm/yy">
-          </p-calendar>
+          <div class="calendar-wrapper">
+            <p-calendar 
+              formControlName="dateOfBirth"
+              inputId="dateOfBirth"
+              [showIcon]="true"
+              iconDisplay="input"
+              placeholder="Select Date"
+              dateFormat="dd/mm/yy"
+              inputStyleClass="custom-calendar-input"
+              styleClass="custom-calendar">
+            </p-calendar>
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="gender">Gender *</label>
-          <p-dropdown 
-            [options]="genderOptions" 
-            formControlName="gender"
-            optionLabel="label" 
-            optionValue="value"
-            placeholder=""
-            styleClass="dropdown-field">
-          </p-dropdown>
+          <div class="custom-dropdown dropdown-field" [class.open]="showGenderDropdown" (click)="toggleGenderDropdown(); $event.stopPropagation()">
+            <div class="dropdown-selected">
+              <span class="dropdown-text" [class.placeholder]="!registerForm.get('gender')?.value">{{ getSelectedGender() }}</span>
+            </div>
+            <div class="dropdown-icon">
+              <i class="pi pi-chevron-down"></i>
+            </div>
+            <div class="dropdown-panel" *ngIf="showGenderDropdown" (click)="$event.stopPropagation()">
+              <div 
+                class="dropdown-item" 
+                *ngFor="let option of genderOptions"
+                (click)="selectGender(option); $event.stopPropagation()"
+                [class.selected]="option.value === registerForm.get('gender')?.value">
+                <span>{{ option.label }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -115,27 +129,43 @@
       <div class="form-row">
         <div class="form-field half-width">
           <label for="country">Country *</label>
-          <p-dropdown 
-            [options]="countries" 
-            formControlName="country"
-            optionLabel="label" 
-            optionValue="value"
-            placeholder=""
-            styleClass="dropdown-field"
-            [filter]="true">
-          </p-dropdown>
+          <div class="custom-dropdown dropdown-field" [class.open]="showCountryFieldDropdown" (click)="toggleCountryFieldDropdown(); $event.stopPropagation()">
+            <div class="dropdown-selected">
+              <span class="dropdown-text" [class.placeholder]="!registerForm.get('country')?.value">{{ getSelectedCountryField() }}</span>
+            </div>
+            <div class="dropdown-icon">
+              <i class="pi pi-chevron-down"></i>
+            </div>
+            <div class="dropdown-panel" *ngIf="showCountryFieldDropdown" (click)="$event.stopPropagation()">
+              <div 
+                class="dropdown-item" 
+                *ngFor="let option of countries"
+                (click)="selectCountryField(option); $event.stopPropagation()"
+                [class.selected]="option.value === registerForm.get('country')?.value">
+                <span>{{ option.label }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="nationality">Nationality *</label>
-          <p-dropdown 
-            [options]="nationalities" 
-            formControlName="nationality"
-            optionLabel="label" 
-            optionValue="value"
-            placeholder=""
-            styleClass="dropdown-field"
-            [filter]="true">
-          </p-dropdown>
+          <div class="custom-dropdown dropdown-field" [class.open]="showNationalityDropdown" (click)="toggleNationalityDropdown(); $event.stopPropagation()">
+            <div class="dropdown-selected">
+              <span class="dropdown-text" [class.placeholder]="!registerForm.get('nationality')?.value">{{ getSelectedNationality() }}</span>
+            </div>
+            <div class="dropdown-icon">
+              <i class="pi pi-chevron-down"></i>
+            </div>
+            <div class="dropdown-panel" *ngIf="showNationalityDropdown" (click)="$event.stopPropagation()">
+              <div 
+                class="dropdown-item" 
+                *ngFor="let option of nationalities"
+                (click)="selectNationality(option); $event.stopPropagation()"
+                [class.selected]="option.value === registerForm.get('nationality')?.value">
+                <span>{{ option.label }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -143,25 +173,33 @@
       <div class="form-row">
         <div class="form-field half-width">
           <label for="password">Password *</label>
-          <p-password 
-            formControlName="password"
-            inputId="password"
-            placeholder=""
-            [toggleMask]="true"
-            [feedback]="false"
-            styleClass="password-field">
-          </p-password>
+          <div class="custom-password password-field">
+            <input 
+              id="password" 
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder=""
+              class="form-input password-input"
+            />
+            <div class="password-toggle" (click)="togglePasswordVisibility()">
+              <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+            </div>
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="confirmPassword">Confirm Password *</label>
-          <p-password 
-            formControlName="confirmPassword"
-            inputId="confirmPassword"
-            placeholder=""
-            [toggleMask]="true"
-            [feedback]="false"
-            styleClass="password-field">
-          </p-password>
+          <div class="custom-password password-field">
+            <input 
+              id="confirmPassword" 
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              placeholder=""
+              class="form-input password-input"
+            />
+            <div class="password-toggle" (click)="toggleConfirmPasswordVisibility()">
+              <i [class]="showConfirmPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+            </div>
+          </div>
         </div>
       </div>
 

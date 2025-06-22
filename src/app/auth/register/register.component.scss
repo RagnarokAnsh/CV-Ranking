@@ -1,282 +1,406 @@
-// Register component specific styles
-// Most styles are now in global styles.scss under "GLOBAL AUTH STYLES"
+// Register component with custom form controls
+// Uses global auth styles from styles.scss for basic layout
 
-// Any register-specific overrides can go here
-// Currently using global auth styles for consistency
-
-.register-container {
-  background-color: var(--primary-dark);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-}
-
-.register-card {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 600px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-// Header styling is now handled globally in styles.scss
-
-.register-form {
-  .form-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    
-    @media (max-width: 768px) {
-      flex-direction: column;
-      gap: 0;
-    }
-  }
-  
-  .form-field {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    
-    &.half-width {
-      width: calc(50% - 0.5rem);
-      flex: 1 1 calc(50% - 0.5rem);
-      
-      @media (max-width: 768px) {
-        width: 100%;
-        flex: 1 1 100%;
-        margin-bottom: 1.5rem;
-      }
-    }
-    
-    label {
-      display: block;
-      color: var(--black);
-      font-weight: var(--font-weight-medium);
-      font-size: 0.9rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .form-input {
-      width: 100%;
-      height: 44px;
-      padding: 0.75rem;
-      border: 1px solid var(--border-gray);
-      border-radius: 8px;
-      background: var(--input-gray);
-      font-family: var(--font-family);
-      font-size: 0.9rem;
-      color: var(--black);
-      transition: all 0.3s ease;
-      box-sizing: border-box;
-      
-      &:focus {
-        outline: none;
-        border-color: var(--primary-blue);
-        box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
-      }
-    }
-    
-    /* Ensure all PrimeNG components in form fields have consistent width */
-    .p-dropdown,
-    .p-calendar,
-    .p-password {
-      width: 100% !important;
-      height: 44px !important;
-    }
-  }
-}
-
-// Phone input container
+/* Phone Input Container - Custom Layout */
 .phone-input-container {
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: stretch;
+  width: 100%;
+  
+  .country-dropdown {
+    width: 30% !important;
+    min-width: 30% !important;
+    max-width: 30% !important;
+    flex-shrink: 0 !important;
+  }
   
   .phone-number {
+    width: 70%;
     flex: 1;
-    min-width: 0; // Allow flex item to shrink
+    min-width: 0;
   }
 }
 
-// Country dropdown styling - make it larger to match Figma
-::ng-deep .country-dropdown {
-  width: 100px !important;
-  min-width: 100px !important;
-  max-width: 100px !important;
-  flex-shrink: 0 !important;
+/* Custom Dropdown Styles */
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  background: #E6E6E6;
+  border: 1px solid #E1E1E1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  transition: all 0.3s ease;
   
-  .p-dropdown {
-    width: 100px !important;
-    min-width: 100px !important;
-    max-width: 100px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
+  &:hover {
+    border-color: #5B92E5;
+  }
+  
+  &:focus-within {
+    border-color: #5B92E5;
+    box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
+  }
+  
+  .dropdown-selected {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 2.5rem 0 1rem;
     
-    .p-dropdown-label {
-      padding: 0.75rem 0.5rem !important;
-      font-size: 0.85rem !important;
-      text-align: center !important;
-      height: 100% !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      color: #000000 !important;
+    .dropdown-text {
+      color: #000000;
+      font-size: 0.9rem;
+      font-weight: normal;
+      
+      &.placeholder {
+        color: #999999;
+      }
+    }
+    
+    .country-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      color: #000000;
+      
+      .flag-icon {
+        width: 16px;
+        height: 12px;
+        object-fit: cover;
+      }
+      
+      .country-code {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #000000;
+      }
+    }
+  }
+  
+  .dropdown-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2.5rem;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    i {
+      color: #818182;
+      font-size: 0.8rem;
+      transition: transform 0.3s ease;
+    }
+  }
+  
+  &.open .dropdown-icon i {
+    transform: rotate(180deg);
+  }
+  
+  .dropdown-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #E1E1E1;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 2px;
+    
+    .dropdown-item {
+      padding: 0.5rem 0.5rem;
+      cursor: pointer;
+      border-bottom: 1px solid #F5F5F5;
+      transition: background-color 0.2s ease;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      &:hover {
+        background-color: #F8F9FA;
+      }
+      
+      &.selected {
+        background-color: #E3F2FD;
+        color: #1976D2;
+      }
+      
+      span {
+        color: #000000;
+        font-size: 0.9rem;
+      }
       
       .country-item {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-        color: #000000 !important;
+        gap: 0.5rem;
         
         .flag-icon {
-          width: 16px;
-          height: 12px;
+          width: 20px;
+          height: 15px;
           object-fit: cover;
         }
         
-        .country-code {
-          font-size: 0.8rem;
-          font-weight: 500;
-          color: #000000 !important;
+        span {
+          color: #000000;
         }
       }
     }
+  }
+}
+
+/* Country Dropdown - Centered Content */
+.country-dropdown .dropdown-selected {
+  justify-content: center;
+  padding: 0 2.5rem 0 0.5rem;
+}
+
+/* Custom Password Field Styles */
+.custom-password {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  
+  .password-input {
+    width: 100%;
+    height: 44px;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    border: 1px solid #E1E1E1;
+    border-radius: 8px;
+    background: #E6E6E6;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.9rem;
+    color: #000000;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
     
-    .p-dropdown-trigger {
-      width: 2rem !important;
-      height: 100% !important;
-      border-left: 1px solid var(--border-gray) !important;
-      
-      .p-dropdown-trigger-icon {
-        font-size: 0.8rem !important;
+    &:focus {
+      border-color: #5B92E5;
+      box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
+      outline: none;
+    }
+    
+    &:hover {
+      border-color: #5B92E5;
+    }
+    
+    &::placeholder {
+      color: #999999;
+      opacity: 1;
+    }
+  }
+  
+  .password-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2.5rem;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 2;
+    
+    i {
+      color: #818182;
+      font-size: 0.8rem;
+      transition: color 0.3s ease;
+    }
+    
+    &:hover i {
+      color: #5B92E5;
+    }
+  }
+}
+
+/* Hide any remaining PrimeNG password icons */
+::ng-deep .p-password .p-password-toggle-mask {
+  display: none !important;
+}
+
+/* Calendar Wrapper - Custom styling container */
+.calendar-wrapper {
+  width: 100%;
+  height: 44px;
+  position: relative;
+}
+
+/* Aggressive PrimeNG Calendar Overrides */
+::ng-deep .calendar-wrapper .p-calendar,
+::ng-deep .custom-calendar,
+::ng-deep .p-calendar.custom-calendar {
+  width: 100% !important;
+  height: 44px !important;
+  display: block !important;
+  position: relative !important;
+  
+  /* Calendar input field */
+  .p-inputtext,
+  input.p-inputtext,
+  input.custom-calendar-input,
+  input[data-pc-section="input"] {
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0.75rem 2.5rem 0.75rem 1rem !important;
+    margin: 0 !important;
+    border: 1px solid #E1E1E1 !important;
+    border-radius: 8px !important;
+    background-color: #E6E6E6 !important;
+    background: #E6E6E6 !important;
+    font-family: 'Manrope', sans-serif !important;
+    font-size: 0.9rem !important;
+    color: #000000 !important;
+    line-height: 1.2 !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s ease !important;
+    
+    /* Override all possible states */
+    &:enabled,
+    &:not(:disabled),
+    &[aria-disabled="false"] {
+      background-color: #E6E6E6 !important;
+      background: #E6E6E6 !important;
+      color: #000000 !important;
+    }
+    
+    &:focus,
+    &:focus-visible,
+    &[data-p-focus="true"] {
+      background-color: #E6E6E6 !important;
+      background: #E6E6E6 !important;
+      color: #000000 !important;
+      border-color: #5B92E5 !important;
+      box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2) !important;
+      outline: none !important;
+    }
+    
+    &:hover {
+      background-color: #E6E6E6 !important;
+      background: #E6E6E6 !important;
+      color: #000000 !important;
+      border-color: #5B92E5 !important;
+    }
+    
+    &::placeholder {
+      color: #999999 !important;
+      opacity: 1 !important;
+    }
+  }
+  
+  /* Calendar trigger button */
+  .p-datepicker-trigger,
+  button.p-datepicker-trigger,
+  button[data-pc-section="trigger"] {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 2.5rem !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    border-left: 1px solid #E1E1E1 !important;
+    cursor: pointer !important;
+    z-index: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    
+    .pi,
+    i.pi,
+    span.pi,
+    [data-pc-section="triggericon"] {
+      color: #818182 !important;
+      font-size: 0.8rem !important;
+    }
+    
+    &:hover {
+      .pi,
+      i.pi,
+      span.pi,
+      [data-pc-section="triggericon"] {
+        color: #5B92E5 !important;
       }
     }
   }
 }
-.p-dropdown .p-select-label {
-    color: #000000 !important;
+
+/* Force width inheritance for nested elements */
+::ng-deep .form-field.half-width .calendar-wrapper,
+::ng-deep .form-field.half-width .calendar-wrapper .p-calendar,
+::ng-deep .form-field.half-width .calendar-wrapper .p-calendar > span {
+  width: 100% !important;
+  display: block !important;
 }
 
-// Country item styling for dropdown options
-::ng-deep .p-dropdown-panel .country-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  .flag-icon {
-    width: 20px;
-    height: 15px;
-    object-fit: cover;
-  }
+/* Override PrimeNG component wrapper */
+::ng-deep .p-component.p-calendar.custom-calendar {
+  width: 100% !important;
+  height: 44px !important;
 }
 
-.country-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  .flag-icon {
-    width: 16px;
-    height: 12px;
-    object-fit: cover;
-  }
+/* Final override for any remaining conflicts */
+::ng-deep .register-form .form-field .calendar-wrapper .p-calendar .p-inputtext {
+  background-color: #E6E6E6 !important;
+  background: #E6E6E6 !important;
+  color: #000000 !important;
+  width: 100% !important;
+  height: 44px !important;
 }
 
-// Dropdown field styling - removed since global styles handle this now
-
-// Date field styling - removed since global styles handle this now
-
-// Password field styling - removed since global styles handle this now
-
-.register-button {
-  width: 100%;
-  background: var(--primary-dark);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 0.875rem 1rem;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-medium);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 1.5rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  
-  &:hover:not(:disabled) {
-    background: var(--medium-gray);
-    transform: translateY(-1px);
-  }
-  
-  &:disabled {
-    background: var(--light-gray);
-    cursor: not-allowed;
-    transform: none;
-  }
-  
-  .loading-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid var(--white);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+/* Close dropdowns when clicking outside */
+.custom-dropdown.open {
+  border-color: #5B92E5;
+  box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.login-link {
-  text-align: center;
-  font-size: 0.9rem;
-  
-  span {
-    color: var(--muted-gray);
-  }
-  
-  .login-text {
-    color: var(--primary-blue);
-    text-decoration: none;
-    font-weight: var(--font-weight-medium);
-    
-    &:hover {
-      color: var(--primary-blue-dark);
-      text-decoration: underline;
-    }
-  }
-}
-
-// Responsive design
+/* Responsive Design for Phone Input */
 @media (max-width: 768px) {
-  .register-card {
-    padding: 1.5rem;
-    margin: 1rem;
-    max-width: 100%;
-  }
-  
-  .register-header h1 {
-    font-size: 1.25rem;
-  }
-  
   .phone-input-container {
     flex-direction: column;
     gap: 1rem;
     
-    ::ng-deep .country-dropdown {
+    .country-dropdown {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    .phone-number {
       width: 100%;
     }
   }
+}
+
+/* Scrollbar styling for dropdown panels */
+.dropdown-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-panel::-webkit-scrollbar-track {
+  background: #F5F5F5;
+  border-radius: 3px;
+}
+
+.dropdown-panel::-webkit-scrollbar-thumb {
+  background: #CCCCCC;
+  border-radius: 3px;
+}
+
+.dropdown-panel::-webkit-scrollbar-thumb:hover {
+  background: #999999;
 }

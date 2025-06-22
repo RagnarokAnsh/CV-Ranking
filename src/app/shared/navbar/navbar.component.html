@@ -1,0 +1,82 @@
+<div class="app-layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Logo/Brand Section -->
+    <div class="sidebar-header">
+      <h2>CV<br>Ranking<br>Application</h2>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+      <a 
+        *ngFor="let item of sidebarItems" 
+        href="javascript:void(0)"
+        class="nav-item"
+        [class.active]="isActiveRoute(getRouteFromItem(item))"
+        (click)="item.command && item.command({originalEvent: $event, item: item})"
+      >
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <!-- Top Header/Navbar -->
+    <header class="top-header">
+      <div class="header-content">
+        <!-- Page Title (will be set by individual components) -->
+        <div class="page-title">
+          <!-- <h1>{{ getPageTitle() }}</h1> -->
+        </div>
+
+        <!-- User Profile Section -->
+        <div class="user-profile">
+          <button 
+            type="button" 
+            class="profile-button"
+            (click)="userMenu.toggle($event)"
+          >
+            <i class="pi pi-user profile-icon"></i>
+          </button>
+          
+          <!-- User Menu Overlay -->
+          <p-overlayPanel #userMenu styleClass="user-menu-panel">
+            <div class="user-menu-content">
+              <div class="user-info">
+                <!-- <div class="user-avatar"> -->
+                  <!-- <i class="pi pi-user"></i> -->
+                <!-- </div> -->
+                <div class="user-details">
+                  <p class="user-name">John Doe</p>
+                  <p class="user-email">john.doe&#64;example.com</p>
+                </div>
+              </div>
+              <div class="menu-divider"></div>
+              <div class="menu-items">
+                <ng-container *ngFor="let menuItem of userMenuItems">
+                  <a 
+                    *ngIf="!menuItem.separator"
+                    href="javascript:void(0)"
+                    class="menu-item"
+                    (click)="menuItem.command && menuItem.command({originalEvent: $event, item: menuItem})"
+                  >
+                    <i [class]="menuItem.icon"></i>
+                    <span>{{ menuItem.label }}</span>
+                  </a>
+                  <div *ngIf="menuItem.separator" class="menu-separator"></div>
+                </ng-container>
+              </div>
+            </div>
+          </p-overlayPanel>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="content-area">
+      <ng-content></ng-content>
+    </main>
+  </div>
+</div>

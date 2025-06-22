@@ -1,0 +1,44 @@
+<app-navbar>
+  <!-- Admin Approval Content -->
+  <div class="admin-approval-content">
+    <!-- Page Header -->
+    <div class="page-header">
+    <h1>ADMIN APPROVAL</h1>
+    </div>
+
+    <!-- Table with Paginator -->
+    <p-table 
+      [value]="hrCandidates" 
+      styleClass="admin-approval-table"
+      [tableStyle]="{'width': '100%'}"
+      [paginator]="showPaginator"
+      [rows]="rowsPerPage"
+      [totalRecords]="totalRecords"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      [rowsPerPageOptions]="[5, 10, 20, 50]">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th>HR Name</th>
+          <th>Email</th>
+          <th>Phone Number</th>
+          <th>Approval</th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-candidate>
+        <tr>
+          <td>{{ candidate.name }}</td>
+          <td>{{ candidate.email }}</td>
+          <td>{{ candidate.phone }}</td>
+          <td>
+            <div class="admin-status-icon" [ngClass]="candidate.status">
+              <i [class]="getStatusIcon(candidate.status)"></i>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</app-navbar>

@@ -1,0 +1,112 @@
+// Admin Approval Component Styles
+// Page-specific layout only - table styles are in global CSS
+
+.admin-approval-content {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.5rem;
+  }
+}
+
+/* Page Header */
+.page-header {
+  margin-bottom: 2rem;
+  
+  h1 {
+    color: #2D3748;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1.8rem;
+    margin: 0 0 1rem 0;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-color: #000000;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+    
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.3rem;
+      text-decoration-thickness: 1px;
+    }
+  }
+}
+
+/* Table Container */
+.table-container {
+  background: var(--white);
+  border-radius: var(--border-radius-large);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+  }
+}
+
+/* ===== STATUS ICON STYLES ===== */
+.approval-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  
+  i {
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+  
+  &.approved {
+    background-color: var(--success-green);
+    
+    i {
+      color: #000000 !important;
+    }
+  }
+  
+  &.rejected {
+    background-color: var(--error-red);
+    
+    i {
+      color: #000000 !important;
+    }
+  }
+  
+  &.pending {
+    background-color: var(--warning-orange);
+    
+    i {
+      color: var(--white);
+    }
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.text-center {
+  text-align: center;
+}
+
