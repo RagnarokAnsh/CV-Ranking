@@ -1,0 +1,73 @@
+<div class="login-container">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+      <h1>CV Ranking Application</h1>
+      <div class="header-separator"></div>
+      <p style="color: #2D3748;">Login to your account</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+      
+      <!-- Email Field -->
+      <div class="form-field">
+        <label for="email">Email *</label>
+        <input 
+          pInputText 
+          id="email" 
+          type="email"
+          formControlName="email"
+          placeholder=""
+          class="form-input"
+        />
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-field">
+        <label for="password">Password *</label>
+        <p-password 
+          formControlName="password"
+          inputId="password"
+          placeholder=""
+          [toggleMask]="true"
+          [feedback]="false"
+          styleClass="password-field"
+        ></p-password>
+      </div>
+
+      <!-- Forgot Password Link -->
+      <div class="forgot-password">
+        <a 
+          href="javascript:void(0)" 
+          class="forgot-link"
+          (click)="onForgotPassword()"
+        >
+          Forgot password?
+        </a>
+      </div>
+
+      <!-- Login Button -->
+      <button 
+        type="submit"
+        class="login-button"
+        [disabled]="loginForm.invalid || loading"
+      >
+        <span *ngIf="loading" class="loading-spinner"></span>
+        Login
+      </button>
+
+      <!-- Register Link -->
+      <div class="register-link">
+        <span>Don't have an account? </span>
+        <a 
+          href="javascript:void(0)" 
+          class="register-text"
+          (click)="onRegister()"
+        >
+          Register
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

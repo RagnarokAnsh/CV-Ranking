@@ -1,0 +1,191 @@
+<div class="register-container">
+  <div class="register-card">
+    <!-- Header -->
+    <div class="register-header">
+      <h1>CV Ranking Application</h1>
+      <div class="header-separator"></div>
+      <p style="color: #2D3748;">Create Account</p>
+    </div>
+
+    <!-- Register Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="register-form">
+      
+      <!-- First Row: First Name & Last Name -->
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="firstName">First Name *</label>
+          <input 
+            pInputText 
+            id="firstName" 
+            type="text"
+            formControlName="firstName"
+            placeholder=""
+            class="form-input"
+          />
+        </div>
+        <div class="form-field half-width">
+          <label for="lastName">Last Name *</label>
+          <input 
+            pInputText 
+            id="lastName" 
+            type="text"
+            formControlName="lastName"
+            placeholder=""
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <!-- Second Row: Email & Phone -->
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="email">Email *</label>
+          <input 
+            pInputText 
+            id="email" 
+            type="email"
+            formControlName="email"
+            placeholder=""
+            class="form-input"
+          />
+        </div>
+        <div class="form-field half-width">
+          <label for="phone">Phone/Mobile *</label>
+          <div class="phone-input-container">
+            <p-dropdown 
+              [options]="countryCodes" 
+              formControlName="countryCode"
+              optionLabel="display" 
+              optionValue="value"
+              styleClass="country-dropdown"
+              [showClear]="false">
+              <ng-template pTemplate="selectedItem" let-selectedOption>
+                <div class="country-item" *ngIf="selectedOption">
+                  <img [src]="selectedOption.flag" alt="flag" class="flag-icon">
+                  <span class="country-code">{{ selectedOption.value }}</span>
+                </div>
+              </ng-template>
+              <ng-template let-country pTemplate="item">
+                <div class="country-item">
+                  <img [src]="country.flag" alt="flag" class="flag-icon">
+                  <span>{{ country.display }}</span>
+                </div>
+              </ng-template>
+            </p-dropdown>
+            <input 
+              pInputText 
+              id="phone" 
+              type="tel"
+              formControlName="phone"
+              placeholder=""
+              class="form-input phone-number"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Third Row: Date of Birth & Gender -->
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="dateOfBirth">Date of Birth *</label>
+          <p-calendar 
+            formControlName="dateOfBirth"
+            inputId="dateOfBirth"
+            [showIcon]="true"
+            iconDisplay="input"
+            styleClass="date-field"
+            placeholder=""
+            dateFormat="dd/mm/yy">
+          </p-calendar>
+        </div>
+        <div class="form-field half-width">
+          <label for="gender">Gender *</label>
+          <p-dropdown 
+            [options]="genderOptions" 
+            formControlName="gender"
+            optionLabel="label" 
+            optionValue="value"
+            placeholder=""
+            styleClass="dropdown-field">
+          </p-dropdown>
+        </div>
+      </div>
+
+      <!-- Fourth Row: Country & Nationality -->
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="country">Country *</label>
+          <p-dropdown 
+            [options]="countries" 
+            formControlName="country"
+            optionLabel="label" 
+            optionValue="value"
+            placeholder=""
+            styleClass="dropdown-field"
+            [filter]="true">
+          </p-dropdown>
+        </div>
+        <div class="form-field half-width">
+          <label for="nationality">Nationality *</label>
+          <p-dropdown 
+            [options]="nationalities" 
+            formControlName="nationality"
+            optionLabel="label" 
+            optionValue="value"
+            placeholder=""
+            styleClass="dropdown-field"
+            [filter]="true">
+          </p-dropdown>
+        </div>
+      </div>
+
+      <!-- Fifth Row: Password & Confirm Password -->
+      <div class="form-row">
+        <div class="form-field half-width">
+          <label for="password">Password *</label>
+          <p-password 
+            formControlName="password"
+            inputId="password"
+            placeholder=""
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="password-field">
+          </p-password>
+        </div>
+        <div class="form-field half-width">
+          <label for="confirmPassword">Confirm Password *</label>
+          <p-password 
+            formControlName="confirmPassword"
+            inputId="confirmPassword"
+            placeholder=""
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="password-field">
+          </p-password>
+        </div>
+      </div>
+
+      <!-- Register Button -->
+      <button 
+        type="submit"
+        class="register-button"
+        [disabled]="registerForm.invalid || loading"
+      >
+        <span *ngIf="loading" class="loading-spinner"></span>
+        Create Account
+      </button>
+
+      <!-- Login Link -->
+      <div class="login-link">
+        <span>Already have an account? </span>
+        <a 
+          href="javascript:void(0)" 
+          class="login-text"
+          (click)="onLogin()"
+        >
+          Login
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,282 @@
+// Register component specific styles
+// Most styles are now in global styles.scss under "GLOBAL AUTH STYLES"
+
+// Any register-specific overrides can go here
+// Currently using global auth styles for consistency
+
+.register-container {
+  background-color: var(--primary-dark);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.register-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+// Header styling is now handled globally in styles.scss
+
+.register-form {
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+  
+  .form-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    
+    &.half-width {
+      width: calc(50% - 0.5rem);
+      flex: 1 1 calc(50% - 0.5rem);
+      
+      @media (max-width: 768px) {
+        width: 100%;
+        flex: 1 1 100%;
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    label {
+      display: block;
+      color: var(--black);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-input {
+      width: 100%;
+      height: 44px;
+      padding: 0.75rem;
+      border: 1px solid var(--border-gray);
+      border-radius: 8px;
+      background: var(--input-gray);
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      color: var(--black);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      
+      &:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
+      }
+    }
+    
+    /* Ensure all PrimeNG components in form fields have consistent width */
+    .p-dropdown,
+    .p-calendar,
+    .p-password {
+      width: 100% !important;
+      height: 44px !important;
+    }
+  }
+}
+
+// Phone input container
+.phone-input-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  
+  .phone-number {
+    flex: 1;
+    min-width: 0; // Allow flex item to shrink
+  }
+}
+
+// Country dropdown styling - make it larger to match Figma
+::ng-deep .country-dropdown {
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+  flex-shrink: 0 !important;
+  
+  .p-dropdown {
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    
+    .p-dropdown-label {
+      padding: 0.75rem 0.5rem !important;
+      font-size: 0.85rem !important;
+      text-align: center !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: #000000 !important;
+      
+      .country-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        color: #000000 !important;
+        
+        .flag-icon {
+          width: 16px;
+          height: 12px;
+          object-fit: cover;
+        }
+        
+        .country-code {
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: #000000 !important;
+        }
+      }
+    }
+    
+    .p-dropdown-trigger {
+      width: 2rem !important;
+      height: 100% !important;
+      border-left: 1px solid var(--border-gray) !important;
+      
+      .p-dropdown-trigger-icon {
+        font-size: 0.8rem !important;
+      }
+    }
+  }
+}
+.p-dropdown .p-select-label {
+    color: #000000 !important;
+}
+
+// Country item styling for dropdown options
+::ng-deep .p-dropdown-panel .country-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  .flag-icon {
+    width: 20px;
+    height: 15px;
+    object-fit: cover;
+  }
+}
+
+.country-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  .flag-icon {
+    width: 16px;
+    height: 12px;
+    object-fit: cover;
+  }
+}
+
+// Dropdown field styling - removed since global styles handle this now
+
+// Date field styling - removed since global styles handle this now
+
+// Password field styling - removed since global styles handle this now
+
+.register-button {
+  width: 100%;
+  background: var(--primary-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  &:hover:not(:disabled) {
+    background: var(--medium-gray);
+    transform: translateY(-1px);
+  }
+  
+  &:disabled {
+    background: var(--light-gray);
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--white);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.login-link {
+  text-align: center;
+  font-size: 0.9rem;
+  
+  span {
+    color: var(--muted-gray);
+  }
+  
+  .login-text {
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    
+    &:hover {
+      color: var(--primary-blue-dark);
+      text-decoration: underline;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .register-card {
+    padding: 1.5rem;
+    margin: 1rem;
+    max-width: 100%;
+  }
+  
+  .register-header h1 {
+    font-size: 1.25rem;
+  }
+  
+  .phone-input-container {
+    flex-direction: column;
+    gap: 1rem;
+    
+    ::ng-deep .country-dropdown {
+      width: 100%;
+    }
+  }
+}
