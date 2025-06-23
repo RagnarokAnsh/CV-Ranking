@@ -4,6 +4,8 @@ import { RegisterComponent } from './auth/register/register.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { AdminApprovalComponent } from './admin-approval/admin-approval.component';
+import { LonglistComponent } from './longlist/longlist.component';
+import { ShortlistComponent } from './shortlist/shortlist.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -12,5 +14,7 @@ export const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'admin-approval', component: AdminApprovalComponent },
+  { path: 'longlist', component: LonglistComponent },
+  { path: 'shortlist', component: ShortlistComponent },
   { path: '**', redirectTo: '/login' }
 ];

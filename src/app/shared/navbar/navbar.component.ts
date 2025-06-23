@@ -75,6 +75,7 @@ export class NavbarComponent implements OnInit {
       {
         label: 'Reset Password',
         icon: 'pi pi-key',
+        routerLink: '/auth/reset-password',
         command: () => this.showProfile()
       },
       
