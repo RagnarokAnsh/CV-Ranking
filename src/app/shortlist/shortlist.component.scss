@@ -631,6 +631,38 @@
   }
 }
 
+/* Employment Accordion Container */
+.employment-accordion-container {
+  &.scrollable {
+    max-height: 400px; /* Approximate height for 5 accordion items */
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+      
+      &:hover {
+        background: #a8a8a8;
+      }
+    }
+    
+    /* For Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+  }
+}
+
 /* Custom Accordion Styling */
 ::ng-deep .employment-accordion {
   .p-accordion-tab {
@@ -693,35 +725,18 @@
       }
     }
   }
+}
 
-  /* Scrollable accordion when more than 5 entries */
-  &.scrollable-accordion {
-    max-height: 400px; /* Approximate height for 5 accordion items */
-    overflow-y: auto;
-    
-    /* Custom scrollbar styling */
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 4px;
-      
-      &:hover {
-        background: #a8a8a8;
-      }
-    }
-    
-    /* Firefox scrollbar styling */
-    scrollbar-width: thin;
-    scrollbar-color: #c1c1c1 #f1f1f1;
-  }
+::ng-deep .p-accordionpanel:not(.p-disabled).p-accordionpanel-active > .p-accordionheader {
+  background: var(--primary-dark);
+  color: var(--white);
+}
+::ng-deep .p-accordioncontent-content {
+  background: var(--primary-dark);
+}
+::ng-deep .p-accordionpanel:not(.p-disabled).p-accordionpanel-active > .p-accordionheader:hover {
+  background: var(--gradient-gray);
+  color: var(--primary-blue);
 }
 ::ng-deep .p-accordionheader {
   background: var(--gradient-gray);

@@ -8,7 +8,7 @@
     <!-- Job Description Upload Section -->
     <div class="upload-section">
       <div class="upload-card">
-        <h3>Upload Job Description (PDF or TXT)</h3>
+        <h3>Upload Job Description (JD) or CVs</h3>
         <p-fileUpload 
           mode="advanced" 
           [multiple]="true"
@@ -247,18 +247,17 @@
         <div class="employment-history-section">
           <h3>View Extracted Employment History</h3>
           
-          <p-accordion 
-            [multiple]="false" 
-            class="employment-accordion"
-            [ngClass]="{'scrollable-accordion': employmentHistory && employmentHistory.length > 5}">
-            <p-accordionTab 
-              *ngFor="let history of employmentHistory" 
-              [header]="history.id + '- ' + history.name">
-              <div class="employment-details">
-                <p>{{ history.details }}</p>
-              </div>
-            </p-accordionTab>
-          </p-accordion>
+          <div class="employment-accordion-container" [class.scrollable]="employmentHistory.length > 5">
+            <p-accordion [multiple]="false" class="employment-accordion">
+              <p-accordionTab 
+                *ngFor="let history of employmentHistory" 
+                [header]="history.id + '- ' + history.name">
+                <div class="employment-details">
+                  <p>{{ history.details }}</p>
+                </div>
+              </p-accordionTab>
+            </p-accordion>
+          </div>
         </div>
       </div>
     </div>
