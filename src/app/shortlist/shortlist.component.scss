@@ -9,14 +9,15 @@
 
 /* ===== PAGE HEADER ===== */
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  padding: 0;
   
   h1 {
     color: #2D3748;
     font-family: var(--font-family);
     font-weight: var(--font-weight-semibold);
-    font-size: 1.8rem;
-    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
     text-align: left;
     text-decoration: underline;
     text-decoration-color: #999999;
@@ -25,104 +26,268 @@
   }
 }
 
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  display: flex;
+  gap: 1.5rem;
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch; /* Changed from flex-start to stretch for equal heights */
+  min-height: 700px;
+}
+
+/* ===== LEFT COLUMN (UPLOAD + FILTERS) ===== */
+.left-column {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
 /* ===== FILE UPLOAD SECTION ===== */
 .upload-section {
-  padding: 0 2rem;
-  margin-bottom: 2rem;
+  padding: 0;
+  margin: 0;
+  flex: 0 0 auto;
+  height: 300px; /* Fixed height to match job description section */
 }
 
 .upload-card {
-  background: #e1e1e1;
+  background: #ebebeb;
   border-radius: var(--border-radius);
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-light);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   
   h3 {
     color: var(--black);
     font-family: var(--font-family);
     font-weight: var(--font-weight-semibold);
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem 0;
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
   }
 }
 
-/* Custom File Upload Styling */
-::ng-deep .custom-file-upload {
-  .p-fileupload {
-    border: 2px dashed var(--primary-blue);
-    border-radius: var(--border-radius);
-    background: var(--white);
-    
-    .p-fileupload-buttonbar {
-      background: transparent;
-      border: none;
-      padding: 1rem;
-      
-      .p-button {
-        background: var(--primary-blue);
-        border-color: var(--primary-blue);
-        color: var(--white);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-medium);
-        border-radius: var(--border-radius);
-        
-        &:hover {
-          background: var(--primary-blue-dark);
-          border-color: var(--primary-blue-dark);
-        }
-      }
-    }
-    
-    .p-fileupload-content {
-      border: none;
-      padding: 2rem;
-      text-align: center;
-      
-      .upload-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        
-        .upload-icon {
-          font-size: 3rem;
-          color: var(--primary-blue);
-        }
-        
-        .upload-text {
-          color: var(--black);
-          font-family: var(--font-family);
-          font-weight: var(--font-weight-medium);
-          font-size: 1rem;
-          margin: 0;
-        }
-      }
-    }
-  }
-}
-
-/* ===== MAIN CONTENT ===== */
-.main-content {
+/* Upload Drop Zone */
+.upload-drop-zone {
+  background: var(--white);
+  border: 2px dashed #D1D5DB;
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+  flex: 1;
   display: flex;
-  gap: 2rem;
-  padding: 0 2rem;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  
+  &:hover {
+    border-color: var(--primary-blue);
+    background: #F8FAFC;
+  }
+  
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    margin-bottom: 0.75rem;
+    
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--primary-blue);
+      margin-bottom: 0.1rem;
+    }
+    
+    .upload-text {
+      color: var(--black);
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.8rem;
+      margin: 0;
+    }
+    
+    .upload-limit {
+      color: #6B7280;
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-normal);
+      font-size: 0.7rem;
+      margin: 0;
+    }
+  }
+}
+
+/* Browse Button Styling */
+::ng-deep .browse-button {
+  flex-shrink: 0;
+  
+  .p-fileupload {
+    .p-button {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: var(--white);
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.7rem;
+      padding: 0.4rem 1rem;
+      border-radius: var(--border-radius);
+      transition: all 0.2s ease;
+      min-height: 28px;
+      
+      &:hover {
+        background: var(--primary-blue-dark);
+        border-color: var(--primary-blue-dark);
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(91, 146, 229, 0.3);
+      }
+    }
+    
+    /* Hide PrimeNG's internal file display elements */
+    .p-fileupload-content,
+    .p-fileupload-files,
+    .p-fileupload-file,.p-fileupload-filename,
+    .p-fileupload-file-details,
+    .p-fileupload-file-name,
+    .p-fileupload-file-size,
+    .p-fileupload-row,
+    .p-progressbar {
+      display: none !important;
+    }
+    
+    /* Hide any spans with file labels inside the upload component */
+    span:not(.p-button-label) {
+      display: none !important;
+    }
+  }
+}
+
+.filelabel {
+  color: var(--primary-dark);
+}
+
+/* Selected File Display */
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #F0F9FF;
+  border: 1px solid var(--primary-blue);
+  border-radius: var(--border-radius);
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  
+  .file-icon {
+    color: #DC2626;
+    font-size: 1rem;
+  }
+  
+  .filelabel {
+    flex: 1;
+    color: var(--primary-dark);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    font-size: 0.7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .remove-file-btn {
+    background: transparent;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+    
+    i {
+      font-size: 0.7rem;
+    }
+  }
+}
+
+.upload-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto; /* Push buttons to bottom of container */
+  flex-shrink: 0;
+  
+  .submit-btn,
+  .reset-btn {
+    flex: 1;
+    padding: 0.3rem 0.6rem;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--border-radius);
+    font-size: 0.7rem;
+    min-height: 28px;
+    
+    &.submit-btn {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+      color: var(--white);
+      
+      &:hover:not(:disabled) {
+        background: var(--medium-gray);
+        border-color: var(--medium-gray);
+      }
+      
+      &:disabled {
+        background: #D1D5DB;
+        border-color: #D1D5DB;
+        color: #9CA3AF;
+        cursor: not-allowed;
+      }
+    }
+    
+    &.reset-btn {
+      background: transparent;
+      border-color: var(--primary-dark);
+      color: var(--primary-dark);
+      
+      &:hover {
+        background: var(--primary-dark);
+        color: var(--white);
+      }
+    }
+  }
 }
 
 /* ===== FILTERS SECTION ===== */
 .filters-section {
-  flex: 0 0 300px;
   background: #EBEBEB;
   border-radius: var(--border-radius);
   padding: 1.5rem;
-  height: fit-content;
   box-shadow: var(--shadow-light);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 450px; /* Match ranking section height */
   
   h3 {
     color: var(--black);
     font-family: var(--font-family);
     font-weight: var(--font-weight-semibold);
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem 0;
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #5B92E5;
     text-decoration: none;
@@ -132,7 +297,9 @@
 .filters-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .filter-field {
@@ -143,8 +310,123 @@
     color: var(--black);
     font-family: var(--font-family);
     font-weight: var(--font-weight-medium);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+}
+
+/* ===== RIGHT COLUMN (JD + TABLE) ===== */
+.right-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 700px;
+}
+
+/* ===== JOB DESCRIPTION SECTION ===== */
+.job-description-section {
+  background: #EBEBEB;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  flex: 0 0 auto;
+  height: 300px; /* Fixed height to match upload section */
+  display: flex;
+  flex-direction: column;
+  
+  h3 {
+    color: var(--black);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #5B92E5;
+    text-decoration: none;
+  }
+  
+  .extracted-sections-title {
+    color: var(--black);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem 0;
+    background: transparent;
+  }
+}
+
+.job-description-card {
+  background: var(--white);
+  overflow: hidden;
+  border: 1px solid #D1D5DB;
+  border-radius: var(--border-radius);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  
+  .job-description-content {
+    padding: 1rem;
+    background: var(--gradient-gray);
+    flex: 1;
+    overflow-y: auto;
+    
+    p {
+      color: var(--black);
+      font-family: var(--font-family);
+      font-size: 0.75rem;
+      line-height: 1.4;
+      margin: 0;
+      white-space: pre-line;
+    }
+  }
+}
+
+/* ===== RANKING SECTION ===== */
+.ranking-section {
+  background: #EBEBEB;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 450px;
+  
+  h3 {
+    color: var(--black);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #5B92E5;
+    text-decoration: none;
+  }
+}
+
+/* ===== BOTTOM SECTION (EMPLOYMENT HISTORY) ===== */
+.bottom-section {
+  padding: 0 0 1.5rem 0; /* Remove left and right padding for full width */
+  width: 100%;
+}
+
+/* ===== EMPLOYMENT HISTORY SECTION ===== */
+.employment-history-section {
+  background: #EBEBEB;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  
+  h3 {
+    color: var(--black);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #5B92E5;
+    text-decoration: none;
   }
 }
 
@@ -298,7 +580,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  justify-content: center;
+  justify-content: flex-start;
   
   .counter-btn {
     width: 32px;
@@ -402,21 +684,22 @@
 /* Filter Actions */
 .filter-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 0.75rem;
+  margin-top: auto; /* Push to bottom of container */
   padding-top: 1rem;
   border-top: 1px solid var(--border-gray);
+  flex-shrink: 0;
   
   .apply-btn,
   .reset-filter-btn {
     flex: 1;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
     font-family: var(--font-family);
     font-weight: var(--font-weight-medium);
     border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    min-height: 2.5rem;
-    height: 2.5rem;
+    font-size: 0.8rem;
+    min-height: 2rem;
+    height: 2rem;
     
     &.apply-btn {
       background: var(--primary-dark);
@@ -445,8 +728,8 @@
 /* PrimeNG Button Overrides for Filter Actions */
 ::ng-deep .filter-actions {
   .p-button {
-    min-height: 2.5rem;
-    height: 2.5rem;
+    min-height: 2rem;
+    height: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -475,104 +758,38 @@
   }
 }
 
-/* ===== RIGHT CONTENT AREA ===== */
-.content-right {
+/* Custom Ranking Table Styling */
+::ng-deep .ranking-table {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-}
-
-/* ===== JOB DESCRIPTION SECTION ===== */
-.job-description-section {
-  background: #EBEBEB;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-light);
+  height: 100%;
   
-  h3 {
-    color: var(--black);
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-semibold);
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #5B92E5;
-    text-decoration: none;
-  }
-  
-  .extracted-sections-title {
-    color: var(--black);
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-medium);
-    font-size: 0.95rem;
-    margin: 0 0 1rem 0;
-    background: transparent;
-  }
-}
-
-.job-description-card {
-  background: var(--white);
-  overflow: hidden;
-  border: 1px solid #D1D5DB;
-  
-  .job-description-header {
-    background: var(--gradient-gray);
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #D1D5DB;
-    
-    .section-label {
-      color: var(--black);
-      font-family: var(--font-family);
-      font-weight: var(--font-weight-medium);
-      font-size: 0.9rem;
-    }
-  }
-  
-  .job-description-content {
-    padding: 1.5rem;
-    background: var(--gradient-gray);
-    
-    p {
-      color: var(--black);
-      font-family: var(--font-family);
-      font-size: 0.85rem;
-      line-height: 1.6;
-      margin: 0;
-      white-space: pre-line;
-    }
-  }
-}
-
-/* ===== RANKING SECTION ===== */
-.ranking-section {
-  background: #EBEBEB;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-light);
-  
-  h3 {
-    color: var(--black);
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-semibold);
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #5B92E5;
-    text-decoration: none;
-  }
-}
-
-/* Custom Ranking Table Styling */
-::ng-deep .ranking-table {
   .p-datatable {
     border: none;
     border-radius: var(--border-radius);
     overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     
     .p-datatable-wrapper {
       border-radius: var(--border-radius);
       overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      
+      .p-datatable-table {
+        flex: 1;
+        height: 100%;
+      }
+      
+      .p-datatable-tbody {
+        flex: 1;
+        min-height: 400px;
+      }
     }
     
     .p-datatable-thead > tr > th {
@@ -610,24 +827,73 @@
       }
     }
   }
-}
-
-/* ===== EMPLOYMENT HISTORY SECTION ===== */
-.employment-history-section {
-  background: #EBEBEB;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-light);
   
-  h3 {
-    color: var(--black);
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-semibold);
-    font-size: 1.1rem;
-    margin: 0 0 1.5rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #5B92E5;
-    text-decoration: none;
+  .p-paginator {
+    background: transparent;
+    border: none;
+    padding: 1rem 0;
+    margin-top: auto;
+    flex-shrink: 0;
+    
+    .p-paginator-pages {
+      .p-paginator-page {
+        background: transparent;
+        border: 1px solid var(--border-gray);
+        color: var(--black);
+        margin: 0 0.25rem;
+        
+        &:hover {
+          background: var(--primary-blue-light);
+          border-color: var(--white);
+        }
+        
+        &.p-highlight {
+          background: var(--primary-blue);
+          color: var(--white);
+          border-color: var(--primary-blue);
+        }
+      }
+    }
+    
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      background: transparent;
+      border: 1px solid var(--border-gray);
+      color: var(--black);
+      margin: 0 0.25rem;
+      
+      &:hover {
+        background: var(--primary-blue-light);
+        border-color: var(--primary-blue);
+      }
+      
+      &:disabled {
+        background: transparent;
+        color: var(--muted-gray);
+        border-color: var(--muted-gray);
+      }
+    }
+    
+    .p-dropdown {
+      background: var(--white);
+      border: 1px solid var(--border-gray);
+      color: var(--black);
+      
+      .p-dropdown-label {
+        color: var(--black);
+      }
+      
+      &:hover {
+        border-color: var(--primary-blue);
+      }
+    }
+    
+    .p-paginator-current {
+      color: var(--black);
+      font-weight: var(--font-weight-medium);
+    }
   }
 }
 

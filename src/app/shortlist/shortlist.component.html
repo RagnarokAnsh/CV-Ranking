@@ -1,197 +1,216 @@
 <app-navbar>
   <div class="shortlist-container">
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1>SHORT LISTING</h1>
-    </div>
-
-    <!-- Job Description Upload Section -->
-    <div class="upload-section">
-      <div class="upload-card">
-        <h3>Upload Job Description (JD) or CVs</h3>
-        <p-fileUpload 
-          mode="advanced" 
-          [multiple]="true"
-          accept=".pdf,.doc,.docx"
-          [maxFileSize]="10000000"
-          (onSelect)="onJobDescriptionUpload($event)"
-          [auto]="false"
-          chooseLabel="Browse Files"
-          uploadLabel="Upload"
-          cancelLabel="Cancel"
-          class="custom-file-upload">
-          
-          <ng-template pTemplate="content">
-            <div class="upload-content">
-              <i class="pi pi-cloud-upload upload-icon"></i>
-              <p class="upload-text">Drag and drop file here</p>
-            </div>
-          </ng-template>
-        </p-fileUpload>
-      </div>
-    </div>
-
     <!-- Main Content Area -->
     <div class="main-content">
-      <!-- Filters Section -->
-      <div class="filters-section">
-        <h3>Filters</h3>
+      <!-- Left Column: Upload Section + Filters -->
+      <div class="left-column">
+        <!-- Page Header -->
+        <div class="page-header">
+          <h1>SHORT LISTING</h1>
+        </div>
         
-        <div class="filters-grid">
-          <!-- Job Description Template -->
-          <div class="filter-field">
-            <label>Job Description Template</label>
-            <div class="radio-group">
-              <div *ngFor="let template of jobDescriptionTemplates" class="radio-option">
-                <input 
-                  type="radio" 
-                  [id]="template.value" 
-                  name="jobTemplate" 
-                  [value]="template.value" 
-                  [(ngModel)]="selectedJobTemplate"
-                  class="custom-radio">
-                <label [for]="template.value" class="radio-label">{{ template.label }}</label>
+        <!-- Upload Section -->
+        <div class="upload-section">
+          <div class="upload-card">
+            <h3>Upload Job Description (JD) or CVs</h3>
+            
+            <!-- Drag and Drop Area -->
+            <div class="upload-drop-zone" 
+                 (dragover)="onDragOver($event)" 
+                 (dragleave)="onDragLeave($event)"
+                 (drop)="onFileDrop($event)">
+              <div class="upload-content">
+                <!-- <i class="pi pi-cloud-upload upload-icon"></i> -->
+                <p class="upload-text">Drag and drop file here</p>
+                <p class="upload-limit">Limit 200MB per file • PDF</p>
               </div>
+              
+              <!-- Browse Files Button -->
+              <p-fileUpload 
+                mode="basic" 
+                [multiple]="false"
+                accept=".pdf"
+                [maxFileSize]="200000000"
+                (onSelect)="onFileSelect($event)"
+                [auto]="false"
+                chooseLabel="Browse files"
+                class="browse-button">
+              </p-fileUpload>
             </div>
-          </div>
-
-          <!-- Search Query -->
-          <div class="filter-field">
-            <label>Search query</label>
-            <input 
-              type="text" 
-              pInputText 
-              [(ngModel)]="searchQuery" 
-              placeholder="Enter search query"
-              class="search-input">
-          </div>
-
-          <!-- Search Operator -->
-          <div class="filter-field">
-            <label>Search operator</label>
-            <div class="radio-group">
-              <div *ngFor="let operator of searchOperatorOptions" class="radio-option">
-                <input 
-                  type="radio" 
-                  [id]="operator.value" 
-                  name="searchOperator" 
-                  [value]="operator.value" 
-                  [(ngModel)]="selectedSearchOperator"
-                  class="custom-radio">
-                <label [for]="operator.value" class="radio-label">{{ operator.label }}</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Weight for Experience -->
-          <div class="filter-field">
-            <label>Weight for Experience</label>
-            <div class="weight-counter">
-              <button 
-                type="button" 
-                class="counter-btn minus-btn" 
-                (click)="adjustWeight('experience', false)"
-                [disabled]="weightExperience <= 0">
-                -
-              </button>
-              <span class="weight-value">{{ weightExperience.toFixed(2) }}</span>
-              <button 
-                type="button" 
-                class="counter-btn plus-btn" 
-                (click)="adjustWeight('experience', true)"
-                [disabled]="weightExperience >= 1">
-                +
+            
+            <!-- Selected File Display -->
+            <div class="selected-file" *ngIf="selectedFile">
+              <i class="pi pi-file-pdf file-icon"></i>
+              <span class="filelabel">{{ selectedFile.name }}</span>
+              <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
+                <i class="pi pi-times"></i>
               </button>
             </div>
-          </div>
-
-          <!-- Weight for Qualifications -->
-          <div class="filter-field">
-            <label>Weight for Qualifications</label>
-            <div class="weight-counter">
-              <button 
-                type="button" 
-                class="counter-btn minus-btn" 
-                (click)="adjustWeight('qualifications', false)"
-                [disabled]="weightQualifications <= 0">
-                -
-              </button>
-              <span class="weight-value">{{ weightQualifications.toFixed(2) }}</span>
-              <button 
-                type="button" 
-                class="counter-btn plus-btn" 
-                (click)="adjustWeight('qualifications', true)"
-                [disabled]="weightQualifications >= 1">
-                +
-              </button>
-            </div>
-          </div>
-
-          <!-- Weight for Skills -->
-          <div class="filter-field">
-            <label>Weight for Skills</label>
-            <div class="weight-counter">
-              <button 
-                type="button" 
-                class="counter-btn minus-btn" 
-                (click)="adjustWeight('skills', false)"
-                [disabled]="weightSkills <= 0">
-                -
-              </button>
-              <span class="weight-value">{{ weightSkills.toFixed(2) }}</span>
-              <button 
-                type="button" 
-                class="counter-btn plus-btn" 
-                (click)="adjustWeight('skills', true)"
-                [disabled]="weightSkills >= 1">
-                +
-              </button>
-            </div>
-          </div>
-
-          <!-- Validation Error -->
-          <div class="validation-error" *ngIf="weightValidationError">
-            <i class="pi pi-exclamation-triangle"></i>
-            <span>{{ weightValidationError }}</span>
-          </div>
-
-          <!-- Selected Minimum Years of Experience -->
-          <div class="filter-field selected-filter">
-            <label>Selected Minimum Years of Experience: {{ selectedMinYearsExperience }}</label>
-          </div>
-
-          <!-- Selected Required Degree -->
-          <div class="filter-field selected-filter">
-            <label>Selected required Degree: {{ selectedRequiredDegree }}</label>
-          </div>
-
-          <!-- Selected Gender Filter -->
-          <div class="filter-field selected-filter">
-            <label>Selected Gender Filter: {{ selectedGenderFilter }}</label>
+            
+           
           </div>
         </div>
 
-        <!-- Filter Action Buttons -->
-        <div class="filter-actions">
-          <button 
-            pButton 
-            type="button" 
-            label="Submit" 
-            class="apply-btn"
-            (click)="submitRanking()">
-          </button>
-          <button 
-            pButton 
-            type="button" 
-            label="Reset Ranks" 
-            class="reset-filter-btn"
-            (click)="resetRanking()">
-          </button>
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <h3>Filters</h3>
+          
+          <div class="filters-grid">
+            <!-- Job Description Template -->
+            <div class="filter-field">
+              <label>Job Description Template</label>
+              <div class="radio-group">
+                <div *ngFor="let template of jobDescriptionTemplates" class="radio-option">
+                  <input 
+                    type="radio" 
+                    [id]="template.value" 
+                    name="jobTemplate" 
+                    [value]="template.value" 
+                    [(ngModel)]="selectedJobTemplate"
+                    class="custom-radio">
+                  <label [for]="template.value" class="radio-label">{{ template.label }}</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Search Query -->
+            <div class="filter-field">
+              <label>Search query</label>
+              <input 
+                type="text" 
+                pInputText 
+                [(ngModel)]="searchQuery" 
+                placeholder="Enter search query"
+                class="search-input">
+            </div>
+
+            <!-- Search Operator -->
+            <div class="filter-field">
+              <label>Search operator</label>
+              <div class="radio-group">
+                <div *ngFor="let operator of searchOperatorOptions" class="radio-option">
+                  <input 
+                    type="radio" 
+                    [id]="operator.value" 
+                    name="searchOperator" 
+                    [value]="operator.value" 
+                    [(ngModel)]="selectedSearchOperator"
+                    class="custom-radio">
+                  <label [for]="operator.value" class="radio-label">{{ operator.label }}</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weight for Experience -->
+            <div class="filter-field">
+              <label>Weight for Experience</label>
+              <div class="weight-counter">
+                <button 
+                  type="button" 
+                  class="counter-btn minus-btn" 
+                  (click)="adjustWeight('experience', false)"
+                  [disabled]="weightExperience <= 0">
+                  -
+                </button>
+                <span class="weight-value">{{ weightExperience.toFixed(2) }}</span>
+                <button 
+                  type="button" 
+                  class="counter-btn plus-btn" 
+                  (click)="adjustWeight('experience', true)"
+                  [disabled]="weightExperience >= 1">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Weight for Qualifications -->
+            <div class="filter-field">
+              <label>Weight for Qualifications</label>
+              <div class="weight-counter">
+                <button 
+                  type="button" 
+                  class="counter-btn minus-btn" 
+                  (click)="adjustWeight('qualifications', false)"
+                  [disabled]="weightQualifications <= 0">
+                  -
+                </button>
+                <span class="weight-value">{{ weightQualifications.toFixed(2) }}</span>
+                <button 
+                  type="button" 
+                  class="counter-btn plus-btn" 
+                  (click)="adjustWeight('qualifications', true)"
+                  [disabled]="weightQualifications >= 1">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Weight for Skills -->
+            <div class="filter-field">
+              <label>Weight for Skills</label>
+              <div class="weight-counter">
+                <button 
+                  type="button" 
+                  class="counter-btn minus-btn" 
+                  (click)="adjustWeight('skills', false)"
+                  [disabled]="weightSkills <= 0">
+                  -
+                </button>
+                <span class="weight-value">{{ weightSkills.toFixed(2) }}</span>
+                <button 
+                  type="button" 
+                  class="counter-btn plus-btn" 
+                  (click)="adjustWeight('skills', true)"
+                  [disabled]="weightSkills >= 1">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Validation Error -->
+            <div class="validation-error" *ngIf="weightValidationError">
+              <i class="pi pi-exclamation-triangle"></i>
+              <span>{{ weightValidationError }}</span>
+            </div>
+
+            <!-- Selected Minimum Years of Experience -->
+            <div class="filter-field selected-filter">
+              <label>Selected Minimum Years of Experience: {{ selectedMinYearsExperience }}</label>
+            </div>
+
+            <!-- Selected Required Degree -->
+            <div class="filter-field selected-filter">
+              <label>Selected required Degree: {{ selectedRequiredDegree }}</label>
+            </div>
+
+            <!-- Selected Gender Filter -->
+            <div class="filter-field selected-filter">
+              <label>Selected Gender Filter: {{ selectedGenderFilter }}</label>
+            </div>
+          </div>
+
+          <!-- Filter Action Buttons -->
+          <div class="filter-actions">
+            <button 
+              pButton 
+              type="button" 
+              label="Submit" 
+              class="apply-btn"
+              (click)="submitRanking()">
+            </button>
+            <button 
+              pButton 
+              type="button" 
+              label="Reset" 
+              class="reset-filter-btn"
+              (click)="resetRanking()">
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Right Content Area -->
-      <div class="content-right">
+      <div class="right-column">
         <!-- Job Description Section -->
         <div class="job-description-section">
           <h3>Job Description Content</h3>
@@ -209,9 +228,9 @@
           
           <p-table 
             [value]="rankingResults" 
-            [paginator]="rankingResults.length > 10"
-            [rows]="10"
-            [showCurrentPageReport]="rankingResults.length > 10"
+            [paginator]="true"
+            [rows]="8"
+            [showCurrentPageReport]="true"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
             class="ranking-table">
             
@@ -242,22 +261,24 @@
             </ng-template>
           </p-table>
         </div>
+      </div>
+    </div>
 
-        <!-- Employment History Section -->
-        <div class="employment-history-section">
-          <h3>View Extracted Employment History</h3>
-          
-          <div class="employment-accordion-container" [class.scrollable]="employmentHistory.length > 5">
-            <p-accordion [multiple]="false" class="employment-accordion">
-              <p-accordionTab 
-                *ngFor="let history of employmentHistory" 
-                [header]="history.id + '- ' + history.name">
-                <div class="employment-details">
-                  <p>{{ history.details }}</p>
-                </div>
-              </p-accordionTab>
-            </p-accordion>
-          </div>
+    <!-- Employment History Section - Full Width at Bottom -->
+    <div class="bottom-section">
+      <div class="employment-history-section">
+        <h3>View Extracted Employment History</h3>
+        
+        <div class="employment-accordion-container" [class.scrollable]="employmentHistory.length > 5">
+          <p-accordion [multiple]="false" class="employment-accordion">
+            <p-accordionTab 
+              *ngFor="let history of employmentHistory" 
+              [header]="history.id + '- ' + history.name">
+              <div class="employment-details">
+                <p>{{ history.details }}</p>
+              </div>
+            </p-accordionTab>
+          </p-accordion>
         </div>
       </div>
     </div>

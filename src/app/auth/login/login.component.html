@@ -4,17 +4,17 @@
     <div class="login-header">
       <h1>CV Ranking Application</h1>
       <div class="header-separator"></div>
-      <p style="color: #2D3748;">Login to your account</p>
+      <p style="color: #2D3748;" *ngIf="!showOtpStep">Login to your account</p>
+      <p style="color: #2D3748;" *ngIf="showOtpStep">Enter verification code</p>
     </div>
 
-    <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+    <!-- Login Form - Step 1 -->
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form" *ngIf="!showOtpStep">
       
       <!-- Email Field -->
       <div class="form-field">
         <label for="email">Email *</label>
         <input 
-          pInputText 
           id="email" 
           type="email"
           formControlName="email"
@@ -58,7 +58,7 @@
         [disabled]="loginForm.invalid || loading"
       >
         <span *ngIf="loading" class="loading-spinner"></span>
-        Login
+        Send OTP
       </button>
 
       <!-- Register Link -->
@@ -70,6 +70,73 @@
           (click)="onRegister()"
         >
           Register
+        </a>
+      </div>
+    </form>
+
+    <!-- OTP Verification Form - Step 2 -->
+    <form [formGroup]="otpForm" (ngSubmit)="onVerifyOtp()" class="otp-form" *ngIf="showOtpStep">
+      
+      <!-- OTP Sent Message -->
+      <div class="otp-message" *ngIf="otpSent">
+        <i class="pi pi-envelope otp-icon"></i>
+        <p>We've sent a 6-digit verification code to</p>
+        <strong>{{ userEmail }}</strong>
+      </div>
+
+      <!-- OTP Field -->
+      <div class="form-field">
+        <label for="otp">Enter 6-digit code *</label>
+        <input 
+          id="otp" 
+          type="text"
+          formControlName="otp"
+          placeholder="000000"
+          class="form-input otp-input"
+          maxlength="6"
+          (input)="onOtpInput($event)"
+        />
+        <div class="error-message" *ngIf="otpForm.get('otp')?.touched && otpForm.get('otp')?.errors?.['required']">
+          OTP is required
+        </div>
+        <div class="error-message" *ngIf="otpForm.get('otp')?.touched && otpForm.get('otp')?.errors?.['pattern']">
+          Please enter a valid 6-digit code
+        </div>
+      </div>
+
+      <!-- Verify Button -->
+      <button 
+        type="submit"
+        class="login-button"
+        [disabled]="otpForm.invalid || loading"
+      >
+        <span *ngIf="loading" class="loading-spinner"></span>
+        Verify & Login
+      </button>
+
+      <!-- Resend OTP -->
+      <div class="resend-otp">
+        <span>Didn't receive the code? </span>
+        <button 
+          type="button"
+          class="resend-button"
+          [disabled]="countdown > 0 || resendLoading"
+          (click)="onResendOtp()"
+        >
+          <span *ngIf="resendLoading" class="loading-spinner"></span>
+          <span *ngIf="countdown > 0">Resend in {{ countdown }}s</span>
+          <span *ngIf="countdown === 0 && !resendLoading">Resend OTP</span>
+        </button>
+      </div>
+
+      <!-- Back to Login -->
+      <div class="back-to-login">
+        <a 
+          href="javascript:void(0)" 
+          class="login-link"
+          (click)="onBackToLogin()"
+        >
+          ← Back to Login
         </a>
       </div>
     </form>

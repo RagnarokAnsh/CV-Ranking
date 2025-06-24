@@ -63,7 +63,31 @@ export class LonglistComponent implements OnInit {
     { id: 'CV005', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
     { id: 'CV006', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
     { id: 'CV007', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV008', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' }
+    { id: 'CV008', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
+    { id: 'CV009', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
+    { id: 'CV010', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
+    { id: 'CV011', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
+    { id: 'CV012', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
+    { id: 'CV013', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
+    { id: 'CV014', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
+    { id: 'CV015', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
+    { id: 'CV016', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
+    { id: 'CV017', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
+    { id: 'CV018', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
+    { id: 'CV019', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
+    { id: 'CV020', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
+    { id: 'CV021', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
+    { id: 'CV022', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
+    { id: 'CV023', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
+    { id: 'CV024', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
+    { id: 'CV025', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
+    { id: 'CV026', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
+    { id: 'CV027', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
+    { id: 'CV028', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
+    { id: 'CV029', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
+    { id: 'CV030', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
+    { id: 'CV031', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
+    { id: 'CV032', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' }
   ];
 
   filteredCvs: CV[] = [];
@@ -134,6 +158,7 @@ export class LonglistComponent implements OnInit {
   showMaxQualification: boolean = false;
   showLanguageDropdown: boolean = false;
   tempSelectedLanguage: string = '';
+  selectedFile: File | null = null;
   
   // Dropdown state
   openDropdown: string | null = null;
@@ -245,24 +270,69 @@ export class LonglistComponent implements OnInit {
     console.log('File select event:', event);
     const files = event.files;
     if (files && files.length > 0) {
+      this.selectedFile = files[0];
       this.messageService.add({
         severity: 'success',
-        summary: 'File Uploaded',
-        detail: `${files.length} file(s) uploaded successfully`
+        summary: 'File Selected',
+        detail: `File "${this.selectedFile?.name}" selected successfully`
       });
     }
   }
 
   onFileDrop(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+    
     console.log('File drop event:', event);
-    const files = event.files;
+    const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'File Dropped',
-        detail: `${files.length} file(s) uploaded successfully`
-      });
+      const file = files[0];
+      if (file.type === 'application/pdf' && file.size <= 200000000) {
+        this.selectedFile = file;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'File Dropped',
+          detail: `File "${file.name}" uploaded successfully`
+        });
+      } else {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Invalid File',
+          detail: 'Please upload a PDF file under 200MB'
+        });
+      }
     }
+  }
+
+  onDragOver(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onDragLeave(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  resetCVs() {
+    console.log('Resetting CVs...');
+    this.selectedFile = null;
+    this.filteredCvs = [...this.cvs];
+    
+    this.messageService.add({
+      severity: 'info',
+      summary: 'CVs Reset',
+      detail: 'All CVs have been reset'
+    });
+  }
+
+  removeSelectedFile() {
+    this.selectedFile = null;
+    this.messageService.add({
+      severity: 'info',
+      summary: 'File Removed',
+      detail: 'Selected file has been removed'
+    });
   }
 
   applyFilters() {

@@ -100,6 +100,9 @@ export class ShortlistComponent implements OnInit {
   // Validation
   weightValidationError: string = '';
 
+  // File upload
+  selectedFile: File | null = null;
+
   // Selected filters from longlist (these would come from a service)
   selectedMinYearsExperience: number = 0;
   selectedRequiredDegree: string = 'Any';
@@ -108,6 +111,36 @@ export class ShortlistComponent implements OnInit {
   // Job Description
   jobDescription: string = 'Extracted Section';
   jobDescriptionContent: string = `FUNCTIONS / KEY RESULTS EXPECTED:
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
+Duties and Responsibilities:  
+h
 Duties and Responsibilities:  
 h
 Within delegated authority, and in close cooperation with the Head – Technology and Solution, the 
@@ -254,5 +287,74 @@ Results And Achievements: Managed technical teams and project deliverables. Spec
         detail: `${files.length} file(s) uploaded successfully`
       });
     }
+  }
+
+  onFileSelect(event: any) {
+    console.log('File select event:', event);
+    const files = event.files;
+    if (files && files.length > 0) {
+      this.selectedFile = files[0];
+      this.messageService.add({
+        severity: 'success',
+        summary: 'File Selected',
+        detail: `File "${this.selectedFile?.name}" selected successfully`
+      });
+    }
+  }
+
+  onFileDrop(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('File drop event:', event);
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type === 'application/pdf' && file.size <= 200000000) {
+        this.selectedFile = file;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'File Dropped',
+          detail: `File "${file.name}" uploaded successfully`
+        });
+      } else {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Invalid File',
+          detail: 'Please upload a PDF file under 200MB'
+        });
+      }
+    }
+  }
+
+  onDragOver(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onDragLeave(event: any) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  removeSelectedFile() {
+    this.selectedFile = null;
+    this.messageService.add({
+      severity: 'info',
+      summary: 'File Removed',
+      detail: 'Selected file has been removed'
+    });
+  }
+
+  resetCVs() {
+    console.log('Resetting CVs...');
+    this.selectedFile = null;
+    this.filteredCvs = [...this.cvs];
+    
+    this.messageService.add({
+      severity: 'info',
+      summary: 'CVs Reset',
+      detail: 'All CVs have been reset'
+    });
   }
 }

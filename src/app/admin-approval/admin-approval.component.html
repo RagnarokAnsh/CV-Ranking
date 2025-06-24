@@ -3,13 +3,14 @@
   <div class="admin-approval-content">
     <!-- Page Header -->
     <div class="page-header">
-    <h1>ADMIN APPROVAL</h1>
+      <h1>ADMIN APPROVAL</h1>
+      <p class="instruction-text">Click on any row to approve, reject, or change status</p>
     </div>
 
     <!-- Table with Paginator -->
     <p-table 
       [value]="hrCandidates" 
-      styleClass="admin-approval-table"
+      styleClass="admin-approval-table clickable-table"
       [tableStyle]="{'width': '100%'}"
       [paginator]="showPaginator"
       [rows]="rowsPerPage"
@@ -23,22 +24,80 @@
           <th>HR Name</th>
           <th>Email</th>
           <th>Phone Number</th>
-          <th>Approval</th>
+          <th>Status</th>
         </tr>
       </ng-template>
       
       <ng-template pTemplate="body" let-candidate>
-        <tr>
+        <tr class="clickable-row" (click)="onRowClick(candidate)">
           <td>{{ candidate.name }}</td>
           <td>{{ candidate.email }}</td>
           <td>{{ candidate.phone }}</td>
           <td>
-            <div class="admin-status-icon" [ngClass]="candidate.status">
-              <i [class]="getStatusIcon(candidate.status)"></i>
+            <div class="status-container">
+              <div class="admin-status-icon" [ngClass]="candidate.status">
+                <i [class]="getStatusIcon(candidate.status)"></i>
+              </div>
+              <span class="status-text" [ngClass]="candidate.status">
+                {{ candidate.status | titlecase }}
+              </span>
             </div>
           </td>
         </tr>
       </ng-template>
     </p-table>
   </div>
+
+  <!-- Action Dialog -->
+  <p-dialog 
+    [(visible)]="showActionDialog" 
+    [modal]="true" 
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="action-dialog"
+    header="Manage User Status"
+    [style]="{width: '400px'}"
+    (onHide)="closeDialog()">
+    
+    <div class="dialog-content" *ngIf="selectedCandidate">
+      <!-- User Info -->
+      <div class="user-info">
+        <h3>{{ selectedCandidate.name }}</h3>
+        <p class="user-email">{{ selectedCandidate.email }}</p>
+        <p class="user-phone">{{ selectedCandidate.phone }}</p>
+        <div class="current-status">
+          <span class="status-label">Current Status:</span>
+          <div class="status-badge" [ngClass]="selectedCandidate.status">
+            <i [class]="getStatusIcon(selectedCandidate.status)"></i>
+            <span>{{ selectedCandidate.status | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons-container">
+        <p-button 
+          label="Approve" 
+          icon="pi pi-check" 
+          severity="success"
+          [outlined]="selectedCandidate.status === 'approved'"
+          (click)="approveCandidate()"
+          styleClass="action-btn">
+        </p-button>
+        
+        <p-button 
+          label="Reject" 
+          icon="pi pi-times" 
+          severity="danger"
+          [outlined]="selectedCandidate.status === 'rejected'"
+          (click)="rejectCandidate()"
+          styleClass="action-btn">
+        </p-button>
+      </div>
+    </div>
+  </p-dialog>
+
+  <!-- Toast notifications -->
+  <p-toast></p-toast>
 </app-navbar>

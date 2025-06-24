@@ -5,243 +5,194 @@
       <h1>LONG LISTING</h1>
     </div>
 
-    <!-- File Upload Section -->
-    <div class="upload-section">
-      <div class="upload-card">
-        <h3>Upload the P11 File</h3>
-        <p-fileUpload 
-          mode="advanced" 
-          [multiple]="true"
-          accept=".pdf,.doc,.docx"
-          [maxFileSize]="10000000"
-          (onSelect)="onFileSelect($event)"
-          (onUpload)="onFileDrop($event)"
-          [auto]="false"
-          chooseLabel="Browse Files"
-          uploadLabel="Upload"
-          cancelLabel="Cancel"
-          class="custom-file-upload">
-          
-          <ng-template pTemplate="content">
-            <div class="upload-content">
-              <i class="pi pi-cloud-upload upload-icon"></i>
-              <p class="upload-text">Drag and drop file here</p>
-            </div>
-          </ng-template>
-        </p-fileUpload>
-        
-        <div class="upload-buttons">
-          <button 
-            pButton 
-            type="button" 
-            label="Submit" 
-            class="p-button-primary submit-btn">
-          </button>
-          <button 
-            pButton 
-            type="button" 
-            label="Reset CVs" 
-            class="p-button-outlined reset-btn">
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Main Content Area -->
     <div class="main-content">
-      <!-- Filters Section -->
-      <div class="filters-section">
-        <h3>Filters</h3>
-        
-        <div class="filters-grid">
-          <!-- Current Nationality -->
-          <div class="filter-field">
-            <label>Current nationality</label>
-            <div class="custom-dropdown" (click)="toggleDropdown('nationality'); $event.stopPropagation()">
-              <div class="dropdown-selected">
-                {{ getSelectedLabel(nationalityOptions, selectedNationality) || 'Select nationality' }}
-                <i class="pi pi-chevron-down dropdown-arrow"></i>
-              </div>
-              <div class="dropdown-options" *ngIf="openDropdown === 'nationality'">
-                <div 
-                  *ngFor="let option of nationalityOptions" 
-                  class="dropdown-option"
-                  [class.selected]="selectedNationality === option.value"
-                  (click)="selectOption('nationality', option.value); $event.stopPropagation()">
-                  {{ option.label }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Professional Experience -->
-          <div class="filter-field">
-            <label>Professional experience</label>
-            <div class="experience-row">
-              <div class="experience-field">
-                <div class="experience-header">
-                  <label class="experience-label">Min</label>
-                  <!-- <span class="experience-counter" *ngIf="selectedMinExperience">{{ selectedMinExperience }}</span> -->
-                </div>
-                <div class="custom-dropdown" (click)="toggleDropdown('minExp'); $event.stopPropagation()">
-                  <div class="dropdown-selected">
-                    {{ getSelectedLabel(experienceYearOptions, selectedMinExperience) || '0' }}
-                    <i class="pi pi-chevron-down dropdown-arrow"></i>
-                  </div>
-                  <div class="dropdown-options" *ngIf="openDropdown === 'minExp'">
-                    <div 
-                      *ngFor="let option of experienceYearOptions" 
-                      class="dropdown-option"
-                      [class.selected]="selectedMinExperience === option.value"
-                      (click)="selectOption('minExp', option.value); $event.stopPropagation()">
-                      {{ option.label }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="experience-field">
-                <div class="experience-header">
-                  <label class="experience-label">Max</label>
-                  <!-- <span class="experience-counter" *ngIf="selectedMaxExperience">{{ selectedMaxExperience }}</span> -->
-                </div>
-                <div class="custom-dropdown" (click)="toggleDropdown('maxExp'); $event.stopPropagation()">
-                  <div class="dropdown-selected">
-                    {{ getSelectedLabel(experienceYearOptions, selectedMaxExperience) || '10+' }}
-                    <i class="pi pi-chevron-down dropdown-arrow"></i>
-                  </div>
-                  <div class="dropdown-options" *ngIf="openDropdown === 'maxExp'">
-                    <div 
-                      *ngFor="let option of experienceYearOptions" 
-                      class="dropdown-option"
-                      [class.selected]="selectedMaxExperience === option.value"
-                      (click)="selectOption('maxExp', option.value); $event.stopPropagation()">
-                      {{ option.label }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Gender -->
-          <div class="filter-field">
-            <label>Gender</label>
-            <div class="custom-dropdown" (click)="toggleDropdown('gender'); $event.stopPropagation()">
-              <div class="dropdown-selected">
-                {{ getSelectedLabel(genderOptions, selectedGender) || 'Select Gender' }}
-                <i class="pi pi-chevron-down dropdown-arrow"></i>
-              </div>
-              <div class="dropdown-options" *ngIf="openDropdown === 'gender'">
-                <div 
-                  *ngFor="let option of genderOptions" 
-                  class="dropdown-option"
-                  [class.selected]="selectedGender === option.value"
-                  (click)="selectOption('gender', option.value); $event.stopPropagation()">
-                  {{ option.label }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Age Range -->
-          <div class="filter-field age-filter">
-            <label>Age</label>
-            <div class="age-slider">
-              <p-slider 
-                [(ngModel)]="ageRange" 
-                [range]="true" 
-                [min]="18" 
-                [max]="65"
-                class="age-range-slider">
-              </p-slider>
-              <div class="age-values">
-                <span>{{ ageRange[0] }}-{{ ageRange[1] }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Minimum Academic Qualification -->
-          <div class="filter-field">
-            <label>Minimum academic qualification</label>
-            <div class="custom-dropdown" (click)="toggleDropdown('qualification'); $event.stopPropagation()">
-              <div class="dropdown-selected">
-                {{ getSelectedLabel(qualificationOptions, selectedQualification) || 'Master degree or equivalent' }}
-                <i class="pi pi-times dropdown-clear" *ngIf="selectedQualification" (click)="clearSelection('qualification'); $event.stopPropagation()"></i>
-                <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedQualification"></i>
-              </div>
-              <div class="dropdown-options" *ngIf="openDropdown === 'qualification'">
-                <div 
-                  *ngFor="let option of qualificationOptions" 
-                  class="dropdown-option"
-                  [class.selected]="selectedQualification === option.value"
-                  (click)="selectOption('qualification', option.value); $event.stopPropagation()">
-                  {{ option.label }}
-                </div>
-              </div>
-            </div>
-            <button 
-              pButton 
-              type="button" 
-              icon="pi pi-plus"
-              class="p-button-text add-btn"
-              *ngIf="!showMaxQualification"
-              (click)="addMaximumQualification()">
-              Add maximum qualification
-            </button>
+      <!-- Left Column: File Upload and Filters -->
+      <div class="left-column">
+        <!-- File Upload Section -->
+        <div class="upload-section">
+          <div class="upload-card">
+            <h3>Upload the P11 File</h3>
             
-            <!-- Max Qualification Dropdown -->
-            <div *ngIf="showMaxQualification" class="max-qualification">
-              <label>Maximum academic qualification</label>
-              <div class="custom-dropdown" (click)="toggleDropdown('maxQualification'); $event.stopPropagation()">
+            <!-- Drag and Drop Area -->
+            <div class="upload-drop-zone" 
+                 (dragover)="onDragOver($event)" 
+                 (dragleave)="onDragLeave($event)"
+                 (drop)="onFileDrop($event)">
+              <div class="upload-content">
+                <i class="pi pi-cloud-upload upload-icon"></i>
+                <p class="upload-text">Drag and drop file here</p>
+                <p class="upload-limit">Limit 200MB per file • PDF</p>
+              </div>
+              
+              <!-- Browse Files Button -->
+              <p-fileUpload 
+                mode="basic" 
+                [multiple]="false"
+                accept=".pdf"
+                [maxFileSize]="200000000"
+                (onSelect)="onFileSelect($event)"
+                [auto]="false"
+                chooseLabel="Browse files"
+                class="browse-button">
+              </p-fileUpload>
+            </div>
+            
+            <!-- Selected File Display -->
+            <div class="selected-file" *ngIf="selectedFile">
+              <i class="pi pi-file-pdf file-icon"></i>
+              <span class="filelabel">{{ selectedFile.name }}</span>
+              <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="upload-buttons">
+              <button 
+                pButton 
+                type="button" 
+                label="Submit" 
+                class="p-button-primary submit-btn"
+                [disabled]="!selectedFile">
+              </button>
+              <button 
+                pButton 
+                type="button" 
+                label="Reset CVs" 
+                class="p-button-outlined reset-btn"
+                (click)="resetCVs()">
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <h3>Filters</h3>
+          
+          <div class="filters-grid">
+            <!-- Current Nationality -->
+            <div class="filter-field">
+              <label>Current nationality</label>
+              <div class="custom-dropdown" (click)="toggleDropdown('nationality'); $event.stopPropagation()">
                 <div class="dropdown-selected">
-                  {{ getSelectedLabel(qualificationOptions, selectedMaxQualification) || 'Select max qualification' }}
+                  {{ getSelectedLabel(nationalityOptions, selectedNationality) || 'Select nationality' }}
                   <i class="pi pi-chevron-down dropdown-arrow"></i>
                 </div>
-                <div class="dropdown-options" *ngIf="openDropdown === 'maxQualification'">
+                <div class="dropdown-options" *ngIf="openDropdown === 'nationality'">
                   <div 
-                    *ngFor="let option of qualificationOptions" 
+                    *ngFor="let option of nationalityOptions" 
                     class="dropdown-option"
-                    [class.selected]="selectedMaxQualification === option.value"
-                    (click)="selectOption('maxQualification', option.value); $event.stopPropagation()">
+                    [class.selected]="selectedNationality === option.value"
+                    (click)="selectOption('nationality', option.value); $event.stopPropagation()">
                     {{ option.label }}
                   </div>
                 </div>
               </div>
-              <button 
-                type="button" 
-                class="remove-max-btn"
-                (click)="removeMaxQualification()">
-                <i class="pi pi-times"></i>
-                Remove
-              </button>
             </div>
-          </div>
 
-          <!-- Languages -->
-          <div class="filter-field">
-            <label>Languages</label>
-            <div class="languages-section">
-              <div class="language-tags" *ngIf="selectedLanguages.length > 0">
-                <p-tag 
-                  *ngFor="let lang of selectedLanguages" 
-                  severity="info"
-                  class="language-tag">
-                  <span>{{ lang }}</span>
-                  <i class="pi pi-times tag-remove" (click)="removeLanguage(lang)"></i>
-                </p-tag>
-              </div>
-              <div class="custom-dropdown language-dropdown" (click)="toggleDropdown('language'); $event.stopPropagation()">
-                <div class="dropdown-selected">
-                  {{ tempSelectedLanguage || 'Select language' }}
-                  <i class="pi pi-times dropdown-clear" *ngIf="tempSelectedLanguage" (click)="clearLanguageSelection(); $event.stopPropagation()"></i>
-                  <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!tempSelectedLanguage"></i>
+            <!-- Professional Experience -->
+            <div class="filter-field">
+              <label>Professional experience</label>
+              <div class="experience-row">
+                <div class="experience-field">
+                  <div class="experience-header">
+                    <label class="experience-label">Min</label>
+                    <!-- <span class="experience-counter" *ngIf="selectedMinExperience">{{ selectedMinExperience }}</span> -->
+                  </div>
+                  <div class="custom-dropdown" (click)="toggleDropdown('minExp'); $event.stopPropagation()">
+                    <div class="dropdown-selected">
+                      {{ getSelectedLabel(experienceYearOptions, selectedMinExperience) || '0' }}
+                      <i class="pi pi-chevron-down dropdown-arrow"></i>
+                    </div>
+                    <div class="dropdown-options" *ngIf="openDropdown === 'minExp'">
+                      <div 
+                        *ngFor="let option of experienceYearOptions" 
+                        class="dropdown-option"
+                        [class.selected]="selectedMinExperience === option.value"
+                        (click)="selectOption('minExp', option.value); $event.stopPropagation()">
+                        {{ option.label }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="dropdown-options" *ngIf="openDropdown === 'language'">
+                <div class="experience-field">
+                  <div class="experience-header">
+                    <label class="experience-label">Max</label>
+                    <!-- <span class="experience-counter" *ngIf="selectedMaxExperience">{{ selectedMaxExperience }}</span> -->
+                  </div>
+                  <div class="custom-dropdown" (click)="toggleDropdown('maxExp'); $event.stopPropagation()">
+                    <div class="dropdown-selected">
+                      {{ getSelectedLabel(experienceYearOptions, selectedMaxExperience) || '10+' }}
+                      <i class="pi pi-chevron-down dropdown-arrow"></i>
+                    </div>
+                    <div class="dropdown-options" *ngIf="openDropdown === 'maxExp'">
+                      <div 
+                        *ngFor="let option of experienceYearOptions" 
+                        class="dropdown-option"
+                        [class.selected]="selectedMaxExperience === option.value"
+                        (click)="selectOption('maxExp', option.value); $event.stopPropagation()">
+                        {{ option.label }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="filter-field">
+              <label>Gender</label>
+              <div class="custom-dropdown" (click)="toggleDropdown('gender'); $event.stopPropagation()">
+                <div class="dropdown-selected">
+                  {{ getSelectedLabel(genderOptions, selectedGender) || 'Select Gender' }}
+                  <i class="pi pi-chevron-down dropdown-arrow"></i>
+                </div>
+                <div class="dropdown-options" *ngIf="openDropdown === 'gender'">
                   <div 
-                    *ngFor="let option of languageOptions" 
+                    *ngFor="let option of genderOptions" 
                     class="dropdown-option"
-                    [class.selected]="tempSelectedLanguage === option.value"
-                    (click)="selectLanguage(option.value); $event.stopPropagation()">
+                    [class.selected]="selectedGender === option.value"
+                    (click)="selectOption('gender', option.value); $event.stopPropagation()">
+                    {{ option.label }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Age Range -->
+            <div class="filter-field age-filter">
+              <label>Age</label>
+              <div class="age-slider">
+                <p-slider 
+                  [(ngModel)]="ageRange" 
+                  [range]="true" 
+                  [min]="18" 
+                  [max]="65"
+                  class="age-range-slider">
+                </p-slider>
+                <div class="age-values">
+                  <span>{{ ageRange[0] }}-{{ ageRange[1] }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimum Academic Qualification -->
+            <div class="filter-field">
+              <label>Minimum academic qualification</label>
+              <div class="custom-dropdown" (click)="toggleDropdown('qualification'); $event.stopPropagation()">
+                <div class="dropdown-selected">
+                  {{ getSelectedLabel(qualificationOptions, selectedQualification) || 'Master degree or equivalent' }}
+                  <i class="pi pi-times dropdown-clear" *ngIf="selectedQualification" (click)="clearSelection('qualification'); $event.stopPropagation()"></i>
+                  <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedQualification"></i>
+                </div>
+                <div class="dropdown-options" *ngIf="openDropdown === 'qualification'">
+                  <div 
+                    *ngFor="let option of qualificationOptions" 
+                    class="dropdown-option"
+                    [class.selected]="selectedQualification === option.value"
+                    (click)="selectOption('qualification', option.value); $event.stopPropagation()">
                     {{ option.label }}
                   </div>
                 </div>
@@ -250,43 +201,111 @@
                 pButton 
                 type="button" 
                 icon="pi pi-plus"
-                class="p-button-text add-language-btn"
-                [disabled]="!tempSelectedLanguage"
-                (click)="addLanguage()">
-                Add
+                class="p-button-text add-btn"
+                *ngIf="!showMaxQualification"
+                (click)="addMaximumQualification()">
+                Add maximum qualification
               </button>
+              
+              <!-- Max Qualification Dropdown -->
+              <div *ngIf="showMaxQualification" class="max-qualification">
+                <label>Maximum academic qualification</label>
+                <div class="custom-dropdown" (click)="toggleDropdown('maxQualification'); $event.stopPropagation()">
+                  <div class="dropdown-selected">
+                    {{ getSelectedLabel(qualificationOptions, selectedMaxQualification) || 'Select max qualification' }}
+                    <i class="pi pi-chevron-down dropdown-arrow"></i>
+                  </div>
+                  <div class="dropdown-options" *ngIf="openDropdown === 'maxQualification'">
+                    <div 
+                      *ngFor="let option of qualificationOptions" 
+                      class="dropdown-option"
+                      [class.selected]="selectedMaxQualification === option.value"
+                      (click)="selectOption('maxQualification', option.value); $event.stopPropagation()">
+                      {{ option.label }}
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  class="remove-max-btn"
+                  (click)="removeMaxQualification()">
+                  <i class="pi pi-times"></i>
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Languages -->
+            <div class="filter-field">
+              <label>Languages</label>
+              <div class="languages-section">
+                <div class="language-tags" *ngIf="selectedLanguages.length > 0">
+                  <p-tag 
+                    *ngFor="let lang of selectedLanguages" 
+                    severity="info"
+                    class="language-tag">
+                    <span>{{ lang }}</span>
+                    <i class="pi pi-times tag-remove" (click)="removeLanguage(lang)"></i>
+                  </p-tag>
+                </div>
+                <div class="custom-dropdown language-dropdown" (click)="toggleDropdown('language'); $event.stopPropagation()">
+                  <div class="dropdown-selected">
+                    {{ tempSelectedLanguage || 'Select language' }}
+                    <i class="pi pi-times dropdown-clear" *ngIf="tempSelectedLanguage" (click)="clearLanguageSelection(); $event.stopPropagation()"></i>
+                    <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!tempSelectedLanguage"></i>
+                  </div>
+                  <div class="dropdown-options" *ngIf="openDropdown === 'language'">
+                    <div 
+                      *ngFor="let option of languageOptions" 
+                      class="dropdown-option"
+                      [class.selected]="tempSelectedLanguage === option.value"
+                      (click)="selectLanguage(option.value); $event.stopPropagation()">
+                      {{ option.label }}
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  pButton 
+                  type="button" 
+                  icon="pi pi-plus"
+                  class="p-button-text add-language-btn"
+                  [disabled]="!tempSelectedLanguage"
+                  (click)="addLanguage()">
+                  Add
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Filter Action Buttons -->
-        <div class="filter-actions">
-          <button 
-            pButton 
-            type="button" 
-            label="Apply Filters" 
-            class="apply-btn"
-            (click)="applyFilters()">
-          </button>
-          <button 
-            pButton 
-            type="button" 
-            label="Reset Filter" 
-            class="reset-filter-btn"
-            (click)="resetFilters()">
-          </button>
+          <!-- Filter Action Buttons -->
+          <div class="filter-actions">
+            <button 
+              pButton 
+              type="button" 
+              label="Apply Filters" 
+              class="apply-btn"
+              (click)="applyFilters()">
+            </button>
+            <button 
+              pButton 
+              type="button" 
+              label="Reset Filter" 
+              class="reset-filter-btn"
+              (click)="resetFilters()">
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- CV Table Section -->
+      <!-- Right Column: CV Table Section -->
       <div class="table-section">
         <h3>Long Listed CVs</h3>
         
         <p-table 
           [value]="filteredCvs" 
-          [paginator]="filteredCvs.length > 10"
+          [paginator]="filteredCvs.length > 15"
           [rows]="10"
-          [showCurrentPageReport]="filteredCvs.length > 10"
+          [showCurrentPageReport]="filteredCvs.length > 15"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           class="cv-table">
           

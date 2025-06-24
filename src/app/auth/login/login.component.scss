@@ -13,6 +13,36 @@
 // - .register-link
 // - All PrimeNG component overrides
 
+/* Custom Form Input Styles to match existing design */
+.form-input {
+  width: 100%;
+  height: 44px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #E1E1E1;
+  border-radius: 8px;
+  background: #E6E6E6;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9rem;
+  color: #000000;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  
+  &:focus {
+    border-color: #5B92E5;
+    box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
+    outline: none;
+  }
+  
+  &:hover {
+    border-color: #5B92E5;
+  }
+  
+  &::placeholder {
+    color: #999999;
+    opacity: 1;
+  }
+}
+
 /* Custom Password Field Styles */
 .custom-password {
   position: relative;
@@ -77,6 +107,140 @@
 /* Hide any remaining PrimeNG password icons */
 ::ng-deep .p-password .p-password-toggle-mask {
   display: none !important;
+}
+
+/* OTP Step Styles */
+.otp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.otp-message {
+  text-align: center;
+  padding: 1rem;
+  background: #F0F8FF;
+  border: 1px solid #E3F2FD;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  
+  .otp-icon {
+    font-size: 2rem;
+    color: #5B92E5;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  p {
+    margin: 0.5rem 0;
+    color: #2D3748;
+    font-size: 0.9rem;
+  }
+  
+  strong {
+    color: #5B92E5;
+    font-weight: 600;
+    display: block;
+    margin-top: 0.5rem;
+  }
+}
+
+.otp-input {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.5rem;
+  font-family: 'Courier New', monospace;
+  background: #E6E6E6 !important;
+  border: 1px solid #E1E1E1 !important;
+  
+  &:focus {
+    border-color: #5B92E5 !important;
+    box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2) !important;
+  }
+  
+  &:hover {
+    border-color: #5B92E5 !important;
+  }
+  
+  &::placeholder {
+    letter-spacing: 0.3rem;
+    font-weight: normal;
+    color: #999999;
+  }
+}
+
+.resend-otp {
+  text-align: center;
+  margin-top: 1rem;
+  
+  span {
+    color: #666666;
+    font-size: 0.9rem;
+  }
+  
+  .resend-button {
+    background: none;
+    border: none;
+    color: #5B92E5;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    margin-left: 0.25rem;
+    transition: color 0.3s ease;
+    
+    &:hover:not(:disabled) {
+      color: #4A7BC8;
+      text-decoration: underline;
+    }
+    
+    &:disabled {
+      color: #999999;
+      cursor: not-allowed;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #E1E1E1;
+      border-top: 2px solid #5B92E5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+.back-to-login {
+  text-align: center;
+  margin-top: 1.5rem;
+  
+  .login-link {
+    color: #5B92E5;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: #4A7BC8;
+      text-decoration: underline;
+    }
+  }
+}
+
+.error-message {
+  color: #E53E3E;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 // Any login-specific overrides can be added here if needed in the future

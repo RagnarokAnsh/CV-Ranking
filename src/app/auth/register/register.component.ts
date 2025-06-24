@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService, RegisterRequest } from '../../services/auth.service';
 
 // PrimeNG Imports - Only keeping Calendar for date picker
 import { ButtonModule } from 'primeng/button';
@@ -102,7 +103,8 @@ export class RegisterComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -254,13 +256,87 @@ export class RegisterComponent implements OnInit {
   onRegister() {
     if (this.registerForm.valid) {
       this.loading = true;
-      // Simulate registration process
-      setTimeout(() => {
+      
+      const formValue = this.registerForm.value;
+      
+      // Format date for API (YYYY-MM-DD)
+      const dateOfBirth = formValue.dateOfBirth;
+      let formattedDate = '';
+      
+      if (dateOfBirth instanceof Date) {
+        // Format as YYYY-MM-DD
+        const year = dateOfBirth.getFullYear();
+        const month = String(dateOfBirth.getMonth() + 1).padStart(2, '0');
+        const day = String(dateOfBirth.getDate()).padStart(2, '0');
+        formattedDate = `${year}-${month}-${day}`;
+      } else if (typeof dateOfBirth === 'string') {
+        formattedDate = dateOfBirth;
+      } else {
+        console.error('Invalid date format:', dateOfBirth);
+        alert('Please select a valid date of birth');
         this.loading = false;
-        // Navigate to login or handle registration logic
-        console.log('Registration successful', this.registerForm.value);
-        this.router.navigate(['/login']);
-      }, 1500);
+        return;
+      }
+      
+      // Validate required fields
+      if (!formValue.firstName || !formValue.lastName || !formValue.email || 
+          !formValue.phone || !formValue.gender || !formValue.country || 
+          !formValue.nationality || !formValue.password || !formattedDate) {
+        alert('Please fill in all required fields');
+        this.loading = false;
+        return;
+      }
+      
+      // Prepare registration data according to API format
+      const registerData: RegisterRequest = {
+        fname: formValue.firstName.trim(),
+        lname: formValue.lastName.trim(),
+        email: formValue.email.trim().toLowerCase(),
+        phone: `${formValue.countryCode}${formValue.phone}`.replace(/\s+/g, ''),
+        dateofbirth: formattedDate,
+        gender: formValue.gender,
+        country: formValue.country,
+        nationality: formValue.nationality,
+        cv_access: false, // Default value
+        password: formValue.password
+      };
+      
+      this.authService.register(registerData).subscribe({
+        next: (response) => {
+          this.loading = false;
+          console.log('Registration response:', response);
+          
+          // Check if registration was successful (200 status means success)
+          // Show success message and navigate to login page
+          alert('Registration successful! Please login with your credentials.');
+          this.router.navigate(['/login']);
+        },
+        error: (error) => {
+          this.loading = false;
+          
+          // Handle specific error cases
+          let errorMessage = 'Registration failed. Please try again.';
+          
+          if (error.error && error.error.detail) {
+            const detail = error.error.detail;
+            if (detail.includes('phone number already exists')) {
+              errorMessage = 'This phone number is already registered. Please use a different phone number or try logging in.';
+            } else if (detail.includes('email already exists')) {
+              errorMessage = 'This email address is already registered. Please use a different email or try logging in.';
+            } else {
+              errorMessage = detail;
+            }
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.error && typeof error.error === 'string') {
+            errorMessage = error.error;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          alert('Registration failed: ' + errorMessage);
+        }
+      });
     } else {
       // Mark all fields as touched to show validation errors
       Object.keys(this.registerForm.controls).forEach(key => {

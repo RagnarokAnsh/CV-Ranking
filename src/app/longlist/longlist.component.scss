@@ -10,6 +10,7 @@
 /* ===== PAGE HEADER ===== */
 .page-header {
   margin-bottom: 2rem;
+  padding: 0 2rem;
   
   h1 {
     color: #2D3748;
@@ -25,15 +26,31 @@
   }
 }
 
-/* ===== FILE UPLOAD SECTION ===== */
-.upload-section {
+/* ===== MAIN CONTENT LAYOUT ===== */
+.main-content {
+  display: flex;
+  gap: 2rem;
   padding: 0 2rem;
-  margin-bottom: 2rem;
+  align-items: stretch;
 }
 
+/* ===== LEFT COLUMN (FILE UPLOAD + FILTERS) ===== */
+.left-column {
+  flex: 0 0 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 800px;
+}
+
+/* ===== FILE UPLOAD SECTION ===== */
+.upload-section {
+  padding: 0;
+  margin: 0;
+}
 
 .upload-card {
-  background: #e1e1e1;
+  background: #ebebeb;
   border-radius: var(--border-radius);
   padding: 2rem;
   box-shadow: var(--shadow-light);
@@ -47,57 +64,94 @@
   }
 }
 
-/* Custom File Upload Styling */
-::ng-deep .custom-file-upload {
-  .p-fileupload {
-    border: 2px dashed var(--primary-blue);
-    border-radius: var(--border-radius);
-    background: var(--white);
+/* Upload Drop Zone */
+.upload-drop-zone {
+  background: var(--white);
+  border: 2px dashed #D1D5DB;
+  border-radius: var(--border-radius);
+  padding: 1rem 1rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: var(--primary-blue);
+    background: #F8FAFC;
+  }
+  
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
     
-    .p-fileupload-buttonbar {
-      background: transparent;
-      border: none;
-      padding: 1rem;
+    .upload-icon {
+      font-size: 3rem;
+      color: var(--primary-blue);
+      margin-bottom: 0.5rem;
+    }
+    
+    .upload-text {
+      color: var(--black);
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 1.1rem;
+      margin: 0;
+    }
+    
+    .upload-limit {
+      color: #6B7280;
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-normal);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+  }
+}
+
+/* Browse Button Styling */
+::ng-deep .browse-button {
+  .p-fileupload {
+    .p-button {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: var(--white);
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 1rem;
+      padding: 0.75rem 2rem;
+      border-radius: var(--border-radius);
+      transition: all 0.2s ease;
       
-      ::ng-deep .p-button {
-        background: var(--primary-blue);
-        border-color: var(--primary-blue);
-        color: var(--white);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-medium);
-        border-radius: var(--border-radius);
-        
-        &:hover {
-          background: var(--primary-blue-dark);
-          border-color: var(--primary-blue-dark);
-        }
+      &:hover {
+        background: var(--primary-blue-dark);
+        border-color: var(--primary-blue-dark);
+        transform: translateY(-1px);
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(91, 146, 229, 0.3);
       }
     }
     
-    .p-fileupload-content {
-      border: none;
-      padding: 2rem;
-      text-align: center;
-      
-      .upload-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        
-        .upload-icon {
-          font-size: 3rem;
-          color: var(--primary-blue);
-        }
-        
-        .upload-text {
-          color: var(--black);
-          font-family: var(--font-family);
-          font-weight: var(--font-weight-medium);
-          font-size: 1rem;
-          margin: 0;
-        }
-      }
+    /* Hide PrimeNG's internal file display elements */
+    .p-fileupload-content,
+    .p-fileupload-files,
+    .p-fileupload-file,
+    .p-fileupload-filename,
+    .p-fileupload-file-details,
+    .p-fileupload-file-name,
+    .p-fileupload-file-size,
+    .p-fileupload-row,
+    .p-progressbar {
+      display: none !important;
+    }
+    
+    /* Hide any spans with file labels inside the upload component */
+    span:not(.p-button-label) {
+      display: none !important;
     }
   }
 }
@@ -105,23 +159,31 @@
 .upload-buttons {
   display: flex;
   gap: 1rem;
-  margin-top: 1.5rem;
   
   .submit-btn,
   .reset-btn {
-    padding: 0.75rem 2rem;
+    flex: 1;
+    padding: 0.5rem 1rem;
     font-family: var(--font-family);
     font-weight: var(--font-weight-medium);
     border-radius: var(--border-radius);
+    font-size: 0.9rem;
     
     &.submit-btn {
       background: var(--primary-dark);
       border-color: var(--primary-dark);
       color: var(--white);
       
-      &:hover {
+      &:hover:not(:disabled) {
         background: var(--medium-gray);
         border-color: var(--medium-gray);
+      }
+      
+      &:disabled {
+        background: #D1D5DB;
+        border-color: #D1D5DB;
+        color: #9CA3AF;
+        cursor: not-allowed;
       }
     }
     
@@ -138,20 +200,11 @@
   }
 }
 
-/* ===== MAIN CONTENT ===== */
-.main-content {
-  display: flex;
-  gap: 2rem;
-  padding: 0 2rem;
-}
-
 /* ===== FILTERS SECTION ===== */
 .filters-section {
-  flex: 0 0 300px;
   background: #EBEBEB;
   border-radius: var(--border-radius);
   padding: 1.5rem;
-  height: fit-content;
   box-shadow: var(--shadow-light);
   
   h3 {
@@ -484,6 +537,9 @@
   border-radius: var(--border-radius);
   padding: 1.5rem;
   box-shadow: var(--shadow-light);
+  display: flex;
+  flex-direction: column;
+  min-height: 800px;
   
   h3 {
     color: var(--black);
@@ -497,16 +553,87 @@
   }
 }
 
+.filelabel {
+  color: var(--primary-dark);
+}
+
+/* Selected File Display */
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #F0F9FF;
+  border: 1px solid var(--primary-blue);
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  
+  .file-icon {
+    color: #DC2626;
+    font-size: 1.2rem;
+  }
+  
+  .filelabel {
+    flex: 1;
+    color: var(--primary-dark);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-medium);
+    font-size: 0.9rem;
+  }
+  
+  .remove-file-btn {
+    background: transparent;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+    
+    i {
+      font-size: 0.8rem;
+    }
+  }
+}
+
 /* Custom Table Styling */
 ::ng-deep .cv-table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  
   .p-datatable {
     border: none;
     border-radius: var(--border-radius);
     overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     
     .p-datatable-wrapper {
       border-radius: var(--border-radius);
       overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      
+      .p-datatable-table {
+        flex: 1;
+        height: 100%;
+      }
+      
+      .p-datatable-tbody {
+        flex: 1;
+        min-height: 400px;
+      }
     }
     
     .p-datatable-thead > tr > th {
@@ -559,7 +686,7 @@
         
         &:hover {
           background: var(--primary-blue-light);
-          border-color: var(--primary-blue);
+          border-color: var(--white);
         }
         
         &.p-highlight {
@@ -616,7 +743,7 @@
 .table-actions {
   display: flex;
   justify-content: center;
-  margin-top: 1.5rem;
+  margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid var(--border-gray);
   
@@ -624,10 +751,11 @@
     background: var(--primary-dark);
     border-color: var(--primary-dark);
     color: var(--white);
-    padding: 0.75rem 2rem;
+    padding: 0.5rem 2rem;
     font-family: var(--font-family);
     font-weight: var(--font-weight-medium);
     border-radius: var(--border-radius);
+    font-size: 0.9rem;
     
     &:hover {
       background: var(--medium-gray);
@@ -643,8 +771,9 @@
     gap: 1.5rem;
   }
   
-  .filters-section {
+  .left-column {
     flex: none;
+    max-width: none;
   }
 }
 
@@ -661,7 +790,6 @@
     }
   }
   
-  .upload-section,
   .main-content {
     padding: 0 1rem;
   }
@@ -697,7 +825,6 @@
     }
   }
   
-  .upload-section,
   .main-content {
     padding: 0 0.5rem;
   }
@@ -716,7 +843,7 @@
     }
   }
   
-  .filters-section {
+  .left-column {
     flex: none;
     width: 100%;
   }
