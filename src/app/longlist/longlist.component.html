@@ -38,15 +38,6 @@
               </p-fileUpload>
             </div>
             
-            <!-- Selected File Display -->
-            <div class="selected-file" *ngIf="selectedFile && !isUploading">
-              <i class="pi pi-file-pdf file-icon"></i>
-              <span class="filelabel">{{ selectedFile.name }}</span>
-              <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
-                <i class="pi pi-times"></i>
-              </button>
-            </div>
-
             <!-- Loading Spinner -->
             <div class="upload-loading" *ngIf="isUploading">
               <p-progressSpinner 
@@ -85,12 +76,13 @@
               <label>Current nationality</label>
               <div class="custom-dropdown" (click)="toggleDropdown('nationality'); $event.stopPropagation()">
                 <div class="dropdown-selected">
-                  {{ getSelectedLabel(nationalityOptions, selectedNationality) || 'Select nationality' }}
-                  <i class="pi pi-chevron-down dropdown-arrow"></i>
+                  {{ getSelectedLabel(dynamicNationalityOptions.length > 0 ? dynamicNationalityOptions : nationalityOptions, selectedNationality) || 'All Nationalities' }}
+                  <i class="pi pi-times dropdown-clear" *ngIf="selectedNationality" (click)="clearSelection('nationality'); $event.stopPropagation()"></i>
+                  <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedNationality"></i>
                 </div>
                 <div class="dropdown-options" *ngIf="openDropdown === 'nationality'">
                   <div 
-                    *ngFor="let option of nationalityOptions" 
+                    *ngFor="let option of (dynamicNationalityOptions.length > 0 ? dynamicNationalityOptions : nationalityOptions)" 
                     class="dropdown-option"
                     [class.selected]="selectedNationality === option.value"
                     (click)="selectOption('nationality', option.value); $event.stopPropagation()">
@@ -109,17 +101,17 @@
                     <label class="experience-label">Min</label>
                     <!-- <span class="experience-counter" *ngIf="selectedMinExperience">{{ selectedMinExperience }}</span> -->
                   </div>
-                  <div class="custom-dropdown" (click)="toggleDropdown('minExp'); $event.stopPropagation()">
+                  <div class="custom-dropdown" (click)="toggleDropdown('minExperience'); $event.stopPropagation()">
                     <div class="dropdown-selected">
                       {{ getSelectedLabel(experienceYearOptions, selectedMinExperience) || '0' }}
                       <i class="pi pi-chevron-down dropdown-arrow"></i>
                     </div>
-                    <div class="dropdown-options" *ngIf="openDropdown === 'minExp'">
+                    <div class="dropdown-options" *ngIf="openDropdown === 'minExperience'">
                       <div 
                         *ngFor="let option of experienceYearOptions" 
                         class="dropdown-option"
                         [class.selected]="selectedMinExperience === option.value"
-                        (click)="selectOption('minExp', option.value); $event.stopPropagation()">
+                        (click)="selectOption('minExperience', option.value); $event.stopPropagation()">
                         {{ option.label }}
                       </div>
                     </div>
@@ -130,17 +122,17 @@
                     <label class="experience-label">Max</label>
                     <!-- <span class="experience-counter" *ngIf="selectedMaxExperience">{{ selectedMaxExperience }}</span> -->
                   </div>
-                  <div class="custom-dropdown" (click)="toggleDropdown('maxExp'); $event.stopPropagation()">
+                  <div class="custom-dropdown" (click)="toggleDropdown('maxExperience'); $event.stopPropagation()">
                     <div class="dropdown-selected">
                       {{ getSelectedLabel(experienceYearOptions, selectedMaxExperience) || '10+' }}
                       <i class="pi pi-chevron-down dropdown-arrow"></i>
                     </div>
-                    <div class="dropdown-options" *ngIf="openDropdown === 'maxExp'">
+                    <div class="dropdown-options" *ngIf="openDropdown === 'maxExperience'">
                       <div 
                         *ngFor="let option of experienceYearOptions" 
                         class="dropdown-option"
                         [class.selected]="selectedMaxExperience === option.value"
-                        (click)="selectOption('maxExp', option.value); $event.stopPropagation()">
+                        (click)="selectOption('maxExperience', option.value); $event.stopPropagation()">
                         {{ option.label }}
                       </div>
                     </div>
@@ -154,12 +146,13 @@
               <label>Gender</label>
               <div class="custom-dropdown" (click)="toggleDropdown('gender'); $event.stopPropagation()">
                 <div class="dropdown-selected">
-                  {{ getSelectedLabel(genderOptions, selectedGender) || 'Select Gender' }}
-                  <i class="pi pi-chevron-down dropdown-arrow"></i>
+                  {{ getSelectedLabel(dynamicGenderOptions.length > 0 ? dynamicGenderOptions : genderOptions, selectedGender) || 'Select Gender' }}
+                  <i class="pi pi-times dropdown-clear" *ngIf="selectedGender" (click)="clearSelection('gender'); $event.stopPropagation()"></i>
+                  <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedGender"></i>
                 </div>
                 <div class="dropdown-options" *ngIf="openDropdown === 'gender'">
                   <div 
-                    *ngFor="let option of genderOptions" 
+                    *ngFor="let option of (dynamicGenderOptions.length > 0 ? dynamicGenderOptions : genderOptions)" 
                     class="dropdown-option"
                     [class.selected]="selectedGender === option.value"
                     (click)="selectOption('gender', option.value); $event.stopPropagation()">
@@ -192,13 +185,13 @@
               <label>Minimum academic qualification</label>
               <div class="custom-dropdown" (click)="toggleDropdown('qualification'); $event.stopPropagation()">
                 <div class="dropdown-selected">
-                  {{ getSelectedLabel(qualificationOptions, selectedQualification) || 'Master degree or equivalent' }}
+                  {{ getSelectedLabel(dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions, selectedQualification) || 'Master degree or equivalent' }}
                   <i class="pi pi-times dropdown-clear" *ngIf="selectedQualification" (click)="clearSelection('qualification'); $event.stopPropagation()"></i>
                   <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedQualification"></i>
                 </div>
                 <div class="dropdown-options" *ngIf="openDropdown === 'qualification'">
                   <div 
-                    *ngFor="let option of qualificationOptions" 
+                    *ngFor="let option of (dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions)" 
                     class="dropdown-option"
                     [class.selected]="selectedQualification === option.value"
                     (click)="selectOption('qualification', option.value); $event.stopPropagation()">
@@ -221,12 +214,12 @@
                 <label>Maximum academic qualification</label>
                 <div class="custom-dropdown" (click)="toggleDropdown('maxQualification'); $event.stopPropagation()">
                   <div class="dropdown-selected">
-                    {{ getSelectedLabel(qualificationOptions, selectedMaxQualification) || 'Select max qualification' }}
+                    {{ getSelectedLabel(dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions, selectedMaxQualification) || 'Select max qualification' }}
                     <i class="pi pi-chevron-down dropdown-arrow"></i>
                   </div>
                   <div class="dropdown-options" *ngIf="openDropdown === 'maxQualification'">
                     <div 
-                      *ngFor="let option of qualificationOptions" 
+                      *ngFor="let option of (dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions)" 
                       class="dropdown-option"
                       [class.selected]="selectedMaxQualification === option.value"
                       (click)="selectOption('maxQualification', option.value); $event.stopPropagation()">

@@ -119,6 +119,10 @@ export class AuthService {
   private baseUrl = 'http://3.6.143.181:8504/api/auth';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  
+  // Subject to notify other services about logout
+  private logoutSubject = new BehaviorSubject<boolean>(false);
+  public logout$ = this.logoutSubject.asObservable();
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -225,6 +229,7 @@ export class AuthService {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('current_user');
     this.currentUserSubject.next(null);
+    this.logoutSubject.next(true);
   }
 
   // Enhanced isAuthenticated method that checks token expiration  
