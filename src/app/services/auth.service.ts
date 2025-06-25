@@ -50,6 +50,68 @@ export interface RegisterResponse {
   [key: string]: any; // Allow any additional properties
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  success?: boolean;
+  [key: string]: any; // Allow any additional properties
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+  success?: boolean;
+  [key: string]: any; // Allow any additional properties
+}
+
+export interface ChangePasswordRequest {
+  old_password: string;
+  new_password: string;
+  confirm_new_password: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  success?: boolean;
+  [key: string]: any; // Allow any additional properties
+}
+
+export interface User {
+  id: number;
+  email: string;
+  fname: string;
+  lname: string;
+  name?: string; // Computed field from fname + lname
+  phone?: string;
+  is_admin: boolean;
+  cv_access?: boolean;
+  [key: string]: any; // Allow any additional properties
+}
+
+export interface UsersResponse {
+  users?: User[];
+  [key: string]: any; // Allow any additional properties
+}
+
+export interface UpdateCvAccessRequest {
+  user_id: number;
+  cv_access: boolean;
+}
+
+export interface UpdateCvAccessResponse {
+  message: string;
+  success?: boolean;
+  [key: string]: any; // Allow any additional properties
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -99,22 +161,61 @@ export class AuthService {
       tap(response => {
         console.log('Tap operator - OTP verification response:', response);
         
-        // If we get a response (200 status), try to extract token and user data
-        const token = response.token || response['access_token'] || response['authToken'];
-        const user = response.user || response['userData'] || response['profile'];
+        // Extract token - prioritize access_token from login-verify response
+        const token = response['access_token'] || response.token || response['authToken'];
+        
+        // Extract user data - try multiple possible locations and formats
+        let user = response.user || response['userData'] || response['profile'];
+        
+        // If no nested user object found, check if user data is at root level
+        if (!user) {
+          // User data is at root level - extract from login-verify response
+          user = {
+            id: response['id'] || response['user_id'],
+            fname: response['fname'],
+            lname: response['lname'], 
+            email: response['email'],
+            phone: response['phone'],
+            is_admin: response['is_admin'] || false,
+            cv_access: response['cv_access'] || false,
+            // Create composite name for compatibility
+            name: response['fname'] && response['lname'] 
+              ? `${response['fname']} ${response['lname']}`
+              : response['fname'] || response['lname'] || '',
+            ...response // Include any other fields
+          };
+        }
         
         if (token) {
-          console.log('Storing token and user data');
+          console.log('Storing token and user data:', { 
+            tokenLength: token.length, 
+            tokenStart: token.substring(0, 20) + '...', 
+            user 
+          });
           localStorage.setItem('auth_token', token);
+          
           if (user) {
             localStorage.setItem('current_user', JSON.stringify(user));
             this.currentUserSubject.next(user);
+            console.log('User stored with is_admin:', user.is_admin);
           }
+          
+          // Verify token was stored correctly
+          const storedToken = localStorage.getItem('auth_token');
+          console.log('Token verification - stored correctly:', storedToken === token);
         } else {
-          console.log('No token found in response, but verification was successful');
-          // Even without token, we can consider the verification successful
-          // Store a placeholder token if needed
-          localStorage.setItem('auth_token', 'verified');
+          console.error('No access_token found in login-verify response!');
+          console.log('Available response keys:', Object.keys(response));
+          
+          // If we have user data but no token, still store the user
+          if (user) {
+            localStorage.setItem('current_user', JSON.stringify(user));
+            this.currentUserSubject.next(user);
+            console.log('User stored (no token) with is_admin:', user.is_admin);
+          }
+          
+          // Don't store placeholder token - this will prevent API calls
+          console.error('Cannot proceed without valid JWT token');
         }
       })
     );
@@ -126,9 +227,21 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  // Enhanced isAuthenticated method that checks token expiration  
   isAuthenticated(): boolean {
     const token = localStorage.getItem('auth_token');
-    return !!token;
+    if (!token) {
+      return false;
+    }
+
+    // Check if token is expired
+    if (this.isTokenExpired()) {
+      console.log('Token has expired, logging out user');
+      this.logout();
+      return false;
+    }
+
+    return true;
   }
 
   getCurrentUser(): any {
@@ -138,4 +251,129 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('auth_token');
   }
+
+  forgotPassword(data: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(
+      `${this.baseUrl}/forgot-password`, 
+      data, 
+      this.httpOptions
+    );
+  }
+
+  resetPassword(data: ResetPasswordRequest): Observable<ResetPasswordResponse> {
+    return this.http.post<ResetPasswordResponse>(
+      `${this.baseUrl}/change-password`, 
+      data, 
+      this.httpOptions
+    );
+  }
+
+  changePassword(data: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.post<ChangePasswordResponse>(
+      `${this.baseUrl}/reset-password`, 
+      data, 
+      { headers }
+    );
+  }
+
+  // Get all users (admin only)
+  getUsers(): Observable<UsersResponse> {
+    const token = this.getToken();
+    console.log('getUsers: Retrieved token:', token);
+    console.log('getUsers: Token type:', typeof token);
+    console.log('getUsers: Token length:', token?.length);
+    
+    if (!token || token === 'verified') {
+      console.error('getUsers: Invalid or missing token');
+      throw new Error('No valid authentication token found');
+    }
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    
+    console.log('getUsers: Authorization header:', headers.get('Authorization'));
+    
+    return this.http.get<UsersResponse>(
+      `${this.baseUrl.replace('/auth', '')}/users/`,
+      { headers }
+    );
+  }
+
+  // Update user CV access (admin only)
+  updateCvAccess(data: UpdateCvAccessRequest): Observable<UpdateCvAccessResponse> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.patch<UpdateCvAccessResponse>(
+      `${this.baseUrl.replace('/auth', '')}/users/cv_access`,
+      data,
+      { headers }
+    );
+  }
+
+  // Check if current user is admin
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user?.is_admin === true;
+  }
+
+  // Decode JWT token to get expiration
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      const decoded = atob(payload);
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
+  }
+
+  // Check if token is expired
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token || token === 'verified') {
+      return true;
+    }
+
+    const decoded = this.decodeToken(token);
+    if (!decoded || !decoded.exp) {
+      return true;
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp < currentTime;
+  }
+
+  // Get token expiration time in minutes
+  getTokenTimeRemaining(): number {
+    const token = this.getToken();
+    if (!token || token === 'verified') {
+      return 0;
+    }
+
+    const decoded = this.decodeToken(token);
+    if (!decoded || !decoded.exp) {
+      return 0;
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeRemaining = decoded.exp - currentTime;
+    return Math.max(0, Math.floor(timeRemaining / 60)); // Return minutes
+  }
+
 } 

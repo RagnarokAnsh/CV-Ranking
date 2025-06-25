@@ -6,14 +6,12 @@ import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { NavbarComponent } from '../shared/navbar/navbar.component';
+import { AuthService, User, UpdateCvAccessRequest } from '../services/auth.service';
 
-// Interface for HR candidate data
-interface HRCandidate {
-  id: number;
+// Interface for display data
+interface UserDisplay extends User {
   name: string;
-  email: string;
-  phone: string;
-  status: 'approved' | 'rejected' | 'pending';
+  status: 'approved' | 'rejected';
 }
 
 @Component({
@@ -25,8 +23,8 @@ interface HRCandidate {
   styleUrls: ['./admin-approval.component.scss']
 })
 export class AdminApprovalComponent implements OnInit {
-  hrCandidates: HRCandidate[] = [];
-  selectedCandidate: HRCandidate | null = null;
+  hrCandidates: UserDisplay[] = [];
+  selectedCandidate: UserDisplay | null = null;
   showActionDialog: boolean = false;
   
   // Paginator properties
@@ -34,61 +32,75 @@ export class AdminApprovalComponent implements OnInit {
   totalRecords: number = 0;
   showPaginator: boolean = false;
 
-  constructor(private messageService: MessageService) {}
+  constructor(
+    private messageService: MessageService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadCandidates();
   }
 
   private loadCandidates(): void {
-    // Mock data - replace with actual API call
-    this.hrCandidates = [
-      { 
-        id: 1,
-        name: 'Raman Singh', 
-        email: 'ramansingh@gmail.com',
-        phone: '9823567234',
-        status: 'approved' 
-      },
-      { 
-        id: 2,
-        name: 'Naina Kapoor', 
-        email: 'nainakapoor@gmail.com',
-        phone: '9989994567',
-        status: 'approved' 
-      },
-      { 
-        id: 3,
-        name: 'Ayaan Mallick', 
-        email: 'ayaanmallick@gmail.com',
-        phone: '8799654569',
-        status: 'rejected' 
-      },
-      { 
-        id: 4,
-        name: 'Priya Sharma', 
-        email: 'priyasharma@gmail.com',
-        phone: '9876543210',
-        status: 'pending' 
-      },
-      { 
-        id: 5,
-        name: 'Arjun Patel', 
-        email: 'arjunpatel@gmail.com',
-        phone: '8765432109',
-        status: 'pending' 
-      },
-      { 
-        id: 6,
-        name: 'Sneha Reddy', 
-        email: 'snehareddy@gmail.com',
-        phone: '7654321098',
-        status: 'pending' 
-      }
-    ];
+    console.log('Loading candidates...');
+    console.log('Current user:', this.authService.getCurrentUser());
+    console.log('Is admin:', this.authService.isAdmin());
+    console.log('Auth token:', this.authService.getToken());
     
-    // Update paginator settings
-    this.updatePaginatorSettings();
+    this.authService.getUsers().subscribe({
+      next: (response) => {
+        console.log('Raw API response:', response);
+        
+        // Handle different response formats
+        let users = [];
+        if (Array.isArray(response)) {
+          users = response;
+        } else if (response.users && Array.isArray(response.users)) {
+          users = response.users;
+        } else if (response['data'] && Array.isArray(response['data'])) {
+          users = response['data'];
+        } else {
+          console.warn('Unexpected response format:', response);
+          users = [];
+        }
+        
+        console.log('Extracted users array:', users);
+        
+        // Convert User objects to UserDisplay format
+        this.hrCandidates = users.map(user => ({
+          ...user,
+          name: user.name || `${user.fname || ''} ${user.lname || ''}`.trim() || 'Unknown User',
+          status: user.cv_access ? 'approved' : 'rejected'
+        }));
+        
+        // Update paginator settings
+        this.updatePaginatorSettings();
+        
+        console.log('Final processed candidates:', this.hrCandidates);
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        console.error('Error status:', error.status);
+        console.error('Error details:', error.error);
+        
+        let errorMessage = 'Failed to load users. Please try again.';
+        if (error.status === 401 || error.status === 403) {
+          errorMessage = 'You do not have permission to access this data. Admin access required.';
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Load Error',
+          detail: errorMessage
+        });
+        
+        // Initialize empty array on error
+        this.hrCandidates = [];
+        this.updatePaginatorSettings();
+      }
+    });
   }
 
   private updatePaginatorSettings(): void {
@@ -110,65 +122,86 @@ export class AdminApprovalComponent implements OnInit {
     }
   }
 
-  onRowClick(candidate: HRCandidate): void {
+  onRowClick(candidate: UserDisplay): void {
     this.selectedCandidate = candidate;
     this.showActionDialog = true;
   }
 
   approveCandidate(): void {
     if (this.selectedCandidate) {
-      const previousStatus = this.selectedCandidate.status;
-      this.selectedCandidate.status = 'approved';
-      
-      // Show success message
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${this.selectedCandidate.name} has been approved${previousStatus !== 'approved' ? '' : ' (status unchanged)'}`
-      });
+      const updateData: UpdateCvAccessRequest = {
+        user_id: this.selectedCandidate.id,
+        cv_access: true
+      };
 
-      // TODO: Replace with actual API call
-      console.log('Approving candidate:', this.selectedCandidate);
-      
-      this.closeDialog();
+      this.authService.updateCvAccess(updateData).subscribe({
+        next: (response) => {
+          this.selectedCandidate!.status = 'approved';
+          this.selectedCandidate!.cv_access = true;
+          
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: response.message || `${this.selectedCandidate!.name} has been approved`
+          });
+
+          console.log('User approved successfully:', response);
+          this.closeDialog();
+        },
+        error: (error) => {
+          console.error('Error approving user:', error);
+          
+          let errorMessage = 'Failed to approve user. Please try again.';
+          if (error.error?.message) {
+            errorMessage = error.error.message;
+          }
+          
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Approval Failed',
+            detail: errorMessage
+          });
+        }
+      });
     }
   }
 
   rejectCandidate(): void {
     if (this.selectedCandidate) {
-      const previousStatus = this.selectedCandidate.status;
-      this.selectedCandidate.status = 'rejected';
-      
-      // Show warning message
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Rejected',
-        detail: `${this.selectedCandidate.name} has been rejected${previousStatus !== 'rejected' ? '' : ' (status unchanged)'}`
+      const updateData: UpdateCvAccessRequest = {
+        user_id: this.selectedCandidate.id,
+        cv_access: false
+      };
+
+      this.authService.updateCvAccess(updateData).subscribe({
+        next: (response) => {
+          this.selectedCandidate!.status = 'rejected';
+          this.selectedCandidate!.cv_access = false;
+          
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Rejected',
+            detail: response.message || `${this.selectedCandidate!.name} access has been rejected`
+          });
+
+          console.log('User rejected successfully:', response);
+          this.closeDialog();
+        },
+        error: (error) => {
+          console.error('Error rejecting user:', error);
+          
+          let errorMessage = 'Failed to reject user. Please try again.';
+          if (error.error?.message) {
+            errorMessage = error.error.message;
+          }
+          
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Rejection Failed',
+            detail: errorMessage
+          });
+        }
       });
-
-      // TODO: Replace with actual API call
-      console.log('Rejecting candidate:', this.selectedCandidate);
-      
-      this.closeDialog();
-    }
-  }
-
-  setPendingStatus(): void {
-    if (this.selectedCandidate) {
-      const previousStatus = this.selectedCandidate.status;
-      this.selectedCandidate.status = 'pending';
-      
-      // Show info message
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Status Updated',
-        detail: `${this.selectedCandidate.name} status set to pending${previousStatus !== 'pending' ? '' : ' (status unchanged)'}`
-      });
-
-      // TODO: Replace with actual API call
-      console.log('Setting candidate to pending:', this.selectedCandidate);
-      
-      this.closeDialog();
     }
   }
 

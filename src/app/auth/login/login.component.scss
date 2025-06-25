@@ -238,6 +238,28 @@
   margin-left: 0.5rem;
 }
 
+/* Error State for Form Inputs */
+.form-input.error {
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2) !important;
+}
+
+.form-input.error:focus {
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.3) !important;
+}
+
+/* Error State for Password Fields */
+.custom-password .password-input.error {
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2) !important;
+}
+
+.custom-password .password-input.error:focus {
+  border-color: #E53E3E !important;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.3) !important;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

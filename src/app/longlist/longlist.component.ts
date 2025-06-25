@@ -87,7 +87,21 @@ export class LonglistComponent implements OnInit {
     { id: 'CV029', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
     { id: 'CV030', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
     { id: 'CV031', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV032', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' }
+    { id: 'CV032', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
+    { id: 'CV033', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
+    { id: 'CV034', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
+    { id: 'CV035', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
+    { id: 'CV036', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
+    { id: 'CV037', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
+    { id: 'CV038', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
+    { id: 'CV039', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
+    { id: 'CV040', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
+    { id: 'CV041', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
+    { id: 'CV042', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
+    { id: 'CV043', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
+    { id: 'CV044', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
+    { id: 'CV045', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
+    { id: 'CV046', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' }
   ];
 
   filteredCvs: CV[] = [];

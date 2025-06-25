@@ -7,6 +7,8 @@ import { AuthService, LoginRequest, LoginVerifyRequest } from '../../services/au
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-login',
@@ -15,8 +17,10 @@ import { CardModule } from 'primeng/card';
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,
-    CardModule
+    CardModule,
+    ToastModule
   ],
+  providers: [MessageService],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -36,7 +40,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
@@ -46,7 +51,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   initializeForms() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required]]
     });
 
     this.otpForm = this.fb.group({
@@ -57,10 +62,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   onLogin() {
     if (this.loginForm.valid) {
       this.loading = true;
-      this.userEmail = this.loginForm.get('email')?.value;
+      this.userEmail = this.loginForm.get('email')?.value.trim().toLowerCase();
       
       const loginData: LoginRequest = {
-        email: this.loginForm.get('email')?.value,
+        email: this.userEmail,
         password: this.loginForm.get('password')?.value
       };
       
@@ -74,18 +79,64 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.showOtpStep = true;
           this.otpSent = true;
           this.startCountdown();
+          
+          this.messageService.add({
+            severity: 'info',
+            summary: 'OTP Sent',
+            detail: `A verification code has been sent to ${this.userEmail}`
+          });
+          
           console.log('OTP sent to:', this.userEmail, 'User ID:', this.userId);
         },
         error: (error) => {
           this.loading = false;
           console.error('Login error:', error);
-          alert('Login failed. Please check your credentials.');
+          
+          // Handle specific error cases
+          let errorMessage = 'Login failed. Please check your credentials.';
+          let errorSummary = 'Login Failed';
+          
+          if (error.error && error.error.detail) {
+            const detail = error.error.detail;
+            if (detail.includes('Invalid credentials') || detail.includes('incorrect')) {
+              errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+              errorSummary = 'Invalid Credentials';
+            } else if (detail.includes('not found') || detail.includes('does not exist')) {
+              errorMessage = 'Account not found. Please check your email or register for a new account.';
+              errorSummary = 'Account Not Found';
+            } else if (detail.includes('inactive') || detail.includes('disabled')) {
+              errorMessage = 'Your account is inactive. Please contact support.';
+              errorSummary = 'Account Inactive';
+            } else {
+              errorMessage = detail;
+            }
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.status === 401) {
+            errorMessage = 'Invalid email or password. Please try again.';
+            errorSummary = 'Authentication Failed';
+          } else if (error.status === 404) {
+            errorMessage = 'Account not found. Please check your email or register.';
+            errorSummary = 'Account Not Found';
+          }
+          
+          this.messageService.add({
+            severity: 'error',
+            summary: errorSummary,
+            detail: errorMessage
+          });
         }
       });
     } else {
       // Mark all fields as touched to show validation errors
       Object.keys(this.loginForm.controls).forEach(key => {
         this.loginForm.get(key)?.markAsTouched();
+      });
+      
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Form Validation',
+        detail: 'Please correct the errors in the form before submitting'
       });
     }
   }
@@ -105,13 +156,26 @@ export class LoginComponent implements OnInit, OnDestroy {
           console.log('OTP verification response:', response);
           
           try {
-            // If we get a successful response (200 status), consider it successful
+            // Show success message
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Login Successful',
+              detail: 'Welcome back! Redirecting to dashboard...'
+            });
+            
             console.log('Login successful with OTP:', response);
-            // Navigate to dashboard or main page
-            this.router.navigate(['/longlist']); // or wherever you want to redirect after login
+            
+            // Navigate after a short delay to allow user to see the success message
+            setTimeout(() => {
+              this.router.navigate(['/longlist']);
+            }, 1500);
           } catch (error) {
             console.error('Error during navigation:', error);
-            alert('Login successful, but navigation failed. Please refresh the page.');
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Login Successful',
+              detail: 'Login successful, but navigation failed. Please refresh the page.'
+            });
           }
         },
         error: (error) => {
@@ -120,18 +184,45 @@ export class LoginComponent implements OnInit, OnDestroy {
           
           // Handle specific error cases
           let errorMessage = 'OTP verification failed. Please try again.';
+          let errorSummary = 'Verification Failed';
+          
           if (error.error && error.error.detail) {
-            errorMessage = error.error.detail;
+            const detail = error.error.detail;
+            if (detail.includes('invalid') || detail.includes('incorrect')) {
+              errorMessage = 'Invalid OTP. Please check the code and try again.';
+              errorSummary = 'Invalid OTP';
+            } else if (detail.includes('expired')) {
+              errorMessage = 'OTP has expired. Please request a new code.';
+              errorSummary = 'OTP Expired';
+            } else {
+              errorMessage = detail;
+            }
           } else if (error.error && error.error.message) {
             errorMessage = error.error.message;
+          } else if (error.status === 400) {
+            errorMessage = 'Invalid OTP. Please check the code and try again.';
+            errorSummary = 'Invalid OTP';
+          } else if (error.status === 401) {
+            errorMessage = 'OTP verification failed. Please try again.';
+            errorSummary = 'Verification Failed';
           }
           
-          alert(errorMessage);
+          this.messageService.add({
+            severity: 'error',
+            summary: errorSummary,
+            detail: errorMessage
+          });
         }
       });
     } else {
       // Mark OTP field as touched to show validation errors
       this.otpForm.get('otp')?.markAsTouched();
+      
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Invalid OTP',
+        detail: 'Please enter a valid 6-digit OTP'
+      });
     }
   }
 
@@ -154,12 +245,31 @@ export class LoginComponent implements OnInit, OnDestroy {
         // Extract user_id from response
         this.userId = response.user_id || response.id || response.userId || 0;
         this.startCountdown();
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'OTP Resent',
+          detail: `A new verification code has been sent to ${this.userEmail}`
+        });
+        
         console.log('OTP resent to:', this.userEmail);
       },
       error: (error) => {
         this.resendLoading = false;
         console.error('Resend OTP error:', error);
-        alert('Failed to resend OTP. Please try again.');
+        
+        let errorMessage = 'Failed to resend OTP. Please try again.';
+        if (error.error && error.error.detail) {
+          errorMessage = error.error.detail;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Resend Failed',
+          detail: errorMessage
+        });
       }
     });
   }

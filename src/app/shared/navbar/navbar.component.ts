@@ -9,6 +9,9 @@ import { AvatarModule } from 'primeng/avatar';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { MenuItem } from 'primeng/api';
 
+// Services
+import { AuthService } from '../../services/auth.service';
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -27,16 +30,39 @@ export class NavbarComponent implements OnInit {
   userMenuItems: MenuItem[] = [];
   currentRoute: string = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.initializeSidebarItems();
     this.initializeUserMenu();
     this.currentRoute = this.router.url;
+    
+    // Subscribe to user changes to update sidebar items
+    this.authService.currentUser$.subscribe(user => {
+      console.log('Navbar: User changed:', user);
+      this.initializeSidebarItems(); // Rebuild sidebar when user changes
+    });
+    
+    // Update current route
+    this.router.events.subscribe((event: any) => {
+      if (event.url) {
+        this.currentRoute = event.url;
+      }
+    });
   }
 
   initializeSidebarItems() {
-    this.sidebarItems = [
+    const currentUser = this.authService.getCurrentUser();
+    const isAdmin = this.authService.isAdmin();
+    
+    console.log('Navbar: Building sidebar items');
+    console.log('Current user:', currentUser);
+    console.log('Is admin:', isAdmin);
+    
+    const baseItems = [
       {
         label: 'Long List',
         icon: 'pi pi-file-o',
@@ -48,13 +74,24 @@ export class NavbarComponent implements OnInit {
         icon: 'pi pi-file-o',
         routerLink: '/shortlist',
         command: () => this.navigateTo('/shortlist')
-      },
-      {
+      }
+    ];
+
+    // Add Admin Approval only for admin users
+    if (isAdmin) {
+      console.log('Adding Admin Approval to sidebar');
+      baseItems.push({
         label: 'Admin Approval',
         icon: 'pi pi-user',
         routerLink: '/admin-approval',
         command: () => this.navigateTo('/admin-approval')
-      },
+      });
+    } else {
+      console.log('Not adding Admin Approval - user is not admin');
+    }
+
+    // Add common items
+    baseItems.push(
       {
         label: 'Help',
         icon: 'pi pi-info-circle',
@@ -67,16 +104,19 @@ export class NavbarComponent implements OnInit {
         routerLink: '/logout',
         command: () => this.logout()
       }
-    ];
+    );
+
+    this.sidebarItems = baseItems;
+    console.log('Final sidebar items:', this.sidebarItems);
   }
 
   initializeUserMenu() {
     this.userMenuItems = [
       {
-        label: 'Reset Password',
+        label: 'Change Password',
         icon: 'pi pi-key',
-        routerLink: '/auth/reset-password',
-        command: () => this.showProfile()
+        routerLink: '/change-password',
+        command: () => this.navigateTo('/change-password')
       },
       
       {
@@ -132,5 +172,29 @@ export class NavbarComponent implements OnInit {
 
   getRouteFromItem(item: MenuItem): string {
     return item.routerLink || '';
+  }
+
+  getCurrentUserName(): string {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      // Primary: Use fname and lname from login-verify response
+      if (user.fname || user.lname) {
+        return `${user.fname || ''} ${user.lname || ''}`.trim();
+      }
+      // Secondary: Use computed name field if available
+      else if (user.name) {
+        return user.name;
+      } 
+      // Fallback: Use email username if no name available
+      else if (user.email) {
+        return user.email.split('@')[0];
+      }
+    }
+    return 'User';
+  }
+
+  getCurrentUserEmail(): string {
+    const user = this.authService.getCurrentUser();
+    return user?.email || 'user@example.com';
   }
 }

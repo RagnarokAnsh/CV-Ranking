@@ -20,7 +20,14 @@
           formControlName="email"
           placeholder=""
           class="form-input"
+          [class.error]="loginForm.get('email')?.touched && loginForm.get('email')?.errors"
         />
+        <div class="error-message" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['required']">
+          Email is required
+        </div>
+        <div class="error-message" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['email']">
+          Please enter a valid email address
+        </div>
       </div>
 
       <!-- Password Field -->
@@ -33,10 +40,14 @@
             formControlName="password"
             placeholder=""
             class="form-input password-input"
+            [class.error]="loginForm.get('password')?.touched && loginForm.get('password')?.errors"
           />
           <div class="password-toggle" (click)="togglePasswordVisibility()">
             <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
           </div>
+        </div>
+        <div class="error-message" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']">
+          Password is required
         </div>
       </div>
 
@@ -55,7 +66,7 @@
       <button 
         type="submit"
         class="login-button"
-        [disabled]="loginForm.invalid || loading"
+        [disabled]="loading"
       >
         <span *ngIf="loading" class="loading-spinner"></span>
         Send OTP
@@ -108,7 +119,7 @@
       <button 
         type="submit"
         class="login-button"
-        [disabled]="otpForm.invalid || loading"
+        [disabled]="loading"
       >
         <span *ngIf="loading" class="loading-spinner"></span>
         Verify & Login
@@ -142,3 +153,6 @@
     </form>
   </div>
 </div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>

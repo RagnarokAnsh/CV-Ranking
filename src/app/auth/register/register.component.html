@@ -21,7 +21,11 @@
             formControlName="firstName"
             placeholder=""
             class="form-input"
+            [class.error]="registerForm.get('firstName')?.touched && registerForm.get('firstName')?.errors"
           />
+          <div class="error-message" *ngIf="getFieldErrorMessage('firstName')">
+            {{ getFieldErrorMessage('firstName') }}
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="lastName">Last Name *</label>
@@ -32,7 +36,11 @@
             formControlName="lastName"
             placeholder=""
             class="form-input"
+            [class.error]="registerForm.get('lastName')?.touched && registerForm.get('lastName')?.errors"
           />
+          <div class="error-message" *ngIf="getFieldErrorMessage('lastName')">
+            {{ getFieldErrorMessage('lastName') }}
+          </div>
         </div>
       </div>
 
@@ -47,7 +55,11 @@
             formControlName="email"
             placeholder=""
             class="form-input"
+            [class.error]="registerForm.get('email')?.touched && registerForm.get('email')?.errors"
           />
+          <div class="error-message" *ngIf="getFieldErrorMessage('email')">
+            {{ getFieldErrorMessage('email') }}
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="phone">Phone/Mobile *</label>
@@ -81,7 +93,14 @@
               formControlName="phone"
               placeholder=""
               class="form-input phone-number"
+              [class.error]="registerForm.get('phone')?.touched && registerForm.get('phone')?.errors"
+              (input)="onPhoneInput($event)"
+              (keypress)="onPhoneKeyPress($event)"
+              (paste)="onPhonePaste($event)"
             />
+          </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('phone')">
+            {{ getFieldErrorMessage('phone') }}
           </div>
         </div>
       </div>
@@ -102,10 +121,13 @@
               styleClass="custom-calendar">
             </p-calendar>
           </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('dateOfBirth')">
+            {{ getFieldErrorMessage('dateOfBirth') }}
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="gender">Gender *</label>
-          <div class="custom-dropdown dropdown-field" [class.open]="showGenderDropdown" (click)="toggleGenderDropdown(); $event.stopPropagation()">
+          <div class="custom-dropdown dropdown-field" [class.open]="showGenderDropdown" [class.error]="registerForm.get('gender')?.touched && registerForm.get('gender')?.errors" (click)="toggleGenderDropdown(); $event.stopPropagation()">
             <div class="dropdown-selected">
               <span class="dropdown-text" [class.placeholder]="!registerForm.get('gender')?.value">{{ getSelectedGender() }}</span>
             </div>
@@ -122,6 +144,9 @@
               </div>
             </div>
           </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('gender')">
+            {{ getFieldErrorMessage('gender') }}
+          </div>
         </div>
       </div>
 
@@ -129,7 +154,7 @@
       <div class="form-row">
         <div class="form-field half-width">
           <label for="country">Country *</label>
-          <div class="custom-dropdown dropdown-field" [class.open]="showCountryFieldDropdown" (click)="toggleCountryFieldDropdown(); $event.stopPropagation()">
+          <div class="custom-dropdown dropdown-field" [class.open]="showCountryFieldDropdown" [class.error]="registerForm.get('country')?.touched && registerForm.get('country')?.errors" (click)="toggleCountryFieldDropdown(); $event.stopPropagation()">
             <div class="dropdown-selected">
               <span class="dropdown-text" [class.placeholder]="!registerForm.get('country')?.value">{{ getSelectedCountryField() }}</span>
             </div>
@@ -146,10 +171,13 @@
               </div>
             </div>
           </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('country')">
+            {{ getFieldErrorMessage('country') }}
+          </div>
         </div>
         <div class="form-field half-width">
           <label for="nationality">Nationality *</label>
-          <div class="custom-dropdown dropdown-field" [class.open]="showNationalityDropdown" (click)="toggleNationalityDropdown(); $event.stopPropagation()">
+          <div class="custom-dropdown dropdown-field" [class.open]="showNationalityDropdown" [class.error]="registerForm.get('nationality')?.touched && registerForm.get('nationality')?.errors" (click)="toggleNationalityDropdown(); $event.stopPropagation()">
             <div class="dropdown-selected">
               <span class="dropdown-text" [class.placeholder]="!registerForm.get('nationality')?.value">{{ getSelectedNationality() }}</span>
             </div>
@@ -166,6 +194,9 @@
               </div>
             </div>
           </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('nationality')">
+            {{ getFieldErrorMessage('nationality') }}
+          </div>
         </div>
       </div>
 
@@ -180,10 +211,14 @@
               formControlName="password"
               placeholder=""
               class="form-input password-input"
+              [class.error]="registerForm.get('password')?.touched && registerForm.get('password')?.errors"
             />
             <div class="password-toggle" (click)="togglePasswordVisibility()">
               <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </div>
+          </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('password')">
+            {{ getFieldErrorMessage('password') }}
           </div>
         </div>
         <div class="form-field half-width">
@@ -195,10 +230,14 @@
               formControlName="confirmPassword"
               placeholder=""
               class="form-input password-input"
+              [class.error]="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.errors"
             />
-            <div class="password-toggle" (click)="toggleConfirmPasswordVisibility()">
+            <!-- <div class="password-toggle" (click)="toggleConfirmPasswordVisibility()">
               <i [class]="showConfirmPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
-            </div>
+            </div> -->
+          </div>
+          <div class="error-message" *ngIf="getFieldErrorMessage('confirmPassword')">
+            {{ getFieldErrorMessage('confirmPassword') }}
           </div>
         </div>
       </div>
@@ -207,7 +246,7 @@
       <button 
         type="submit"
         class="register-button"
-        [disabled]="registerForm.invalid || loading"
+        [disabled]="loading"
       >
         <span *ngIf="loading" class="loading-spinner"></span>
         Create Account
@@ -227,3 +266,6 @@
     </form>
   </div>
 </div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
