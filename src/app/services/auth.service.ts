@@ -334,9 +334,22 @@ export class AuthService {
   // Decode JWT token to get expiration
   private decodeToken(token: string): any {
     try {
-      const payload = token.split('.')[1];
+      if (!token || token === 'verified') {
+        console.warn('Invalid token for decoding:', token);
+        return null;
+      }
+      
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.error('Invalid JWT token format - expected 3 parts, got:', parts.length);
+        return null;
+      }
+      
+      const payload = parts[1];
       const decoded = atob(payload);
-      return JSON.parse(decoded);
+      const parsed = JSON.parse(decoded);
+      console.log('Decoded token payload:', { exp: parsed.exp, iat: parsed.iat, currentTime: Math.floor(Date.now() / 1000) });
+      return parsed;
     } catch (error) {
       console.error('Error decoding JWT token:', error);
       return null;

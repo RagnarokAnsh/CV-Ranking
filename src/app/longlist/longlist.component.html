@@ -39,12 +39,26 @@
             </div>
             
             <!-- Selected File Display -->
-            <div class="selected-file" *ngIf="selectedFile">
+            <div class="selected-file" *ngIf="selectedFile && !isUploading">
               <i class="pi pi-file-pdf file-icon"></i>
               <span class="filelabel">{{ selectedFile.name }}</span>
               <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
                 <i class="pi pi-times"></i>
               </button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="upload-loading" *ngIf="isUploading">
+              <p-progressSpinner 
+                [style]="{'width': '50px', 'height': '50px'}" 
+                strokeWidth="4"
+                fill="var(--surface-ground)"
+                animationDuration=".5s">
+              </p-progressSpinner>
+              <div class="loading-text">
+                <p><strong>Processing your P11 file...</strong></p>
+                <p>This may take a few moments. Please don't refresh the page.</p>
+              </div>
             </div>
             
             <!-- Action Buttons -->
@@ -52,16 +66,10 @@
               <button 
                 pButton 
                 type="button" 
-                label="Submit" 
-                class="p-button-primary submit-btn"
-                [disabled]="!selectedFile">
-              </button>
-              <button 
-                pButton 
-                type="button" 
                 label="Reset CVs" 
                 class="p-button-outlined reset-btn"
-                (click)="resetCVs()">
+                (click)="resetCVs()"
+                [disabled]="isUploading">
               </button>
             </div>
           </div>
@@ -163,13 +171,14 @@
 
             <!-- Age Range -->
             <div class="filter-field age-filter">
-              <label>Age</label>
-              <div class="age-slider">
+              <label>Age <span class="coming-soon">- Coming Soon</span></label>
+              <div class="age-slider disabled-filter">
                 <p-slider 
                   [(ngModel)]="ageRange" 
                   [range]="true" 
                   [min]="18" 
                   [max]="65"
+                  [disabled]="true"
                   class="age-range-slider">
                 </p-slider>
                 <div class="age-values">
@@ -237,8 +246,8 @@
 
             <!-- Languages -->
             <div class="filter-field">
-              <label>Languages</label>
-              <div class="languages-section">
+              <label>Languages <span class="coming-soon">- Coming Soon</span></label>
+              <div class="languages-section disabled-filter">
                 <div class="language-tags" *ngIf="selectedLanguages.length > 0">
                   <p-tag 
                     *ngFor="let lang of selectedLanguages" 
@@ -248,20 +257,10 @@
                     <i class="pi pi-times tag-remove" (click)="removeLanguage(lang)"></i>
                   </p-tag>
                 </div>
-                <div class="custom-dropdown language-dropdown" (click)="toggleDropdown('language'); $event.stopPropagation()">
+                <div class="custom-dropdown language-dropdown disabled" (click)="$event.stopPropagation()">
                   <div class="dropdown-selected">
-                    {{ tempSelectedLanguage || 'Select language' }}
-                    <i class="pi pi-times dropdown-clear" *ngIf="tempSelectedLanguage" (click)="clearLanguageSelection(); $event.stopPropagation()"></i>
-                    <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!tempSelectedLanguage"></i>
-                  </div>
-                  <div class="dropdown-options" *ngIf="openDropdown === 'language'">
-                    <div 
-                      *ngFor="let option of languageOptions" 
-                      class="dropdown-option"
-                      [class.selected]="tempSelectedLanguage === option.value"
-                      (click)="selectLanguage(option.value); $event.stopPropagation()">
-                      {{ option.label }}
-                    </div>
+                    Select language (Coming Soon)
+                    <i class="pi pi-chevron-down dropdown-arrow"></i>
                   </div>
                 </div>
                 <button 
@@ -269,8 +268,7 @@
                   type="button" 
                   icon="pi pi-plus"
                   class="p-button-text add-language-btn"
-                  [disabled]="!tempSelectedLanguage"
-                  (click)="addLanguage()">
+                  [disabled]="true">
                   Add
                 </button>
               </div>
@@ -302,10 +300,10 @@
         <h3>Long Listed CVs</h3>
         
         <p-table 
-          [value]="filteredCvs" 
-          [paginator]="filteredCvs.length > 15"
+          [value]="filteredResumeData" 
+          [paginator]="filteredResumeData.length > 15"
           [rows]="10"
-          [showCurrentPageReport]="filteredCvs.length > 15"
+          [showCurrentPageReport]="filteredResumeData.length > 15"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           class="cv-table">
           
@@ -326,7 +324,7 @@
               <td>{{ cv.name }}</td>
               <td>{{ cv.qualification }}</td>
               <td>{{ cv.experience }}</td>
-              <td>Male</td>
+              <td>{{ cv.gender }}</td>
               <td>{{ cv.nationality }}</td>
             </tr>
           </ng-template>

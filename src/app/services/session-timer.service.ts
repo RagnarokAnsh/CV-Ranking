@@ -10,7 +10,7 @@ import { interval, Subscription } from 'rxjs';
 export class SessionTimerService implements OnDestroy {
   private timerSubscription?: Subscription;
   private warningShown = false;
-  private readonly CHECK_INTERVAL = 60 * 1000; // Check every minute
+  private readonly CHECK_INTERVAL = 30 * 1000; // Check every 30 seconds for more responsive warnings
   private readonly WARNING_TIME = 5; // Show warning when 5 minutes left
 
   constructor(
@@ -21,8 +21,12 @@ export class SessionTimerService implements OnDestroy {
 
   startSessionTimer(): void {
     this.stopSessionTimer(); // Clear any existing timer
+    this.warningShown = false; // Reset warning state
     
     console.log('Starting session timer...');
+    
+    // Check immediately when starting
+    this.checkTokenExpiration();
     
     this.timerSubscription = interval(this.CHECK_INTERVAL).subscribe(() => {
       this.checkTokenExpiration();
@@ -35,11 +39,13 @@ export class SessionTimerService implements OnDestroy {
       this.timerSubscription = undefined;
     }
     this.warningShown = false;
+    console.log('Session timer stopped');
   }
 
   private checkTokenExpiration(): void {
     if (!this.authService.isAuthenticated()) {
       // Token is already expired or invalid
+      console.log('Token not authenticated, stopping timer');
       this.handleSessionExpired();
       return;
     }
@@ -49,10 +55,16 @@ export class SessionTimerService implements OnDestroy {
 
     if (timeRemaining <= 0) {
       // Token has expired
+      console.log('Token expired, handling session expiry');
       this.handleSessionExpired();
     } else if (timeRemaining <= this.WARNING_TIME && !this.warningShown) {
       // Show warning when 5 minutes or less remaining
+      console.log(`Showing expiration warning - ${timeRemaining} minutes remaining`);
       this.showExpirationWarning(timeRemaining);
+    } else if (timeRemaining > this.WARNING_TIME && this.warningShown) {
+      // Reset warning if time increased (token refreshed)
+      console.log('Time increased, resetting warning state');
+      this.warningShown = false;
     }
   }
 
@@ -60,12 +72,15 @@ export class SessionTimerService implements OnDestroy {
     console.log('Session expired - redirecting to login');
     this.stopSessionTimer();
     
-    this.messageService.add({
-      severity: 'warn',
-      summary: 'Session Expired',
-      detail: 'Your session has expired. Please login again.',
-      life: 5000
-    });
+    // Only show toast if we're not already on the login page
+    if (!this.router.url.includes('/login')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Session Expired',
+        detail: 'Your session has expired. Please login again.',
+        life: 5000
+      });
+    }
     
     this.authService.logout();
     this.router.navigate(['/login']);
@@ -74,17 +89,28 @@ export class SessionTimerService implements OnDestroy {
   private showExpirationWarning(timeRemaining: number): void {
     this.warningShown = true;
     
+    const minutes = timeRemaining === 1 ? 'minute' : 'minutes';
     this.messageService.add({
       severity: 'info',
       summary: 'Session Expiring Soon',
-      detail: `Your session will expire in ${timeRemaining} minute(s). Save any work and refresh to extend your session.`,
-      life: 10000
+      detail: `Your session will expire in ${timeRemaining} ${minutes}. Save any work and refresh to extend your session.`,
+      life: 10000,
+      sticky: true
     });
+    
+    console.log(`Warning shown for ${timeRemaining} minutes remaining`);
   }
 
   // Method to refresh token expiration check manually
   checkNow(): void {
+    console.log('Manual session check triggered');
     this.checkTokenExpiration();
+  }
+
+  // Method to reset warning state (can be called after token refresh)
+  resetWarning(): void {
+    console.log('Warning state reset');
+    this.warningShown = false;
   }
 
   ngOnDestroy(): void {

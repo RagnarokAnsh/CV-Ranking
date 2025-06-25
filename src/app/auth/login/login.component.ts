@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService, LoginRequest, LoginVerifyRequest } from '../../services/auth.service';
+import { SessionTimerService } from '../../services/session-timer.service';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -41,6 +42,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
+    private sessionTimerService: SessionTimerService,
     private messageService: MessageService
   ) {}
 
@@ -169,6 +171,9 @@ export class LoginComponent implements OnInit, OnDestroy {
             setTimeout(() => {
               this.router.navigate(['/longlist']);
             }, 1500);
+
+            // Start session timer
+            this.sessionTimerService.startSessionTimer();
           } catch (error) {
             console.error('Error during navigation:', error);
             this.messageService.add({

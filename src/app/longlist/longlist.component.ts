@@ -1,6 +1,13 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { finalize } from 'rxjs/operators';
+
+// Services
+import { SessionTimerService } from '../services/session-timer.service';
+import { AuthService } from '../services/auth.service';
+import { ResumeService, ResumeData, UploadResumeResponse } from '../services/resume.service';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -12,20 +19,11 @@ import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageService } from 'primeng/api';
 
-// Navbar Component Import - Check if this path is correct
+// Navbar Component Import
 import { NavbarComponent } from '../shared/navbar/navbar.component';
-
-interface CV {
-  id: string;
-  name: string;
-  nationality: string;
-  experience: number;
-  age: number;
-  qualification: string;
-  selected?: boolean;
-}
 
 interface FilterOption {
   label: string;
@@ -47,64 +45,22 @@ interface FilterOption {
     CheckboxModule,
     TagModule,
     ToastModule,
-    NavbarComponent // Make sure this component exists and is properly exported
+    ProgressSpinnerModule,
+    NavbarComponent
   ],
   providers: [MessageService],
   templateUrl: './longlist.component.html',
-  styleUrls: ['./longlist.component.scss'] // Note: changed from 'styleUrl' to 'styleUrls' (array)
+  styleUrls: ['./longlist.component.scss']
 })
 export class LonglistComponent implements OnInit {
-  // Mock CV Data
-  cvs: CV[] = [
-    { id: 'CV001', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
-    { id: 'CV002', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV003', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
-    { id: 'CV004', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
-    { id: 'CV005', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
-    { id: 'CV006', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
-    { id: 'CV007', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV008', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
-    { id: 'CV009', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
-    { id: 'CV010', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV011', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
-    { id: 'CV012', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
-    { id: 'CV013', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
-    { id: 'CV014', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
-    { id: 'CV015', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV016', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
-    { id: 'CV017', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
-    { id: 'CV018', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV019', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
-    { id: 'CV020', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
-    { id: 'CV021', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
-    { id: 'CV022', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
-    { id: 'CV023', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV024', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
-    { id: 'CV025', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
-    { id: 'CV026', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV027', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
-    { id: 'CV028', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
-    { id: 'CV029', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
-    { id: 'CV030', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
-    { id: 'CV031', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV032', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV033', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
-    { id: 'CV034', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
-    { id: 'CV035', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
-    { id: 'CV036', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
-    { id: 'CV037', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV038', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' },
-    { id: 'CV039', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
-    { id: 'CV040', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV041', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' },
-    { id: 'CV042', name: 'Ahmed Khan', nationality: 'Pakistani', experience: 7, age: 32, qualification: 'Masters Degree' },
-    { id: 'CV043', name: 'Sarah Johnson', nationality: 'American', experience: 3, age: 26, qualification: 'Bachelor Degree' },
-    { id: 'CV044', name: 'Raj Patel', nationality: 'Indian', experience: 6, age: 29, qualification: 'PhD' },
-    { id: 'CV045', name: 'Maria Garcia', nationality: 'Spanish', experience: 2, age: 25, qualification: 'Diploma' },
-    { id: 'CV046', name: 'Chen Wei', nationality: 'Chinese', experience: 8, age: 35, qualification: 'Masters Degree' }
-  ];
-
-  filteredCvs: CV[] = [];
+  // API Data
+  resumeData: ResumeData[] = [];
+  filteredResumeData: ResumeData[] = [];
+  pdfId: number | null = null;
+  
+  // Loading States
+  isUploading: boolean = false;
+  uploadProgress: number = 0;
 
   // Filter Options
   nationalityOptions: FilterOption[] = [
@@ -118,7 +74,6 @@ export class LonglistComponent implements OnInit {
     { label: 'Chinese', value: 'Chinese' }
   ];
 
-  // Experience options for min/max dropdowns
   experienceYearOptions: FilterOption[] = [
     { label: '0', value: '0' },
     { label: '1', value: '1' },
@@ -166,32 +121,34 @@ export class LonglistComponent implements OnInit {
   selectedQualification: string = '';
   selectedMaxQualification: string = '';
   selectedLanguages: string[] = [];
-  ageRange: number[] = [18, 65];
-
+  ageRange: number[] = [18, 65]; // For UI display only - Coming Soon feature
+  
   // UI State
   showMaxQualification: boolean = false;
   showLanguageDropdown: boolean = false;
   tempSelectedLanguage: string = '';
   selectedFile: File | null = null;
-  
-  // Dropdown state
   openDropdown: string | null = null;
 
-  constructor(private messageService: MessageService) {
+  constructor(
+    private messageService: MessageService,
+    private sessionTimerService: SessionTimerService,
+    private authService: AuthService,
+    private resumeService: ResumeService
+  ) {
     console.log('LonglistComponent constructor called');
   }
 
   ngOnInit() {
     console.log('LonglistComponent ngOnInit called');
-    this.filteredCvs = [...this.cvs];
+    this.filteredResumeData = [...this.resumeData];
     
     // Set default values to empty for proper placeholders
     this.selectedMinExperience = '';
     this.selectedMaxExperience = '';
     this.selectedGender = '';
     
-    console.log('Longlist component initialized with', this.cvs.length, 'CVs');
-    console.log('Filtered CVs:', this.filteredCvs);
+    console.log('Longlist component initialized');
   }
 
   // Close dropdown when clicking outside
@@ -280,17 +237,46 @@ export class LonglistComponent implements OnInit {
     }
   }
 
-  onFileSelect(event: any) {
+  onFileSelect(event: any): void {
     console.log('File select event:', event);
-    const files = event.files;
-    if (files && files.length > 0) {
-      this.selectedFile = files[0];
+    
+    // Handle only single file since API supports one file at a time
+    const file = event.files && event.files.length > 0 ? event.files[0] : null;
+    
+    if (!file) {
       this.messageService.add({
-        severity: 'success',
-        summary: 'File Selected',
-        detail: `File "${this.selectedFile?.name}" selected successfully`
+        severity: 'warn',
+        summary: 'No File Selected',
+        detail: 'Please select a P11 PDF file to upload.'
       });
+      return;
     }
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Invalid File Type',
+        detail: 'Please select a PDF file only.'
+      });
+      return;
+    }
+
+    // Validate file size (200MB max)
+    const maxSize = 200 * 1024 * 1024; // 200MB in bytes
+    if (file.size > maxSize) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'File Too Large',
+        detail: 'Please select a file smaller than 200MB.'
+      });
+      return;
+    }
+
+    // Clear any existing data and upload the file
+    this.resumeData = [];
+    this.filteredResumeData = [];
+    this.uploadResume(file);
   }
 
   onFileDrop(event: any) {
@@ -301,20 +287,33 @@ export class LonglistComponent implements OnInit {
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
       const file = files[0];
-      if (file.type === 'application/pdf' && file.size <= 200000000) {
-        this.selectedFile = file;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'File Dropped',
-          detail: `File "${file.name}" uploaded successfully`
-        });
-      } else {
+      
+      // Use the same validation and upload logic as onFileSelect
+      // Validate file type
+      if (file.type !== 'application/pdf') {
         this.messageService.add({
           severity: 'error',
-          summary: 'Invalid File',
-          detail: 'Please upload a PDF file under 200MB'
+          summary: 'Invalid File Type',
+          detail: 'Please select a PDF file only.'
         });
+        return;
       }
+
+      // Validate file size (200MB max)
+      const maxSize = 200 * 1024 * 1024; // 200MB in bytes
+      if (file.size > maxSize) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'File Too Large',
+          detail: 'Please select a file smaller than 200MB.'
+        });
+        return;
+      }
+
+      // Clear any existing data and upload the file
+      this.resumeData = [];
+      this.filteredResumeData = [];
+      this.uploadResume(file);
     }
   }
 
@@ -331,12 +330,18 @@ export class LonglistComponent implements OnInit {
   resetCVs() {
     console.log('Resetting CVs...');
     this.selectedFile = null;
-    this.filteredCvs = [...this.cvs];
+    this.resumeData = [];
+    this.filteredResumeData = [];
+    this.pdfId = null;
+    this.isUploading = false;
+    
+    // Reset filters
+    this.resetFilters();
     
     this.messageService.add({
       severity: 'info',
       summary: 'CVs Reset',
-      detail: 'All CVs have been reset'
+      detail: 'All CVs have been reset. Upload a new P11 file to start.'
     });
   }
 
@@ -358,11 +363,10 @@ export class LonglistComponent implements OnInit {
       gender: this.selectedGender,
       qualification: this.selectedQualification,
       maxQualification: this.selectedMaxQualification,
-      languages: this.selectedLanguages,
-      ageRange: this.ageRange
+      languages: this.selectedLanguages
     });
 
-    this.filteredCvs = this.cvs.filter(cv => {
+    this.filteredResumeData = this.resumeData.filter(cv => {
       // Apply nationality filter
       if (this.selectedNationality && cv.nationality !== this.selectedNationality) {
         return false;
@@ -380,11 +384,6 @@ export class LonglistComponent implements OnInit {
         if (cv.experience > maxExp) return false;
       }
 
-      // Apply age filter
-      if (cv.age < this.ageRange[0] || cv.age > this.ageRange[1]) {
-        return false;
-      }
-
       // Apply qualification filter
       if (this.selectedQualification && cv.qualification !== this.selectedQualification) {
         return false;
@@ -393,12 +392,12 @@ export class LonglistComponent implements OnInit {
       return true;
     });
 
-    console.log('Filtered results:', this.filteredCvs);
+    console.log('Filtered results:', this.filteredResumeData);
 
     this.messageService.add({
       severity: 'info',
       summary: 'Filters Applied',
-      detail: `${this.filteredCvs.length} CVs match your criteria`
+      detail: `${this.filteredResumeData.length} CVs match your criteria`
     });
   }
 
@@ -412,11 +411,11 @@ export class LonglistComponent implements OnInit {
     this.selectedMaxQualification = '';
     this.selectedLanguages = [];
     this.tempSelectedLanguage = '';
-    this.ageRange = [18, 65];
+    this.ageRange = [18, 65]; // Reset for UI display
     this.showMaxQualification = false;
     this.showLanguageDropdown = false;
     this.openDropdown = null;
-    this.filteredCvs = [...this.cvs];
+    this.filteredResumeData = [...this.resumeData];
 
     this.messageService.add({
       severity: 'info',
@@ -426,8 +425,8 @@ export class LonglistComponent implements OnInit {
   }
 
   moveToShortListing() {
-    console.log('Moving to short listing:', this.filteredCvs);
-    if (this.filteredCvs.length === 0) {
+    console.log('Moving to short listing:', this.filteredResumeData);
+    if (this.filteredResumeData.length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'No Selection',
@@ -436,14 +435,17 @@ export class LonglistComponent implements OnInit {
       return;
     }
 
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Moved to Short Listing',
-      detail: `${this.filteredCvs.length} CV(s) moved to short listing`
-    });
+    if (!this.pdfId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No PDF ID found. Please upload a file first.'
+      });
+      return;
+    }
 
-    // Clear selection after moving
-    this.filteredCvs = [];
+    // Call API to save filtered resumes
+    this.saveFilteredResumes();
   }
 
   addMaximumQualification() {
@@ -466,5 +468,172 @@ export class LonglistComponent implements OnInit {
   removeMaxQualification() {
     this.selectedMaxQualification = '';
     this.showMaxQualification = false;
+  }
+
+  // Upload resume to API
+  uploadResume(file: File) {
+    this.isUploading = true;
+    this.uploadProgress = 0;
+
+    this.resumeService.uploadResume(file)
+      .pipe(
+        finalize(() => {
+          this.isUploading = false;
+          this.uploadProgress = 0;
+        })
+      )
+      .subscribe({
+        next: (response) => this.handleUploadSuccess(response),
+        error: (error) => this.handleUploadError(error)
+      });
+  }
+
+  private handleUploadSuccess(response: UploadResumeResponse) {
+    this.isUploading = false;
+    console.log('Upload response:', response);
+    
+    // Check if we have data and pdf_id (actual response structure)
+    if (response.data && response.pdf_id) {
+      this.pdfId = response.pdf_id;
+      
+      // Transform the API data to match our expected format
+      this.resumeData = response.data.map((item: any) => {
+        // Clean up nationality - remove array brackets and quotes if present
+        let nationality = item['Nationality'] || '';
+        if (nationality.startsWith('[') && nationality.endsWith(']')) {
+          nationality = nationality.slice(1, -1).replace(/'/g, '').trim();
+        }
+        
+        return {
+          id: item['CV ID'],
+          name: item['Name'] || 'Unknown',
+          nationality: nationality,
+          experience: parseInt(item['YOE']) || 0,
+          qualification: item['Highest Degree'] || '',
+          gender: item['Gender'] || '',
+          employmentHistory: item['Employment History'] || ''
+        };
+      });
+      
+      this.filteredResumeData = [...this.resumeData];
+      
+      // Debug: Log the first few transformed records
+      console.log('First 3 transformed records:', this.resumeData.slice(0, 3));
+      
+      // Update filter options based on actual data
+      this.updateFilterOptions();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'File Processed Successfully',
+        detail: `Found ${this.resumeData.length} resumes in the P11 file`
+      });
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Processing Failed',
+        detail: response.message || 'Failed to process the P11 file'
+      });
+    }
+  }
+
+  private handleUploadError(error: any): void {
+    console.log('Upload error:', error);
+    console.log('Error status:', error.status);
+    console.log('Error message:', error.message);
+    console.log('Error details:', error.error);
+    
+    // Log detailed server response for 422 errors
+    if (error.status === 422 && error.error) {
+      console.log('422 Validation Error Details:');
+      if (error.error.detail && Array.isArray(error.error.detail)) {
+        error.error.detail.forEach((detail: any, index: number) => {
+          console.log(`Detail ${index + 1}:`, detail);
+        });
+      }
+      if (error.error.message) {
+        console.log('Server message:', error.error.message);
+      }
+      // Log the entire error object structure
+      console.log('Full error object:', JSON.stringify(error.error, null, 2));
+    }
+    
+    this.isUploading = false;
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Upload Failed',
+      detail: error.status === 422 
+        ? 'The server could not process the file. Please check the file format and try again.'
+        : 'Failed to upload file. Please try again.'
+    });
+  }
+
+  // Save filtered resumes to backend
+  saveFilteredResumes() {
+    if (!this.pdfId || this.filteredResumeData.length === 0) {
+      return;
+    }
+
+    this.resumeService.saveFilteredResumes({
+      pdf_id: this.pdfId,
+      data: this.filteredResumeData
+    }).subscribe({
+      next: (response) => {
+        console.log('Save filtered response:', response);
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Moved to Short Listing',
+          detail: `${this.filteredResumeData.length} CV(s) moved to short listing successfully`
+        });
+        
+        // Optionally clear the filtered data after moving
+        // this.filteredResumeData = [];
+      },
+      error: (error) => {
+        console.error('Save filtered error:', error);
+        
+        let errorMessage = 'Failed to move CVs to short listing. Please try again.';
+        if (error.error && error.error.detail) {
+          errorMessage = error.error.detail;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Save Failed',
+          detail: errorMessage
+        });
+      }
+    });
+  }
+
+  // Update filter options based on actual data from API
+  updateFilterOptions() {
+    if (this.resumeData.length === 0) return;
+
+    // Update nationality options based on actual data
+    const nationalities = [...new Set(this.resumeData.map(cv => cv.nationality))].filter(Boolean) as string[];
+    this.nationalityOptions = [
+      { label: 'All Nationalities', value: '' },
+      ...nationalities.map(nationality => ({ label: nationality, value: nationality }))
+    ];
+
+    // Update qualification options based on actual data
+    const qualifications = [...new Set(this.resumeData.map(cv => cv.qualification))].filter(Boolean) as string[];
+    this.qualificationOptions = [
+      { label: 'All Qualifications', value: '' },
+      ...qualifications.map(qualification => ({ label: qualification, value: qualification }))
+    ];
+
+    // Update gender options if gender data is available
+    if (this.resumeData.some(cv => cv.gender)) {
+      const genders = [...new Set(this.resumeData.map(cv => cv.gender))].filter(Boolean) as string[];
+      this.genderOptions = [
+        { label: 'Select Gender', value: '' },
+        ...genders.map(gender => ({ label: gender, value: gender }))
+      ];
+    }
   }
 }
