@@ -1,6 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil, finalize } from 'rxjs';
+
+// Services
+import { ResumeService, ResumeData, ShortlistCandidate, ShortlistResponse } from '../services/resume.service';
+import { SessionTimerService } from '../services/session-timer.service';
+import { AuthService } from '../services/auth.service';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -11,23 +17,17 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { AccordionModule } from 'primeng/accordion';
 import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageService } from 'primeng/api';
 
 // Navbar Component Import
 import { NavbarComponent } from '../shared/navbar/navbar.component';
 
-interface CV {
-  id: string;
-  name: string;
-  nationality: string;
-  experience: number;
-  age: number;
-  qualification: string;
-  selected?: boolean;
-}
+// Constants
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+const ALLOWED_FILE_TYPE = 'application/pdf';
 
 interface FilterOption {
   label: string;
@@ -54,40 +54,43 @@ interface EmploymentHistory {
     CardModule,
     CheckboxModule,
     TagModule,
-    ToastModule,
     AccordionModule,
     InputTextModule,
+    ProgressSpinnerModule,
     NavbarComponent
   ],
-  providers: [MessageService],
   templateUrl: './shortlist.component.html',
   styleUrls: ['./shortlist.component.scss']
 })
-export class ShortlistComponent implements OnInit {
-  // Mock CV Data - These would come from the longlist component
-  cvs: CV[] = [
-    { id: 'CV001', name: 'Patel Singh', nationality: 'Indian', experience: 4, age: 28, qualification: 'Masters Degree' },
-    { id: 'CV002', name: 'Sushil Shrestha', nationality: 'Nepali', experience: 5, age: 30, qualification: 'Masters Degree' },
-    { id: 'CV003', name: 'Rohit Jaiswal', nationality: 'Indian', experience: 4, age: 28, qualification: 'Bachelor Degree' }
-  ];
+export class ShortlistComponent implements OnInit, OnDestroy {
+  // Dependency Injection
+  private readonly messageService = inject(MessageService);
+  private readonly sessionTimerService = inject(SessionTimerService);
+  private readonly authService = inject(AuthService);
+  private readonly resumeService = inject(ResumeService);
 
-  filteredCvs: CV[] = [];
+  // Destroy subject for cleanup
+  private readonly destroy$ = new Subject<void>();
+
+  // Data from longlist
+  filteredResumeData: ResumeData[] = [];
+  pdfId: number | null = null;
 
   // Job Description Template Options
-  jobDescriptionTemplates = [
+  readonly jobDescriptionTemplates: readonly FilterOption[] = Object.freeze([
     { label: 'UNV Template', value: 'unv' },
     { label: 'SC Template', value: 'sc' },
     { label: 'SC Manager Template', value: 'sc_manager' },
     { label: 'IC Consultant Template', value: 'ic_consultant' }
-  ];
+  ]);
 
   // Search Operator Options
-  searchOperatorOptions = [
+  readonly searchOperatorOptions: readonly FilterOption[] = Object.freeze([
     { label: 'AND', value: 'and' },
     { label: 'OR', value: 'or' }
-  ];
+  ]);
 
-  // Filter Values
+  // Form Values
   selectedJobTemplate: string = 'unv';
   searchQuery: string = '';
   selectedSearchOperator: string = 'and';
@@ -103,111 +106,92 @@ export class ShortlistComponent implements OnInit {
   // File upload
   selectedFile: File | null = null;
 
-  // Selected filters from longlist (these would come from a service)
+  // Loading states
+  isSubmitting: boolean = false;
+
+  // Selected filters from longlist (populated from service)
   selectedMinYearsExperience: number = 0;
   selectedRequiredDegree: string = 'Any';
   selectedGenderFilter: string = 'Any';
 
-  // Job Description
-  jobDescription: string = 'Extracted Section';
-  jobDescriptionContent: string = `FUNCTIONS / KEY RESULTS EXPECTED:
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Duties and Responsibilities:  
-h
-Within delegated authority, and in close cooperation with the Head – Technology and Solution, the 
-Software Development  Associate will be responsible for the following duties: `;
+  // Job Description Content
+  jobDescriptionContent: string = 'Upload a job description file or select a template to see the extracted content here.';
 
   // Employment History
-  employmentHistory: EmploymentHistory[] = [
-    {
-      id: 'CV 2',
-      name: 'Sushil Kumar',
-      details: `Employment History Of CV 2 - Sushil Kumar
+  employmentHistory: EmploymentHistory[] = [];
 
-Detail Description Of Duties: Assistant Manager IT
+  // Ranking Results - Initially show filtered data with "--" rankings
+  rankingResults: ShortlistCandidate[] = [];
 
-Results And Achievements: Currently Heading An IT Team For The Software/Mobile Application Development. Responsible For Software Development Projects Across Multiple Technologies (In-House Or Through Vendors) For Building New Capabilities, Driving Automation And Improve Operational Efficiencies. Formulates And Defines Specifications For Complex Operating Software Programming Applications, Including Commercial Applications. Drives Research, Development, Testing And Implementation Of Software Applications Or Specialized Utility Programs Using Current Programming Languages And Source Code To Support End Users' Needs. Performs Regular Updates And Recommends Improvement To Existing Applications Using Engineering Releases And Utilities. Establishes Technology Standards For Applications Development And Is Also Responsible For Software Quality Assurance By Reviewing Process Compliances, Identifying Pain Points, And Driving Improvement Initiatives.
-
-Detail Description Of Duties: Worked As A Project Associate With Scientist For The Betterment Of Society`
-    },
-    {
-      id: 'CV 20',
-      name: 'Jeslin Jerome',
-      details: `Employment History Of CV 20 - Jeslin Jerome
-
-Detail Description Of Duties: Software Developer
-
-Results And Achievements: Experienced in full-stack development with expertise in modern web technologies. Led multiple development teams in creating scalable applications. Specialized in React, Node.js, and cloud technologies.`
-    },
-    {
-      id: 'CV 30',
-      name: 'Siddharth Patel',
-      details: `Employment History Of CV 30 - Siddharth Patel
-
-Detail Description Of Duties: Senior Software Engineer
-
-Results And Achievements: Developed and maintained enterprise-level applications. Expertise in system architecture and database design. Led cross-functional teams in delivering high-quality software solutions.`
-    },
-    {
-      id: 'CV 34',
-      name: 'Avinash Tripathi',
-      details: `Employment History Of CV 34 - Avinash Tripathi
-
-Detail Description Of Duties: Technical Lead
-
-Results And Achievements: Managed technical teams and project deliverables. Specialized in microservices architecture and DevOps practices. Implemented CI/CD pipelines and improved development workflows.`
-    }
-  ];
-
-  // Ranking Results
-  rankingResults = [
-    { rank: 1, cvId: 'CV5', name: 'Piyush Singh', highestDegree: 'Masters Degree', yoe: 4, finalScore: 0.8555, gender: 'Male', nationality: 'Indian' },
-    { rank: 2, cvId: 'CV14', name: 'Vivek Mathur', highestDegree: 'Masters Degree', yoe: 3, finalScore: 0.8465, gender: 'Male', nationality: 'Nepali' },
-    { rank: 3, cvId: 'CV20', name: 'Jeslin Jerome', highestDegree: 'Masters Degree', yoe: 4, finalScore: 0.8234, gender: 'Male', nationality: 'Indian' }
-  ];
-
-  constructor(private messageService: MessageService) {
+  constructor() {
     console.log('ShortlistComponent constructor called');
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     console.log('ShortlistComponent ngOnInit called');
-    this.filteredCvs = [...this.cvs];
+    this.loadDataFromLonglist();
     this.validateWeights();
-    console.log('Shortlist component initialized with', this.cvs.length, 'CVs');
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // Load data from longlist component
+  private loadDataFromLonglist(): void {
+    // Get filtered data from the resume service
+    this.filteredResumeData = this.resumeService.getCurrentFilteredResumeData();
+    this.pdfId = this.resumeService.getCurrentPdfId();
+
+    if (this.filteredResumeData.length === 0 || !this.pdfId) {
+      console.warn('No filtered data found, checking for any resume data...');
+      
+      // Fallback to all resume data if no filtered data
+      this.filteredResumeData = this.resumeService.getCurrentResumeData();
+      
+      if (this.filteredResumeData.length === 0) {
+        this.showWarningMessage(
+          'No Data Available', 
+          'Please go back to Long Listing and upload/filter CVs first.'
+        );
+        return;
+      }
+    }
+
+    // Get filter state to populate the "Selected" fields
+    const filterState = this.resumeService.getCurrentFilterState();
+    if (filterState) {
+      this.selectedMinYearsExperience = parseInt(filterState.minExperience) || 0;
+      this.selectedRequiredDegree = filterState.qualification || 'Any';
+      this.selectedGenderFilter = filterState.gender || 'Any';
+    }
+
+    // Initialize ranking results with "--" scores
+    this.initializeRankingResults();
+
+    this.showInfoMessage(
+      'Data Loaded', 
+      `Loaded ${this.filteredResumeData.length} filtered CVs from Long Listing`
+    );
+  }
+
+  // Initialize ranking results with placeholder rankings
+  private initializeRankingResults(): void {
+    this.rankingResults = this.filteredResumeData.map((cv, index) => ({
+      rank: undefined,
+      cvId: cv.id || `CV${index + 1}`,
+      name: cv.name,
+      highestDegree: cv.qualification,
+      yoe: cv.experience,
+      finalScore: '--', // Placeholder until ranking is performed
+      gender: cv.gender || 'Unknown',
+      nationality: cv.nationality
+    }));
   }
 
   // Weight adjustment methods
-  adjustWeight(field: string, increment: boolean) {
+  adjustWeight(field: string, increment: boolean): void {
     const adjustment = increment ? 0.10 : -0.10;
     
     switch (field) {
@@ -231,7 +215,7 @@ Results And Achievements: Managed technical teams and project deliverables. Spec
   }
 
   // Validate that weights add up to 1.0
-  validateWeights() {
+  validateWeights(): void {
     const total = this.weightExperience + this.weightQualifications + this.weightSkills;
     const roundedTotal = Math.round(total * 100) / 100;
     
@@ -243,118 +227,218 @@ Results And Achievements: Managed technical teams and project deliverables. Spec
   }
 
   // Submit ranking
-  submitRanking() {
+  submitRanking(): void {
     if (this.weightValidationError) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Validation Error',
-        detail: this.weightValidationError
-      });
+      this.showErrorMessage('Validation Error', this.weightValidationError);
       return;
     }
 
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Ranking Submitted',
-      detail: 'CV ranking has been submitted successfully'
-    });
+    if (!this.pdfId) {
+      this.showErrorMessage('Error', 'No PDF ID found. Please upload CVs in Long Listing first.');
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    // Choose API method based on whether file is uploaded
+    const apiCall = this.selectedFile ? 
+      this.resumeService.submitShortlistWithFile(
+        this.pdfId,
+        this.selectedFile,
+        this.selectedJobTemplate,
+        this.searchQuery,
+        this.selectedSearchOperator,
+        this.weightExperience,
+        this.weightQualifications,
+        this.weightSkills
+      ) :
+      this.resumeService.submitShortlistWithTemplate(
+        this.pdfId,
+        this.selectedJobTemplate,
+        this.searchQuery,
+        this.selectedSearchOperator,
+        this.weightExperience,
+        this.weightQualifications,
+        this.weightSkills
+      );
+
+    apiCall
+      .pipe(
+        finalize(() => this.isSubmitting = false),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (response) => this.handleRankingSuccess(response),
+        error: (error) => this.handleRankingError(error)
+      });
+  }
+
+    // Handle successful ranking response
+  private handleRankingSuccess(response: any): void {
+    console.log('=== FULL API RESPONSE ===');
+    console.log('Response object:', response);
+    console.log('Response keys:', Object.keys(response));
+    console.log('=========================');
+
+    try {
+      // Update ranking results from API response
+      if (response.shortlisted && response.shortlisted.length > 0) {
+        console.log('Processing response.shortlisted:', response.shortlisted);
+        this.rankingResults = response.shortlisted.map((candidate: any) => {
+          console.log('Processing candidate:', candidate);
+          
+          // Clean nationality field (remove brackets and quotes)
+          let nationality = candidate.Nationality || candidate.nationality || 'Unknown';
+          if (typeof nationality === 'string' && nationality.includes('[')) {
+            nationality = nationality.replace(/[\[\]"']/g, '').trim();
+          }
+
+          return {
+            rank: candidate.Rank,
+            cvId: candidate.CV,
+            name: candidate['Applicant Name'] || candidate.name,
+            highestDegree: candidate['Highest Degree'] || candidate.qualification,
+            yoe: candidate.YOE || candidate.experience,
+            finalScore: candidate['Final Score'] ? candidate['Final Score'].toFixed(4) : '--',
+            gender: candidate.Gender || 'Unknown',
+            nationality: nationality
+          };
+        });
+        console.log('Updated rankingResults:', this.rankingResults);
+      } else {
+        console.warn('No shortlisted data found in response');
+      }
+
+      // Update job description content from API response
+      if (response.relevant_section_text) {
+        this.jobDescriptionContent = response.relevant_section_text;
+        console.log('Updated job description content');
+      }
+
+      // Create employment history from shortlisted candidates
+      if (response.shortlisted && response.shortlisted.length > 0) {
+        this.employmentHistory = response.shortlisted
+          .filter((candidate: any) => candidate['Employment History'])
+          .map((candidate: any) => ({
+            id: candidate.CV,
+            name: candidate['Applicant Name'] || candidate.name,
+            details: candidate['Employment History']
+          }));
+        console.log('Updated employment history:', this.employmentHistory);
+      }
+
+      this.showSuccessMessage(
+        'Ranking Complete',
+        `Successfully ranked ${this.rankingResults.length} candidates`
+      );
+    } catch (error) {
+      console.error('Error processing ranking response:', error);
+      this.showErrorMessage('Processing Error', 'Failed to process ranking results');
+    }
+  }
+
+  // Handle ranking error
+  private handleRankingError(error: any): void {
+    console.error('Ranking error:', error);
+    
+    let errorMessage = 'Failed to perform ranking. Please try again.';
+    
+    if (error.status === 422) {
+      errorMessage = 'Invalid request parameters. Please check your inputs and try again.';
+    } else if (error.status === 404) {
+      errorMessage = 'PDF data not found. Please go back to Long Listing and upload CVs.';
+    }
+    
+    this.showErrorMessage('Ranking Failed', errorMessage);
   }
 
   // Reset ranking
-  resetRanking() {
+  resetRanking(): void {
     this.weightExperience = 0.30;
     this.weightQualifications = 0.40;
     this.weightSkills = 0.30;
     this.selectedJobTemplate = 'unv';
     this.selectedSearchOperator = 'and';
     this.searchQuery = '';
+    this.selectedFile = null;
     this.validateWeights();
     
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Ranking Reset',
-      detail: 'All ranking parameters have been reset'
-    });
+    // Reset ranking results to show "--" again
+    this.initializeRankingResults();
+    
+    // Reset job description content
+    this.jobDescriptionContent = 'Upload a job description file or select a template to see the extracted content here.';
+    
+    // Clear employment history
+    this.employmentHistory = [];
+    
+    this.showInfoMessage('Reset Complete', 'All ranking parameters have been reset');
   }
 
-  // Upload job description
-  onJobDescriptionUpload(event: any) {
-    const files = event.files;
-    if (files && files.length > 0) {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Job Description Uploaded',
-        detail: `${files.length} file(s) uploaded successfully`
-      });
+  // File upload handling
+  onFileSelect(event: any): void {
+    const file = event.files?.[0];
+    if (file && this.validateFile(file)) {
+      this.selectedFile = file;
+      this.showSuccessMessage('File Selected', `File "${file.name}" selected successfully`);
     }
   }
 
-  onFileSelect(event: any) {
-    console.log('File select event:', event);
-    const files = event.files;
-    if (files && files.length > 0) {
-      this.selectedFile = files[0];
-      this.messageService.add({
-        severity: 'success',
-        summary: 'File Selected',
-        detail: `File "${this.selectedFile?.name}" selected successfully`
-      });
-    }
-  }
-
-  onFileDrop(event: any) {
+  onFileDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     
-    console.log('File drop event:', event);
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type === 'application/pdf' && file.size <= 200000000) {
-        this.selectedFile = file;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'File Dropped',
-          detail: `File "${file.name}" uploaded successfully`
-        });
-      } else {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Invalid File',
-          detail: 'Please upload a PDF file under 200MB'
-        });
-      }
+    const file = event.dataTransfer?.files?.[0];
+    if (file && this.validateFile(file)) {
+      this.selectedFile = file;
+      this.showSuccessMessage('File Uploaded', `File "${file.name}" uploaded successfully`);
     }
   }
 
-  onDragOver(event: any) {
+  onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  onDragLeave(event: any) {
+  onDragLeave(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  removeSelectedFile() {
+  removeSelectedFile(): void {
     this.selectedFile = null;
-    this.messageService.add({
-      severity: 'info',
-      summary: 'File Removed',
-      detail: 'Selected file has been removed'
-    });
+    this.showInfoMessage('File Removed', 'Selected file has been removed');
   }
 
-  resetCVs() {
-    console.log('Resetting CVs...');
-    this.selectedFile = null;
-    this.filteredCvs = [...this.cvs];
-    
-    this.messageService.add({
-      severity: 'info',
-      summary: 'CVs Reset',
-      detail: 'All CVs have been reset'
-    });
+  // File validation
+  private validateFile(file: File): boolean {
+    if (file.type !== ALLOWED_FILE_TYPE) {
+      this.showErrorMessage('Invalid File Type', 'Please select a PDF file only.');
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      this.showErrorMessage('File Too Large', 'Please select a file smaller than 200MB.');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Message helpers
+  private showSuccessMessage(summary: string, detail: string): void {
+    this.messageService.add({ severity: 'success', summary, detail });
+  }
+
+  private showInfoMessage(summary: string, detail: string): void {
+    this.messageService.add({ severity: 'info', summary, detail });
+  }
+
+  private showWarningMessage(summary: string, detail: string): void {
+    this.messageService.add({ severity: 'warn', summary, detail });
+  }
+
+  private showErrorMessage(summary: string, detail: string): void {
+    this.messageService.add({ severity: 'error', summary, detail });
   }
 }

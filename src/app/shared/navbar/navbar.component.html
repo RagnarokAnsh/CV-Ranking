@@ -1,9 +1,10 @@
 <div class="app-layout">
   <!-- Sidebar -->
-  <div class="sidebar">
+  <div class="sidebar" [class.collapsed]="sidebarCollapsed">
     <!-- Logo/Brand Section -->
     <div class="sidebar-header">
-      <h2>CV<br>Ranking<br>Application</h2>
+      <h2 *ngIf="!sidebarCollapsed">CV<br>Ranking<br>Application</h2>
+      <h2 *ngIf="sidebarCollapsed" class="collapsed-title">CV</h2>
     </div>
 
     <!-- Navigation Menu -->
@@ -13,19 +14,30 @@
         href="javascript:void(0)"
         class="nav-item"
         [class.active]="isActiveRoute(getRouteFromItem(item))"
+        [title]="sidebarCollapsed ? item.label : ''"
         (click)="item.command && item.command({originalEvent: $event, item: item})"
       >
         <i [class]="item.icon"></i>
-        <span>{{ item.label }}</span>
+        <span *ngIf="!sidebarCollapsed">{{ item.label }}</span>
       </a>
     </nav>
   </div>
 
   <!-- Main Content Area -->
-  <div class="main-content">
+  <div class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
     <!-- Top Header/Navbar -->
     <header class="top-header">
       <div class="header-content">
+        <!-- Sidebar Toggle Button -->
+        <button 
+          type="button" 
+          class="sidebar-toggle-btn"
+          (click)="toggleSidebar()"
+          [title]="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+        >
+          <i [class]="sidebarCollapsed ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"></i>
+        </button>
+
         <!-- Page Title (will be set by individual components) -->
         <div class="page-title">
           <!-- <h1>{{ getPageTitle() }}</h1> -->

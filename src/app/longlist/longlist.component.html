@@ -104,7 +104,8 @@
                   <div class="custom-dropdown" (click)="toggleDropdown('minExperience'); $event.stopPropagation()">
                     <div class="dropdown-selected">
                       {{ getSelectedLabel(experienceYearOptions, selectedMinExperience) || '0' }}
-                      <i class="pi pi-chevron-down dropdown-arrow"></i>
+                      <i class="pi pi-times dropdown-clear" *ngIf="selectedMinExperience" (click)="clearSelection('minExperience'); $event.stopPropagation()"></i>
+                      <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedMinExperience"></i>
                     </div>
                     <div class="dropdown-options" *ngIf="openDropdown === 'minExperience'">
                       <div 
@@ -125,7 +126,8 @@
                   <div class="custom-dropdown" (click)="toggleDropdown('maxExperience'); $event.stopPropagation()">
                     <div class="dropdown-selected">
                       {{ getSelectedLabel(experienceYearOptions, selectedMaxExperience) || '10+' }}
-                      <i class="pi pi-chevron-down dropdown-arrow"></i>
+                      <i class="pi pi-times dropdown-clear" *ngIf="selectedMaxExperience" (click)="clearSelection('maxExperience'); $event.stopPropagation()"></i>
+                      <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedMaxExperience"></i>
                     </div>
                     <div class="dropdown-options" *ngIf="openDropdown === 'maxExperience'">
                       <div 
@@ -182,10 +184,10 @@
 
             <!-- Minimum Academic Qualification -->
             <div class="filter-field">
-              <label>Minimum academic qualification</label>
+              <label>Minimum academic qualification <small>(shows candidates with this level and higher)</small></label>
               <div class="custom-dropdown" (click)="toggleDropdown('qualification'); $event.stopPropagation()">
                 <div class="dropdown-selected">
-                  {{ getSelectedLabel(dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions, selectedQualification) || 'Master degree or equivalent' }}
+                  {{ getSelectedLabel(dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions, selectedQualification) || 'All Qualifications' }}
                   <i class="pi pi-times dropdown-clear" *ngIf="selectedQualification" (click)="clearSelection('qualification'); $event.stopPropagation()"></i>
                   <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedQualification"></i>
                 </div>
@@ -211,7 +213,7 @@
               
               <!-- Max Qualification Dropdown -->
               <div *ngIf="showMaxQualification" class="max-qualification">
-                <label>Maximum academic qualification</label>
+                <label>Maximum academic qualification <small>(shows candidates with this level and lower)</small></label>
                 <div class="custom-dropdown" (click)="toggleDropdown('maxQualification'); $event.stopPropagation()">
                   <div class="dropdown-selected">
                     {{ getSelectedLabel(dynamicQualificationOptions.length > 0 ? dynamicQualificationOptions : qualificationOptions, selectedMaxQualification) || 'Select max qualification' }}
@@ -273,13 +275,6 @@
             <button 
               pButton 
               type="button" 
-              label="Apply Filters" 
-              class="apply-btn"
-              (click)="applyFilters()">
-            </button>
-            <button 
-              pButton 
-              type="button" 
               label="Reset Filter" 
               class="reset-filter-btn"
               (click)="resetFilters()">
@@ -337,6 +332,4 @@
     </div>
   </div>
 
-  <!-- Toast Messages -->
-  <p-toast></p-toast>
 </app-navbar>

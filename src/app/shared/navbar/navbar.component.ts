@@ -29,6 +29,7 @@ export class NavbarComponent implements OnInit {
   sidebarItems: MenuItem[] = [];
   userMenuItems: MenuItem[] = [];
   currentRoute: string = '';
+  sidebarCollapsed: boolean = false;
 
   constructor(
     private router: Router,
@@ -172,6 +173,10 @@ export class NavbarComponent implements OnInit {
 
   getRouteFromItem(item: MenuItem): string {
     return item.routerLink || '';
+  }
+
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
   getCurrentUserName(): string {

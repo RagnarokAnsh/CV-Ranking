@@ -91,7 +91,7 @@ export class SessionTimerService implements OnDestroy {
     
     const minutes = timeRemaining === 1 ? 'minute' : 'minutes';
     this.messageService.add({
-      severity: 'info',
+      severity: 'warn',
       summary: 'Session Expiring Soon',
       detail: `Your session will expire in ${timeRemaining} ${minutes}. Save any work and refresh to extend your session.`,
       life: 10000,
@@ -112,6 +112,8 @@ export class SessionTimerService implements OnDestroy {
     console.log('Warning state reset');
     this.warningShown = false;
   }
+
+
 
   ngOnDestroy(): void {
     this.stopSessionTimer();

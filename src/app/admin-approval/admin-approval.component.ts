@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
+
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { NavbarComponent } from '../shared/navbar/navbar.component';
@@ -17,8 +17,8 @@ interface UserDisplay extends User {
 @Component({
   selector: 'app-admin-approval',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, ToastModule, DialogModule, NavbarComponent],
-  providers: [MessageService],
+  imports: [CommonModule, TableModule, ButtonModule, DialogModule, NavbarComponent],
+
   templateUrl: './admin-approval.component.html',
   styleUrls: ['./admin-approval.component.scss']
 })

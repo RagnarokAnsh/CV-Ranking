@@ -29,6 +29,14 @@
   --subtle-gray: #EBEBEB;
   --muted-gray: #999999;
   --divider-gray: #BABABA;
+
+  /* Dialog Colors */
+  --dialog-background: rgba(0, 0, 0, 0.8);
+  --dialog-text: #FFFFFF;
+  --dialog-border: #374151;
+  --dialog-header-background: #2D3748;
+  --dialog-header-text: #FFFFFF;
+  --dialog-header-border: #374151;
   
   /* Status Colors */
   --success-green: #88D654;
@@ -55,6 +63,10 @@
   --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
   --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
   --shadow-dark: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+
+  /* Table Radius */
+  --border-radius-table: 75px;
 }
 
 /* Global Reset and Base Styles */
@@ -423,13 +435,13 @@ html, body {
     border: none;
     
     &:first-child {
-      border-top-left-radius: var(--border-radius);
-      border-bottom-left-radius: var(--border-radius);
+      border-top-left-radius: var(--border-radius-table);
+      border-bottom-left-radius: var(--border-radius-table);
     }
     
     &:last-child {
-      border-top-right-radius: var(--border-radius);
-      border-bottom-right-radius: var(--border-radius);
+      border-top-right-radius: var(--border-radius-table);
+      border-bottom-right-radius: var(--border-radius-table);
       text-align: center;
     }
   }
@@ -439,7 +451,7 @@ html, body {
     background-color: #2D3748 !important;
     border-radius: var(--border-radius);
     margin-bottom: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
     
     td {
       background-color: #2D3748 !important;
@@ -451,13 +463,13 @@ html, body {
       border: none;
       
       &:first-child {
-        border-top-left-radius: var(--border-radius);
-        border-bottom-left-radius: var(--border-radius);
+        border-top-left-radius: var(--border-radius-table);
+        border-bottom-left-radius: var(--border-radius-table);
       }
       
       &:last-child {
-        border-top-right-radius: var(--border-radius);
-        border-bottom-right-radius: var(--border-radius);
+        border-top-right-radius: var(--border-radius-table);
+        border-bottom-right-radius: var(--border-radius-table);
         text-align: center;
       }
     }

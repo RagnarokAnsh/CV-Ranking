@@ -15,10 +15,11 @@
             <h3>Upload Job Description (JD) or CVs</h3>
             
             <!-- Drag and Drop Area -->
-            <div class="upload-drop-zone" 
-                 (dragover)="onDragOver($event)" 
-                 (dragleave)="onDragLeave($event)"
-                 (drop)="onFileDrop($event)">
+                      <div class="upload-drop-zone" 
+               (dragover)="onDragOver($event)" 
+               (dragleave)="onDragLeave($event)"
+               (drop)="onFileDrop($event)"
+               [class.disabled]="isSubmitting">
               <div class="upload-content">
                 <!-- <i class="pi pi-cloud-upload upload-icon"></i> -->
                 <p class="upload-text">Drag and drop file here</p>
@@ -33,6 +34,7 @@
                 [maxFileSize]="200000000"
                 (onSelect)="onFileSelect($event)"
                 [auto]="false"
+                [disabled]="isSubmitting"
                 chooseLabel="Browse files"
                 class="browse-button">
               </p-fileUpload>
@@ -175,17 +177,22 @@
 
             <!-- Selected Minimum Years of Experience -->
             <div class="filter-field selected-filter">
-              <label>Selected Minimum Years of Experience: {{ selectedMinYearsExperience }}</label>
+              <label>Selected Minimum Years of Experience: {{ selectedMinYearsExperience }} years</label>
             </div>
 
             <!-- Selected Required Degree -->
             <div class="filter-field selected-filter">
-              <label>Selected required Degree: {{ selectedRequiredDegree }}</label>
+              <label>Selected Required Degree: {{ selectedRequiredDegree }}</label>
             </div>
 
             <!-- Selected Gender Filter -->
             <div class="filter-field selected-filter">
               <label>Selected Gender Filter: {{ selectedGenderFilter }}</label>
+            </div>
+
+            <!-- CVs Count Info -->
+            <div class="filter-field selected-filter">
+              <label>Total Filtered CVs: {{ filteredResumeData.length }}</label>
             </div>
           </div>
 
@@ -194,15 +201,18 @@
             <button 
               pButton 
               type="button" 
-              label="Submit" 
+              [label]="isSubmitting ? 'Processing...' : 'Submit'" 
               class="apply-btn"
+              [disabled]="isSubmitting"
               (click)="submitRanking()">
+              <i class="pi pi-spin pi-spinner" *ngIf="isSubmitting" style="margin-right: 0.5rem;"></i>
             </button>
             <button 
               pButton 
               type="button" 
               label="Reset" 
               class="reset-filter-btn"
+              [disabled]="isSubmitting"
               (click)="resetRanking()">
             </button>
           </div>
@@ -226,11 +236,19 @@
         <div class="ranking-section">
           <h3>Ranking Results</h3>
           
+          <!-- Loading Message -->
+          <div *ngIf="filteredResumeData.length === 0" class="no-data-message">
+            <i class="pi pi-info-circle"></i>
+            <p>No CV data available. Please go to Long Listing first to upload and filter CVs.</p>
+          </div>
+
+          <!-- Results Table -->
           <p-table 
+            *ngIf="filteredResumeData.length > 0"
             [value]="rankingResults" 
-            [paginator]="true"
+            [paginator]="rankingResults.length > 8"
             [rows]="8"
-            [showCurrentPageReport]="true"
+            [showCurrentPageReport]="rankingResults.length > 8"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
             class="ranking-table">
             
@@ -249,7 +267,7 @@
             
             <ng-template pTemplate="body" let-result>
               <tr>
-                <td>{{ result.rank }}</td>
+                <td>{{ result.rank || '--' }}</td>
                 <td>{{ result.cvId }}</td>
                 <td>{{ result.name }}</td>
                 <td>{{ result.highestDegree }}</td>
@@ -269,11 +287,18 @@
       <div class="employment-history-section">
         <h3>View Extracted Employment History</h3>
         
-        <div class="employment-accordion-container" [class.scrollable]="employmentHistory.length > 5">
+        <!-- No Employment History Message -->
+        <div *ngIf="employmentHistory.length === 0" class="no-employment-message">
+          <i class="pi pi-info-circle"></i>
+          <p>Employment history will appear here after processing the ranking. Please submit your filters to see detailed employment information.</p>
+        </div>
+
+        <!-- Employment History Accordion -->
+        <div *ngIf="employmentHistory.length > 0" class="employment-accordion-container" [class.scrollable]="employmentHistory.length > 5">
           <p-accordion [multiple]="false" class="employment-accordion">
             <p-accordionTab 
               *ngFor="let history of employmentHistory" 
-              [header]="history.id + '- ' + history.name">
+              [header]="history.id + ' - ' + history.name">
               <div class="employment-details">
                 <p>{{ history.details }}</p>
               </div>
@@ -284,6 +309,4 @@
     </div>
   </div>
 
-  <!-- Toast Messages -->
-  <p-toast></p-toast>
 </app-navbar>

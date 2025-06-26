@@ -34,6 +34,49 @@ export interface SaveFilteredResponse {
   [key: string]: any;
 }
 
+// Shortlist/Ranking interfaces based on API swagger
+export interface ShortlistRequest {
+  pdf_id: number;
+  jd_file?: File;
+  jd_template: string;
+  search_query: string;
+  search_operator: string;
+  weight_experience: number;
+  weight_qualifications: number;
+  weight_skills: number;
+}
+
+export interface ShortlistCandidate {
+  rank?: number;
+  cvId?: string;
+  cv_id?: string;
+  name: string;
+  highestDegree?: string;
+  highest_degree?: string;
+  yoe?: number;
+  years_of_experience?: number;
+  finalScore?: number | string;
+  final_score?: number | string;
+  score?: number | string;
+  gender?: string;
+  nationality?: string;
+  employmentHistory?: string;
+  employment_history?: string;
+  [key: string]: any; // Allow any additional fields
+}
+
+export interface ShortlistResponse {
+  message?: string;
+  data?: ShortlistCandidate[];
+  job_description_content?: string;
+  employment_history?: Array<{
+    id: string;
+    name: string;
+    details: string;
+  }>;
+  [key: string]: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -163,6 +206,82 @@ export class ResumeService {
 
     return this.http.post<SaveFilteredResponse>(
       `${this.apiUrl}/save-filtered`,
+      request,
+      { headers }
+    );
+  }
+
+  // Shortlist API - Submit ranking with job description file
+  submitShortlistWithFile(
+    pdfId: number,
+    jdFile: File,
+    jdTemplate: string,
+    searchQuery: string,
+    searchOperator: string,
+    weightExperience: number,
+    weightQualifications: number,
+    weightSkills: number
+  ): Observable<ShortlistResponse> {
+    console.log('Starting shortlist submission with file:', {
+      pdfId,
+      jdFile: jdFile.name,
+      jdTemplate,
+      searchQuery,
+      searchOperator,
+      weights: { weightExperience, weightQualifications, weightSkills }
+    });
+
+    const formData = new FormData();
+    formData.append('pdf_id', pdfId.toString());
+    formData.append('jd_file', jdFile);
+    formData.append('jd_template', jdTemplate);
+    formData.append('search_query', searchQuery);
+    formData.append('search_operator', searchOperator);
+    formData.append('weight_experience', weightExperience.toString());
+    formData.append('weight_qualifications', weightQualifications.toString());
+    formData.append('weight_skills', weightSkills.toString());
+
+    const headers = this.getAuthHeaders();
+
+    return this.http.post<ShortlistResponse>(
+      `http://3.6.143.181:8504/api/shortlisting/shortlist`,
+      formData,
+      { headers }
+    );
+  }
+
+  // Shortlist API - Submit ranking without job description file (using template only)
+  submitShortlistWithTemplate(
+    pdfId: number,
+    jdTemplate: string,
+    searchQuery: string,
+    searchOperator: string,
+    weightExperience: number,
+    weightQualifications: number,
+    weightSkills: number
+  ): Observable<ShortlistResponse> {
+    console.log('Starting shortlist submission with template only:', {
+      pdfId,
+      jdTemplate,
+      searchQuery,
+      searchOperator,
+      weights: { weightExperience, weightQualifications, weightSkills }
+    });
+
+    const request = {
+      pdf_id: pdfId,
+      jd_template: jdTemplate,
+      search_query: searchQuery,
+      search_operator: searchOperator,
+      weight_experience: weightExperience,
+      weight_qualifications: weightQualifications,
+      weight_skills: weightSkills
+    };
+
+    const headers = this.getAuthHeaders().set('Content-Type', 'application/json');
+
+    return this.http.post<ShortlistResponse>(
+      `http://3.6.143.181:8504/api/shortlisting/shortlist`,
       request,
       { headers }
     );

@@ -405,6 +405,32 @@
   }
 }
 
+/* No Data Message */
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  color: var(--medium-gray);
+  
+  i {
+    font-size: 3rem;
+    color: #6B7280;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    margin: 0;
+    max-width: 300px;
+    line-height: 1.5;
+  }
+}
+
 /* ===== BOTTOM SECTION (EMPLOYMENT HISTORY) ===== */
 .bottom-section {
   padding: 0 0 1.5rem 0; /* Remove left and right padding for full width */
@@ -427,6 +453,32 @@
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #5B92E5;
     text-decoration: none;
+  }
+}
+
+/* No Employment History Message */
+.no-employment-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--medium-gray);
+  padding: 2rem;
+  
+  i {
+    font-size: 2.5rem;
+    color: #6B7280;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    font-weight: var(--font-weight-medium);
+    margin: 0;
+    max-width: 400px;
+    line-height: 1.5;
   }
 }
 

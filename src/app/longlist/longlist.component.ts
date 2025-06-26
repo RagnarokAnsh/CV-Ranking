@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy, HostListener, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject, BehaviorSubject } from 'rxjs';
 
@@ -18,7 +19,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
+
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageService } from 'primeng/api';
 
@@ -29,6 +30,77 @@ import { NavbarComponent } from '../shared/navbar/navbar.component';
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const ALLOWED_FILE_TYPE = 'application/pdf';
 const AGE_RANGE_DEFAULT = [18, 65];
+
+// Qualification hierarchy for proper filtering
+const QUALIFICATION_HIERARCHY: Record<string, number> = {
+  'Diploma': 1,
+  'Bachelor Degree': 2,
+  'Bachelor': 2, // Alternative naming
+  'Bachelors Degree': 2, // Alternative naming
+  'Masters Degree': 3,
+  'Master Degree': 3, // Alternative naming
+  'Masters': 3, // Alternative naming
+  'Master': 3, // Alternative naming
+  'PhD': 4,
+  'Doctorate': 4,
+  'Post-Doctorate': 5, // Alternative naming
+  'Post Graduate': 3, // Alternative naming
+  'Graduate': 2, // Alternative naming
+  'Undergraduate': 2 // Alternative naming
+};
+
+// Helper function to normalize qualification names
+function normalizeQualification(qualification: string): string {
+  if (!qualification) return '';
+  
+  const normalized = qualification.trim().toLowerCase();
+  
+  // Common mappings for different qualification formats
+  const mappings: Record<string, string> = {
+    'bachelor': 'Bachelor Degree',
+    'bachelors': 'Bachelor Degree',
+    'bachelor degree': 'Bachelor Degree',
+    'bachelors degree': 'Bachelor Degree',
+    'b.sc': 'Bachelor Degree',
+    'bsc': 'Bachelor Degree',
+    'b.a': 'Bachelor Degree',
+    'ba': 'Bachelor Degree',
+    'b.tech': 'Bachelor Degree',
+    'btech': 'Bachelor Degree',
+    'b.e': 'Bachelor Degree',
+    'be': 'Bachelor Degree',
+    'master': 'Masters Degree',
+    'masters': 'Masters Degree',
+    'master degree': 'Masters Degree',
+    'masters degree': 'Masters Degree',
+    'm.sc': 'Masters Degree',
+    'msc': 'Masters Degree',
+    'm.a': 'Masters Degree',
+    'ma': 'Masters Degree',
+    'm.tech': 'Masters Degree',
+    'mtech': 'Masters Degree',
+    'm.e': 'Masters Degree',
+    'me': 'Masters Degree',
+    'mba': 'Masters Degree',
+    'phd': 'PhD',
+    'ph.d': 'PhD',
+    'doctorate': 'PhD',
+    'doctoral': 'PhD',
+    'diploma': 'Diploma',
+    'post graduate': 'Masters Degree',
+    'postgraduate': 'Masters Degree',
+    'graduate': 'Bachelor Degree',
+    'undergraduate': 'Bachelor Degree'
+  };
+  
+  return mappings[normalized] || qualification;
+}
+
+// Helper function to get qualification level
+function getQualificationLevel(qualification: string): number {
+  const normalized = normalizeQualification(qualification);
+  return QUALIFICATION_HIERARCHY[normalized] || 0;
+}
 
 // Interfaces
 interface FilterOption {
@@ -70,14 +142,11 @@ interface LoadingState {
     CardModule,
     CheckboxModule,
     TagModule,
-    ToastModule,
     ProgressSpinnerModule,
     NavbarComponent
   ],
-  providers: [MessageService],
   templateUrl: './longlist.component.html',
-  styleUrls: ['./longlist.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./longlist.component.scss']
 })
 export class LonglistComponent implements OnInit, OnDestroy {
   // Dependency Injection using inject() for better tree-shaking
@@ -85,6 +154,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private readonly sessionTimerService = inject(SessionTimerService);
   private readonly authService = inject(AuthService);
   private readonly resumeService = inject(ResumeService);
+  private readonly router = inject(Router);
 
   // Reactive subjects for better performance
   private readonly destroy$ = new Subject<void>();
@@ -136,10 +206,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   readonly qualificationOptions: readonly FilterOption[] = Object.freeze([
     { label: 'All Qualifications', value: '' },
+    { label: 'Diploma', value: 'Diploma' },
     { label: 'Bachelor Degree', value: 'Bachelor Degree' },
     { label: 'Masters Degree', value: 'Masters Degree' },
-    { label: 'PhD', value: 'PhD' },
-    { label: 'Diploma', value: 'Diploma' }
+    { label: 'PhD', value: 'PhD' }
   ]);
 
   readonly languageOptions: readonly FilterOption[] = Object.freeze([
@@ -333,17 +403,36 @@ export class LonglistComponent implements OnInit, OnDestroy {
     event.stopPropagation();
   }
 
-  // Optimized filter application with debouncing
+  // Real-time filter application (no toast messages)
+  private applyFiltersRealtime(): void {
+    try {
+      this.filteredResumeData = this.resumeData.filter(cv => this.matchesFilters(cv));
+      this.saveFilterState();
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    }
+  }
+
+  // Optimized filter application with messaging (kept for reset functionality)
   applyFilters(): void {
     try {
       this.filteredResumeData = this.resumeData.filter(cv => this.matchesFilters(cv));
       
       this.saveFilterState();
       
-      this.showInfoMessage(
-        'Filters Applied',
-        `${this.filteredResumeData.length} CVs match your criteria`
-      );
+      // Create detailed filter summary
+      let filterSummary = `${this.filteredResumeData.length} CVs match your criteria`;
+      
+      if (this.selectedQualification) {
+        const minQualLevel = getQualificationLevel(this.selectedQualification);
+        filterSummary += ` (Min qualification: ${this.selectedQualification} and higher)`;
+      }
+      
+      if (this.selectedMaxQualification) {
+        filterSummary += ` (Max qualification: ${this.selectedMaxQualification} and lower)`;
+      }
+      
+      this.showInfoMessage('Filters Applied', filterSummary);
     } catch (error) {
       console.error('Error applying filters:', error);
       this.showErrorMessage('Filter Error', 'Failed to apply filters');
@@ -373,14 +462,23 @@ export class LonglistComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    // Qualification filter
-    if (this.selectedQualification && cv.qualification !== this.selectedQualification) {
-      return false;
+    // Qualification filters - hierarchical comparison
+    const cvQualificationLevel = getQualificationLevel(cv.qualification);
+    
+    // Minimum qualification filter - candidate must have this level or higher
+    if (this.selectedQualification) {
+      const minQualificationLevel = getQualificationLevel(this.selectedQualification);
+      if (cvQualificationLevel < minQualificationLevel) {
+        return false;
+      }
     }
 
-    // Max qualification filter
+    // Maximum qualification filter - candidate must have this level or lower
     if (this.selectedMaxQualification) {
-      // Add qualification comparison logic here if needed
+      const maxQualificationLevel = getQualificationLevel(this.selectedMaxQualification);
+      if (cvQualificationLevel > maxQualificationLevel) {
+        return false;
+      }
     }
 
     // Language filter
@@ -460,10 +558,14 @@ export class LonglistComponent implements OnInit, OnDestroy {
         break;
     }
     this.openDropdown = null;
+    
+    // Apply filters in real-time
+    this.applyFiltersRealtime();
   }
 
   clearSelection(dropdownName: string): void {
     this.selectOption(dropdownName, '');
+    // Note: selectOption already calls applyFiltersRealtime()
   }
 
   // Language management
@@ -480,11 +582,13 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.selectedLanguages = [...this.selectedLanguages, this.tempSelectedLanguage];
       this.tempSelectedLanguage = '';
       this.showLanguageDropdown = false;
+      this.applyFiltersRealtime();
     }
   }
 
   removeLanguage(language: string): void {
     this.selectedLanguages = this.selectedLanguages.filter(lang => lang !== language);
+    this.applyFiltersRealtime();
   }
 
   // Qualification management
@@ -495,6 +599,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   removeMaxQualification(): void {
     this.selectedMaxQualification = '';
     this.showMaxQualification = false;
+    this.applyFiltersRealtime();
   }
 
   // Private helper methods
@@ -532,12 +637,16 @@ export class LonglistComponent implements OnInit, OnDestroy {
         nationality = nationality.slice(1, -1).replace(/'/g, '').trim();
       }
       
+      // Normalize qualification for consistent filtering
+      const rawQualification = item['Highest Degree'] || '';
+      const normalizedQualification = normalizeQualification(rawQualification);
+      
       return {
         id: item['CV ID'],
         name: item['Name'] || 'Unknown',
         nationality: nationality,
         experience: parseInt(item['YOE']) || 0,
-        qualification: item['Highest Degree'] || '',
+        qualification: normalizedQualification || rawQualification, // Use normalized if available, otherwise original
         gender: item['Gender'] || '',
         employmentHistory: item['Employment History'] || ''
       };
@@ -572,6 +681,11 @@ export class LonglistComponent implements OnInit, OnDestroy {
       next: (response) => {
         console.log('Save filtered response:', response);
         this.showSuccessMessage('Success', 'Filtered resumes moved to shortlisting');
+        
+        // Navigate to shortlist component after successful save
+        setTimeout(() => {
+          this.router.navigate(['/shortlist']);
+        }, 1500); // Small delay to show the success message
       },
       error: (error) => {
         console.error('Save filtered error:', error);
@@ -593,14 +707,20 @@ export class LonglistComponent implements OnInit, OnDestroy {
       ...nationalities
     ];
 
-    // Update qualification options
-    const qualifications = [...new Set(this.resumeData.map(cv => cv.qualification))]
+    // Update qualification options - sort by hierarchy level
+    const uniqueQualifications = [...new Set(this.resumeData.map(cv => cv.qualification))]
       .filter((qualification): qualification is string => Boolean(qualification))
-      .map(qualification => ({ label: qualification, value: qualification }));
+      .map(qualification => ({
+        label: qualification,
+        value: qualification,
+        level: getQualificationLevel(qualification)
+      }))
+      .sort((a, b) => a.level - b.level) // Sort by hierarchy level
+      .map(({ label, value }) => ({ label, value }));
     
     this.dynamicQualificationOptions = [
       { label: 'All Qualifications', value: '' },
-      ...qualifications
+      ...uniqueQualifications
     ];
 
     // Update gender options
@@ -639,6 +759,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
       openDropdown: null
     };
   }
+
+
+
+
 
   // Message helpers
   private showSuccessMessage(summary: string, detail: string): void {
