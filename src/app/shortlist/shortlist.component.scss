@@ -371,13 +371,32 @@
     flex: 1;
     overflow-y: auto;
     
-    p {
+    .placeholder-text p {
       color: var(--black);
       font-family: var(--font-family);
       font-size: 0.75rem;
       line-height: 1.4;
       margin: 0;
-      white-space: pre-line;
+      font-style: italic;
+      text-align: center;
+    }
+    
+    .formatted-content {
+      color: var(--black);
+      font-family: var(--font-family);
+      font-size: 0.7rem;
+      line-height: 1.5;
+      
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: inherit;
+        background: transparent;
+        border: none;
+        padding: 0;
+        overflow: visible;
+      }
     }
   }
 }
@@ -1031,13 +1050,16 @@
           background: var(--primary-dark);
           padding: 1.5rem;
           
-          p {
+          p, pre {
             color: var(--white);
             font-family: var(--font-family);
             font-size: 0.85rem;
             line-height: 1.6;
             margin: 0;
-            white-space: pre-line;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: transparent;
+            border: none;
           }
         }
       }

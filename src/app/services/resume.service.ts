@@ -25,7 +25,7 @@ export interface UploadResumeResponse {
 
 export interface SaveFilteredRequest {
   pdf_id: number;
-  data: ResumeData[];
+  data: ResumeData[] | any[]; // Allow both transformed and original data formats
 }
 
 export interface SaveFilteredResponse {
@@ -68,7 +68,9 @@ export interface ShortlistCandidate {
 export interface ShortlistResponse {
   message?: string;
   data?: ShortlistCandidate[];
+  shortlisted?: ShortlistCandidate[];
   job_description_content?: string;
+  relevant_section_text?: string;
   employment_history?: Array<{
     id: string;
     name: string;

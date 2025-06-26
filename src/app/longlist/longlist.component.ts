@@ -672,15 +672,37 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private saveFilteredResumes(): void {
     if (!this.pdfId || this.filteredResumeData.length === 0) return;
 
-    this.resumeService.saveFilteredResumes({
+    // Transform the filtered data back to the original API format for shortlist compatibility
+    const transformedData = this.filteredResumeData.map(cv => ({
+      'CV ID': cv.id || 'Unknown',
+      'Name': cv.name,
+      'Highest Degree': cv.qualification,
+      'YOE': cv.experience,
+      'Gender': cv.gender || 'Unknown',
+      'Nationality': `['${cv.nationality}']`, // Format as array string like "['India']"
+      'Employment History': cv.employmentHistory || ''
+    }));
+
+    const requestPayload = {
       pdf_id: this.pdfId,
-      data: this.filteredResumeData
-    })
+      data: transformedData
+    };
+
+    console.log('=== SAVING FILTERED RESUMES ===');
+    console.log('Original filtered data:', this.filteredResumeData);
+    console.log('Transformed data for API:', transformedData);
+    console.log('Request payload:', requestPayload);
+    console.log('===============================');
+
+    this.resumeService.saveFilteredResumes(requestPayload)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
         console.log('Save filtered response:', response);
         this.showSuccessMessage('Success', 'Filtered resumes moved to shortlisting');
+        
+        // Update the resume service with the transformed data
+        this.resumeService.setFilteredData(this.filteredResumeData, this.filterState);
         
         // Navigate to shortlist component after successful save
         setTimeout(() => {
@@ -759,10 +781,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
       openDropdown: null
     };
   }
-
-
-
-
 
   // Message helpers
   private showSuccessMessage(summary: string, detail: string): void {

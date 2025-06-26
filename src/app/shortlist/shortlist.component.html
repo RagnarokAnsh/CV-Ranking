@@ -215,6 +215,7 @@
               [disabled]="isSubmitting"
               (click)="resetRanking()">
             </button>
+
           </div>
         </div>
       </div>
@@ -227,7 +228,14 @@
           <h4 class="extracted-sections-title">Extracted Sections</h4>
           <div class="job-description-card">
             <div class="job-description-content">
-              <p>{{ jobDescriptionContent }}</p>
+              <div *ngIf="jobDescriptionContent === 'Upload a job description file or select a template to see the extracted content here.'" 
+                   class="placeholder-text">
+                <p>{{ jobDescriptionContent }}</p>
+              </div>
+              <div *ngIf="jobDescriptionContent !== 'Upload a job description file or select a template to see the extracted content here.'" 
+                   class="formatted-content">
+                <pre>{{ jobDescriptionContent }}</pre>
+              </div>
             </div>
           </div>
         </div>
@@ -236,15 +244,17 @@
         <div class="ranking-section">
           <h3>Ranking Results</h3>
           
+
+
           <!-- Loading Message -->
-          <div *ngIf="filteredResumeData.length === 0" class="no-data-message">
+          <div *ngIf="filteredResumeData.length === 0 && rankingResults.length === 0" class="no-data-message">
             <i class="pi pi-info-circle"></i>
-            <p>No CV data available. Please go to Long Listing first to upload and filter CVs.</p>
+            <p>No CV data available. Please go to Long Listing first to upload and filter CVs, or use the test button.</p>
           </div>
 
           <!-- Results Table -->
           <p-table 
-            *ngIf="filteredResumeData.length > 0"
+            *ngIf="rankingResults.length > 0"
             [value]="rankingResults" 
             [paginator]="rankingResults.length > 8"
             [rows]="8"
@@ -268,13 +278,13 @@
             <ng-template pTemplate="body" let-result>
               <tr>
                 <td>{{ result.rank || '--' }}</td>
-                <td>{{ result.cvId }}</td>
-                <td>{{ result.name }}</td>
-                <td>{{ result.highestDegree }}</td>
-                <td>{{ result.yoe }}</td>
-                <td>{{ result.finalScore }}</td>
-                <td>{{ result.gender }}</td>
-                <td>{{ result.nationality }}</td>
+                <td>{{ result.cvId || 'N/A' }}</td>
+                <td>{{ result.name || 'Unknown' }}</td>
+                <td>{{ result.highestDegree || 'N/A' }}</td>
+                <td>{{ result.yoe || 'N/A' }}</td>
+                <td>{{ result.finalScore || '--' }}</td>
+                <td>{{ result.gender || 'Unknown' }}</td>
+                <td>{{ result.nationality || 'Unknown' }}</td>
               </tr>
             </ng-template>
           </p-table>
@@ -298,9 +308,9 @@
           <p-accordion [multiple]="false" class="employment-accordion">
             <p-accordionTab 
               *ngFor="let history of employmentHistory" 
-              [header]="history.id + ' - ' + history.name">
+              [header]="(history.id || 'CV') + ' - ' + (history.name || 'Unknown')">
               <div class="employment-details">
-                <p>{{ history.details }}</p>
+                <pre>{{ history.details || 'No employment details available' }}</pre>
               </div>
             </p-accordionTab>
           </p-accordion>

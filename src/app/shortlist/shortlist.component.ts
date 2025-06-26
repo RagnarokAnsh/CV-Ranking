@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
@@ -68,6 +68,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   private readonly sessionTimerService = inject(SessionTimerService);
   private readonly authService = inject(AuthService);
   private readonly resumeService = inject(ResumeService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   // Destroy subject for cleanup
   private readonly destroy$ = new Subject<void>();
@@ -78,10 +79,10 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
   // Job Description Template Options
   readonly jobDescriptionTemplates: readonly FilterOption[] = Object.freeze([
-    { label: 'UNV Template', value: 'unv' },
-    { label: 'SC Template', value: 'sc' },
-    { label: 'SC Manager Template', value: 'sc_manager' },
-    { label: 'IC Consultant Template', value: 'ic_consultant' }
+    { label: 'UNV Template', value: 'UNV Template' },
+    { label: 'SC Template', value: 'SC Template' },
+    { label: 'SC Manager Template', value: 'SC Manager Template' },
+    { label: 'IC Consultant Template', value: 'IC Consultant Template' }
   ]);
 
   // Search Operator Options
@@ -91,7 +92,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   ]);
 
   // Form Values
-  selectedJobTemplate: string = 'unv';
+  selectedJobTemplate: string = 'UNV Template';
   searchQuery: string = '';
   selectedSearchOperator: string = 'and';
   
@@ -144,6 +145,12 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.filteredResumeData = this.resumeService.getCurrentFilteredResumeData();
     this.pdfId = this.resumeService.getCurrentPdfId();
 
+    console.log('=== LOADING DATA IN SHORTLIST ===');
+    console.log('Filtered data from service:', this.filteredResumeData);
+    console.log('PDF ID:', this.pdfId);
+    console.log('Data length:', this.filteredResumeData.length);
+    console.log('===============================');
+
     if (this.filteredResumeData.length === 0 || !this.pdfId) {
       console.warn('No filtered data found, checking for any resume data...');
       
@@ -161,6 +168,8 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
     // Get filter state to populate the "Selected" fields
     const filterState = this.resumeService.getCurrentFilterState();
+    console.log('Filter state from service:', filterState);
+    
     if (filterState) {
       this.selectedMinYearsExperience = parseInt(filterState.minExperience) || 0;
       this.selectedRequiredDegree = filterState.qualification || 'Any';
@@ -238,6 +247,20 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Log the template being sent to API
+    console.log('=== SUBMITTING SHORTLIST REQUEST ===');
+    console.log('Selected Job Template:', this.selectedJobTemplate);
+    console.log('Search Query:', this.searchQuery);
+    console.log('Search Operator:', this.selectedSearchOperator);
+    console.log('Weights:', {
+      experience: this.weightExperience,
+      qualifications: this.weightQualifications,
+      skills: this.weightSkills
+    });
+    console.log('PDF ID:', this.pdfId);
+    console.log('Has File:', !!this.selectedFile);
+    console.log('=====================================');
+
     this.isSubmitting = true;
 
     // Choose API method based on whether file is uploaded
@@ -273,63 +296,109 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       });
   }
 
-    // Handle successful ranking response
+  // Handle successful ranking response
   private handleRankingSuccess(response: any): void {
     console.log('=== FULL API RESPONSE ===');
     console.log('Response object:', response);
     console.log('Response keys:', Object.keys(response));
+    console.log('Response type:', typeof response);
+    console.log('Has shortlisted:', !!response.shortlisted);
+    console.log('Has data:', !!response.data);
+    console.log('Has relevant_section_text:', !!response.relevant_section_text);
     console.log('=========================');
 
     try {
-      // Update ranking results from API response
-      if (response.shortlisted && response.shortlisted.length > 0) {
-        console.log('Processing response.shortlisted:', response.shortlisted);
-        this.rankingResults = response.shortlisted.map((candidate: any) => {
-          console.log('Processing candidate:', candidate);
-          
-          // Clean nationality field (remove brackets and quotes)
-          let nationality = candidate.Nationality || candidate.nationality || 'Unknown';
-          if (typeof nationality === 'string' && nationality.includes('[')) {
-            nationality = nationality.replace(/[\[\]"']/g, '').trim();
-          }
-
-          return {
-            rank: candidate.Rank,
-            cvId: candidate.CV,
-            name: candidate['Applicant Name'] || candidate.name,
-            highestDegree: candidate['Highest Degree'] || candidate.qualification,
-            yoe: candidate.YOE || candidate.experience,
-            finalScore: candidate['Final Score'] ? candidate['Final Score'].toFixed(4) : '--',
-            gender: candidate.Gender || 'Unknown',
-            nationality: nationality
-          };
-        });
-        console.log('Updated rankingResults:', this.rankingResults);
-      } else {
-        console.warn('No shortlisted data found in response');
-      }
-
       // Update job description content from API response
+      // The API returns 'relevant_section_text' not 'job_description_content'
       if (response.relevant_section_text) {
         this.jobDescriptionContent = response.relevant_section_text;
         console.log('Updated job description content');
+      } else if (response.job_description_content) {
+        // Fallback for different API response format
+        this.jobDescriptionContent = response.job_description_content;
+        console.log('Updated job description content (fallback)');
+      }
+
+      // Update ranking results from API response
+      // Handle different possible response structures
+      const shortlistedData = response.shortlisted || response.data || response.candidates || [];
+      
+      if (shortlistedData && shortlistedData.length > 0) {
+        console.log('Processing shortlisted data - candidates found:', shortlistedData.length);
+        
+        this.rankingResults = shortlistedData.map((candidate: any, index: number) => {
+          // Clean nationality field (remove brackets and quotes)
+          let nationality = candidate.Nationality || candidate.nationality || 'Unknown';
+          if (typeof nationality === 'string') {
+            // Handle array-like string format like "['India']"
+            if (nationality.includes('[')) {
+              nationality = nationality.replace(/[\[\]"']/g, '').trim();
+            }
+            // Handle comma-separated values
+            if (nationality.includes(',')) {
+              nationality = nationality.split(',')[0].trim();
+            }
+          } else if (Array.isArray(nationality)) {
+            nationality = nationality[0] || 'Unknown';
+          }
+
+          return {
+            rank: candidate.Rank || candidate.rank || index + 1,
+            cvId: candidate['CV ID'] || candidate.CV || candidate.cv_id || candidate.cvId || `CV${index + 1}`,
+            name: candidate.Name || candidate['Applicant Name'] || candidate.name || candidate.applicant_name || 'Unknown',
+            highestDegree: candidate['Highest Degree'] || candidate.highest_degree || candidate.qualification || 'Unknown',
+            yoe: candidate.YOE || candidate.yoe || candidate.years_of_experience || candidate.experience || 0,
+            finalScore: candidate['Final Score'] ? 
+              (typeof candidate['Final Score'] === 'number' ? candidate['Final Score'].toFixed(4) : candidate['Final Score']) : 
+              (candidate.final_score ? 
+                (typeof candidate.final_score === 'number' ? candidate.final_score.toFixed(4) : candidate.final_score) : 
+                (candidate.score ? 
+                  (typeof candidate.score === 'number' ? candidate.score.toFixed(4) : candidate.score) : 
+                  '--')),
+            gender: candidate.Gender || candidate.gender || 'Unknown',
+            nationality: nationality
+          };
+        });
+        console.log('Ranking results updated - total candidates:', this.rankingResults.length);
+      } else {
+        console.warn('No shortlisted data found in response');
+        // Reset ranking results to show original data with "--" scores
+        this.initializeRankingResults();
+        this.showWarningMessage('No Results', 'No candidates were shortlisted based on the criteria. Please adjust your search parameters.');
       }
 
       // Create employment history from shortlisted candidates
-      if (response.shortlisted && response.shortlisted.length > 0) {
-        this.employmentHistory = response.shortlisted
-          .filter((candidate: any) => candidate['Employment History'])
-          .map((candidate: any) => ({
-            id: candidate.CV,
-            name: candidate['Applicant Name'] || candidate.name,
-            details: candidate['Employment History']
-          }));
-        console.log('Updated employment history:', this.employmentHistory);
+      if (shortlistedData && shortlistedData.length > 0) {
+        this.employmentHistory = shortlistedData
+          .map((candidate: any, index: number) => {
+            const hasEmploymentHistory = candidate['Employment History'] || 
+                                       candidate.employment_history || 
+                                       candidate.employmentHistory;
+            
+            if (hasEmploymentHistory) {
+              return {
+                id: candidate['CV ID'] || candidate.CV || candidate.cv_id || candidate.cvId || `CV${index + 1}`,
+                name: candidate.Name || candidate['Applicant Name'] || candidate.name || candidate.applicant_name || 'Unknown',
+                details: candidate['Employment History'] || 
+                        candidate.employment_history || 
+                        candidate.employmentHistory || 
+                        'No employment history available'
+              };
+            }
+            return null;
+          })
+          .filter((item: any) => item !== null); // Remove null entries
+        
+        console.log('Employment history extracted - count:', this.employmentHistory.length);
       }
 
+      // Show success message
+      const resultsCount = this.rankingResults.length;
+      const employmentCount = this.employmentHistory.length;
+      
       this.showSuccessMessage(
         'Ranking Complete',
-        `Successfully ranked ${this.rankingResults.length} candidates`
+        `Successfully ranked ${resultsCount} candidates. Employment history available for ${employmentCount} candidates.`
       );
     } catch (error) {
       console.error('Error processing ranking response:', error);
@@ -357,7 +426,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.weightExperience = 0.30;
     this.weightQualifications = 0.40;
     this.weightSkills = 0.30;
-    this.selectedJobTemplate = 'unv';
+    this.selectedJobTemplate = 'UNV Template';
     this.selectedSearchOperator = 'and';
     this.searchQuery = '';
     this.selectedFile = null;
@@ -441,4 +510,6 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   private showErrorMessage(summary: string, detail: string): void {
     this.messageService.add({ severity: 'error', summary, detail });
   }
+
+
 }
