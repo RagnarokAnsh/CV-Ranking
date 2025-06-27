@@ -3,6 +3,8 @@
   <div class="sidebar" [class.collapsed]="sidebarCollapsed">
     <!-- Logo/Brand Section -->
     <div class="sidebar-header">
+      <img src='assets/images/logo.png' alt="Logo" class="logo" *ngIf="!sidebarCollapsed">
+      <img src='assets/images/logo.png' alt="Logo" class="logo-collapsed" *ngIf="sidebarCollapsed">
       <h2 *ngIf="!sidebarCollapsed">CV<br>Ranking<br>Application</h2>
       <h2 *ngIf="sidebarCollapsed" class="collapsed-title">CV</h2>
     </div>
@@ -35,7 +37,7 @@
           (click)="toggleSidebar()"
           [title]="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
         >
-          <i [class]="sidebarCollapsed ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"></i>
+          <i [class]="sidebarCollapsed ? 'pi pi-bars' : 'pi pi-bars'"></i>
         </button>
 
         <!-- Page Title (will be set by individual components) -->

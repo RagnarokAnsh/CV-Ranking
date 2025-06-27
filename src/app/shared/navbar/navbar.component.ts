@@ -72,7 +72,7 @@ export class NavbarComponent implements OnInit {
       },
       {
         label: 'Short List',
-        icon: 'pi pi-file-o',
+        icon: 'pi pi-file-check',
         routerLink: '/shortlist',
         command: () => this.navigateTo('/shortlist')
       }
@@ -83,7 +83,7 @@ export class NavbarComponent implements OnInit {
       console.log('Adding Admin Approval to sidebar');
       baseItems.push({
         label: 'Admin Approval',
-        icon: 'pi pi-user',
+        icon: 'pi pi-user-edit',
         routerLink: '/admin-approval',
         command: () => this.navigateTo('/admin-approval')
       });
