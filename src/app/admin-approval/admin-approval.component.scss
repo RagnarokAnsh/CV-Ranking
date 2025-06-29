@@ -19,19 +19,6 @@
 .page-header {
   margin-bottom: 2rem;
   
-  h1 {
-    color: #2D3748;
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-semibold);
-    font-size: 1.8rem;
-    margin: 0 0 0.5rem 0;
-    text-align: left;
-    text-decoration: underline;
-    text-decoration-color: #000000;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.5rem;
-  }
-  
   .instruction-text {
     color: #6B7280;
     font-size: 0.9rem;
@@ -42,21 +29,12 @@
   @media (max-width: 768px) {
     margin-bottom: 1.5rem;
     
-    h1 {
-      font-size: 1.5rem;
-    }
-    
     .instruction-text {
       font-size: 0.8rem;
     }
   }
   
   @media (max-width: 480px) {
-    h1 {
-      font-size: 1.3rem;
-      text-decoration-thickness: 1px;
-    }
-    
     .instruction-text {
       font-size: 0.75rem;
     }

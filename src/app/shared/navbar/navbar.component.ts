@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -47,11 +48,11 @@ export class NavbarComponent implements OnInit {
       this.initializeSidebarItems(); // Rebuild sidebar when user changes
     });
     
-    // Update current route
-    this.router.events.subscribe((event: any) => {
-      if (event.url) {
+    // Update current route on navigation end
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
         this.currentRoute = event.url;
-      }
     });
   }
 
@@ -163,9 +164,9 @@ export class NavbarComponent implements OnInit {
       case '/admin-approval':
         return 'ADMIN APPROVAL';
       case '/longlist':
-        return 'LONG LIST';
+        return 'LONG LISTING';
       case '/shortlist':
-        return 'SHORT LIST';
+        return 'SHORT LISTING';
       default:
         return 'DASHBOARD';
     }

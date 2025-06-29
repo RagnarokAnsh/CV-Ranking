@@ -16,16 +16,29 @@ export interface ResumeData {
   [key: string]: any; // Allow additional properties from API
 }
 
+// New API structure interfaces
+export interface ApiResumeData {
+  "CV ID": string;
+  "Name": string;
+  "Highest Degree": string;
+  "YOE": number;
+  "Gender": string;
+  "Nationality": string;
+  "Employment History": string;
+}
+
 export interface UploadResumeResponse {
   message: string;
   pdf_id: number;
   rows: number;
-  data: ResumeData[];
+  data: ApiResumeData[];
 }
 
 export interface SaveFilteredRequest {
   pdf_id: number;
-  data: ResumeData[] | any[]; // Allow both transformed and original data formats
+  min_experience: number;
+  min_degree: string;
+  data: ApiResumeData[];
 }
 
 export interface SaveFilteredResponse {
@@ -91,10 +104,26 @@ export class ResumeService {
   private pdfIdSubject = new BehaviorSubject<number | null>(null);
   private filterStateSubject = new BehaviorSubject<any>(null);
   
+  // New state management for longlist with API data structure
+  private originalApiDataSubject = new BehaviorSubject<ApiResumeData[]>([]);
+  private filteredApiDataSubject = new BehaviorSubject<ApiResumeData[]>([]);
+  private longlistFilterStateSubject = new BehaviorSubject<any>(null);
+  private dynamicFilterOptionsSubject = new BehaviorSubject<any>({
+    nationalities: [],
+    qualifications: [],
+    genders: []
+  });
+  
   public resumeData$ = this.resumeDataSubject.asObservable();
   public filteredResumeData$ = this.filteredResumeDataSubject.asObservable();
   public pdfId$ = this.pdfIdSubject.asObservable();
   public filterState$ = this.filterStateSubject.asObservable();
+  
+  // New observables for longlist state
+  public originalApiData$ = this.originalApiDataSubject.asObservable();
+  public filteredApiData$ = this.filteredApiDataSubject.asObservable();
+  public longlistFilterState$ = this.longlistFilterStateSubject.asObservable();
+  public dynamicFilterOptions$ = this.dynamicFilterOptionsSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -148,6 +177,8 @@ export class ResumeService {
     this.filteredResumeDataSubject.next([]);
     this.pdfIdSubject.next(null);
     this.filterStateSubject.next(null);
+    // Clear longlist data as well
+    this.clearLonglistData();
   }
 
   // Check if data exists
@@ -160,6 +191,81 @@ export class ResumeService {
     const original = this.resumeDataSubject.value;
     const filtered = this.filteredResumeDataSubject.value;
     return filtered.length !== original.length || this.filterStateSubject.value !== null;
+  }
+
+  // === NEW LONGLIST STATE MANAGEMENT METHODS ===
+
+  // Get current longlist API data
+  getCurrentOriginalApiData(): ApiResumeData[] {
+    return this.originalApiDataSubject.value;
+  }
+
+  getCurrentFilteredApiData(): ApiResumeData[] {
+    return this.filteredApiDataSubject.value;
+  }
+
+  getCurrentLonglistFilterState(): any {
+    return this.longlistFilterStateSubject.value;
+  }
+
+  getCurrentDynamicFilterOptions(): any {
+    return this.dynamicFilterOptionsSubject.value;
+  }
+
+  // Set longlist data after upload
+  setLonglistData(originalData: ApiResumeData[], pdfId: number, dynamicOptions: any): void {
+    this.originalApiDataSubject.next(originalData);
+    this.filteredApiDataSubject.next([...originalData]); // Initially, filtered = original
+    this.pdfIdSubject.next(pdfId);
+    this.dynamicFilterOptionsSubject.next(dynamicOptions);
+    this.longlistFilterStateSubject.next(null); // Reset filter state
+    
+    console.log('State saved to service:', {
+      originalDataCount: originalData.length,
+      pdfId,
+      dynamicOptions
+    });
+  }
+
+  // Set filtered longlist data and filter state
+  setLonglistFilteredData(filteredData: ApiResumeData[], filterState: any): void {
+    this.filteredApiDataSubject.next(filteredData);
+    this.longlistFilterStateSubject.next(filterState);
+    
+    console.log('Filter state saved to service:', {
+      filteredDataCount: filteredData.length,
+      filterState
+    });
+  }
+
+  // Clear longlist data
+  clearLonglistData(): void {
+    this.originalApiDataSubject.next([]);
+    this.filteredApiDataSubject.next([]);
+    this.longlistFilterStateSubject.next(null);
+    this.dynamicFilterOptionsSubject.next({
+      nationalities: [],
+      qualifications: [],
+      genders: []
+    });
+  }
+
+  // Check if longlist data exists
+  hasLonglistData(): boolean {
+    return this.originalApiDataSubject.value.length > 0 && this.pdfIdSubject.value !== null;
+  }
+
+  // Check if longlist has applied filters
+  hasLonglistFilters(): boolean {
+    const filterState = this.longlistFilterStateSubject.value;
+    return filterState !== null && (
+      filterState.nationality || 
+      filterState.minExperience || 
+      filterState.maxExperience || 
+      filterState.gender || 
+      filterState.qualification || 
+      filterState.maxQualification
+    );
   }
 
   private getAuthHeaders(): HttpHeaders {

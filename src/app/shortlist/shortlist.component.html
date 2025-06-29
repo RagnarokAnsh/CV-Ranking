@@ -1,66 +1,78 @@
 <app-navbar>
-  <div class="shortlist-container">
-    <!-- Main Content Area -->
-    <div class="main-content">
-      <!-- Left Column: Upload Section + Filters -->
-      <div class="left-column">
-        <!-- Page Header -->
-        <div class="page-header">
-          <h1>SHORT LISTING</h1>
-        </div>
-        
-        <!-- Upload Section -->
-        <div class="upload-section">
-          <div class="upload-card">
-            <h3>Upload Job Description (JD) or CVs</h3>
-            
-            <!-- Drag and Drop Area -->
-                      <div class="upload-drop-zone" 
-               (dragover)="onDragOver($event)" 
-               (dragleave)="onDragLeave($event)"
-               (drop)="onFileDrop($event)"
-               [class.disabled]="isSubmitting">
-              <div class="upload-content">
-                <!-- <i class="pi pi-cloud-upload upload-icon"></i> -->
-                <p class="upload-text">Drag and drop file here</p>
-                <p class="upload-limit">Limit 200MB per file • PDF</p>
-              </div>
-              
-              <!-- Browse Files Button -->
-              <p-fileUpload 
-                mode="basic" 
-                [multiple]="false"
-                accept=".pdf"
-                [maxFileSize]="200000000"
-                (onSelect)="onFileSelect($event)"
-                [auto]="false"
-                [disabled]="isSubmitting"
-                chooseLabel="Browse files"
-                class="browse-button">
-              </p-fileUpload>
+  <div class="shortlist-container p-4">
+    <!-- Upload Section -->
+    <div class="upload-section mb-5">
+      <div class="section-header mb-4">
+        <h2 class="section-title">
+          <span class="title-first-word">Upload</span> Job Description (PDF or TXT)
+        </h2>
+      </div>
+      
+      <div class="upload-card">
+        <!-- Drag and Drop Area -->
+        <div class="upload-drop-zone" 
+             (dragover)="onDragOver($event)" 
+             (dragleave)="onDragLeave($event)"
+             (drop)="onFileDrop($event)"
+             [class.disabled]="isSubmitting">
+          <div class="upload-content">
+            <div class="upload-icon-container">
+              <i class="pi pi-cloud-upload upload-icon"></i>
             </div>
+            <h3 class="upload-title">Drag and drop file here</h3>
+            <p class="upload-subtitle">Limit 200MB • Only PDF</p>
             
-            <!-- Selected File Display -->
-            <div class="selected-file" *ngIf="selectedFile">
-              <i class="pi pi-file-pdf file-icon"></i>
-              <span class="filelabel">{{ selectedFile.name }}</span>
-              <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
-                <i class="pi pi-times"></i>
-              </button>
-            </div>
-            
-           
+            <!-- Browse Files Button -->
+            <p-fileUpload 
+              mode="basic" 
+              [multiple]="false"
+              accept=".pdf"
+              [maxFileSize]="200000000"
+              (onSelect)="onFileSelect($event)"
+              [auto]="false"
+              [disabled]="isSubmitting"
+              chooseLabel="Browse files"
+              class="browse-button">
+            </p-fileUpload>
           </div>
         </div>
+        
+        <!-- Selected File Display -->
+        <div class="selected-file" *ngIf="selectedFile">
+          <i class="pi pi-file-pdf file-icon"></i>
+          <span class="file-label">{{ selectedFile.name }}</span>
+          <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        
+        <!-- Reset Button Container -->
+        <div class="upload-actions">
+          <button 
+            pButton 
+            type="button" 
+            label="Reset CVs" 
+            class="action-button"
+            (click)="resetRanking()">
+          </button>
+        </div>
+      </div>
+    </div>
 
-        <!-- Filters Section -->
-        <div class="filters-section">
-          <h3>Filters</h3>
-          
-          <div class="filters-grid">
-            <!-- Job Description Template -->
+    <!-- Filters Section -->
+    <div class="filters-section mb-5">
+      <div class="section-header mb-4">
+        <h2 class="section-title">
+          <span class="title-first-word">Filters</span>
+        </h2>
+      </div>
+      
+      <div class="filters-main-container">
+        <!-- Row 1: Job Description Template & Keywords -->
+        <div class="filters-row">
+          <div class="filter-container">
             <div class="filter-field">
-              <label>Job Description Template</label>
+              <label class="filter-label">Job Description Template</label>
               <div class="radio-group">
                 <div *ngFor="let template of jobDescriptionTemplates" class="radio-option">
                   <input 
@@ -74,10 +86,11 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Search Query -->
+          <div class="filter-container search-container">
             <div class="filter-field">
-              <label>Search query</label>
+              <label class="filter-label">Keyword Search</label>
               <input 
                 type="text" 
                 pInputText 
@@ -85,27 +98,14 @@
                 placeholder="Enter search query"
                 class="search-input">
             </div>
+          </div>
+        </div>
 
-            <!-- Search Operator -->
+        <!-- Row 2: All Weight Controls -->
+        <div class="filters-row weight-controls-row">
+          <div class="filter-container">
             <div class="filter-field">
-              <label>Search operator</label>
-              <div class="radio-group">
-                <div *ngFor="let operator of searchOperatorOptions" class="radio-option">
-                  <input 
-                    type="radio" 
-                    [id]="operator.value" 
-                    name="searchOperator" 
-                    [value]="operator.value" 
-                    [(ngModel)]="selectedSearchOperator"
-                    class="custom-radio">
-                  <label [for]="operator.value" class="radio-label">{{ operator.label }}</label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Weight for Experience -->
-            <div class="filter-field">
-              <label>Weight for Experience</label>
+              <label class="filter-label">Weight for Experience</label>
               <div class="weight-counter">
                 <button 
                   type="button" 
@@ -124,10 +124,11 @@
                 </button>
               </div>
             </div>
+          </div>
 
-            <!-- Weight for Qualifications -->
+          <div class="filter-container">
             <div class="filter-field">
-              <label>Weight for Qualifications</label>
+              <label class="filter-label">Weight for Qualifications</label>
               <div class="weight-counter">
                 <button 
                   type="button" 
@@ -146,10 +147,11 @@
                 </button>
               </div>
             </div>
+          </div>
 
-            <!-- Weight for Skills -->
+          <div class="filter-container">
             <div class="filter-field">
-              <label>Weight for Skills</label>
+              <label class="filter-label">Weight for Skills</label>
               <div class="weight-counter">
                 <button 
                   type="button" 
@@ -168,155 +170,158 @@
                 </button>
               </div>
             </div>
-
-            <!-- Validation Error -->
-            <div class="validation-error" *ngIf="weightValidationError">
-              <i class="pi pi-exclamation-triangle"></i>
-              <span>{{ weightValidationError }}</span>
-            </div>
-
-            <!-- Selected Minimum Years of Experience -->
-            <div class="filter-field selected-filter">
-              <label>Selected Minimum Years of Experience: {{ selectedMinYearsExperience }} years</label>
-            </div>
-
-            <!-- Selected Required Degree -->
-            <div class="filter-field selected-filter">
-              <label>Selected Required Degree: {{ selectedRequiredDegree }}</label>
-            </div>
-
-            <!-- Selected Gender Filter -->
-            <div class="filter-field selected-filter">
-              <label>Selected Gender Filter: {{ selectedGenderFilter }}</label>
-            </div>
-
-            <!-- CVs Count Info -->
-            <div class="filter-field selected-filter">
-              <label>Total Filtered CVs: {{ filteredResumeData.length }}</label>
-            </div>
-          </div>
-
-          <!-- Filter Action Buttons -->
-          <div class="filter-actions">
-            <button 
-              pButton 
-              type="button" 
-              [label]="isSubmitting ? 'Processing...' : 'Submit'" 
-              class="apply-btn"
-              [disabled]="isSubmitting"
-              (click)="submitRanking()">
-              <i class="pi pi-spin pi-spinner" *ngIf="isSubmitting" style="margin-right: 0.5rem;"></i>
-            </button>
-            <button 
-              pButton 
-              type="button" 
-              label="Reset" 
-              class="reset-filter-btn"
-              [disabled]="isSubmitting"
-              (click)="resetRanking()">
-            </button>
-
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Content Area -->
-      <div class="right-column">
-        <!-- Job Description Section -->
-        <div class="job-description-section">
-          <h3>Job Description Content</h3>
-          <h4 class="extracted-sections-title">Extracted Sections</h4>
-          <div class="job-description-card">
-            <div class="job-description-content">
-              <div *ngIf="jobDescriptionContent === 'Upload a job description file or select a template to see the extracted content here.'" 
-                   class="placeholder-text">
-                <p>{{ jobDescriptionContent }}</p>
-              </div>
-              <div *ngIf="jobDescriptionContent !== 'Upload a job description file or select a template to see the extracted content here.'" 
-                   class="formatted-content">
-                <pre>{{ jobDescriptionContent }}</pre>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- Ranking Results Section -->
-        <div class="ranking-section">
-          <h3>Ranking Results</h3>
-          
+        <!-- Validation Error -->
+        <div class="validation-error" *ngIf="weightValidationError">
+          <i class="pi pi-exclamation-triangle"></i>
+          <span>{{ weightValidationError }}</span>
+        </div>
 
-
-          <!-- Loading Message -->
-          <div *ngIf="filteredResumeData.length === 0 && rankingResults.length === 0" class="no-data-message">
-            <i class="pi pi-info-circle"></i>
-            <p>No CV data available. Please go to Long Listing first to upload and filter CVs, or use the test button.</p>
+        <!-- Selected Filters Info -->
+        <div class="selected-filters-info">
+          <div class="info-item">
+            <span class="info-label">Min Years Experience:</span>
+            <span class="info-value">{{ selectedMinYearsExperience }} years</span>
           </div>
+          <div class="info-item">
+            <span class="info-label">Required Degree:</span>
+            <span class="info-value">{{ selectedRequiredDegree }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Gender Filter:</span>
+            <span class="info-value">{{ selectedGenderFilter }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Total Filtered CVs:</span>
+            <span class="info-value">{{ filteredApiData.length }}</span>
+          </div>
+        </div>
 
-          <!-- Results Table -->
-          <p-table 
-            *ngIf="rankingResults.length > 0"
-            [value]="rankingResults" 
-            [paginator]="rankingResults.length > 8"
-            [rows]="8"
-            [showCurrentPageReport]="rankingResults.length > 8"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-            class="ranking-table">
-            
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Rank</th>
-                <th>CV ID</th>
-                <th>Name</th>
-                <th>Highest Degree</th>
-                <th>YOE</th>
-                <th>Final Score</th>
-                <th>Gender</th>
-                <th>Nationality</th>
-              </tr>
-            </ng-template>
-            
-            <ng-template pTemplate="body" let-result>
-              <tr>
-                <td>{{ result.rank || '--' }}</td>
-                <td>{{ result.cvId || 'N/A' }}</td>
-                <td>{{ result.name || 'Unknown' }}</td>
-                <td>{{ result.highestDegree || 'N/A' }}</td>
-                <td>{{ result.yoe || 'N/A' }}</td>
-                <td>{{ result.finalScore || '--' }}</td>
-                <td>{{ result.gender || 'Unknown' }}</td>
-                <td>{{ result.nationality || 'Unknown' }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
+        <!-- Action Buttons -->
+        <div class="action-buttons-container">
+          <button 
+            pButton 
+            type="button" 
+            [label]="isSubmitting ? 'Processing...' : 'Submit'" 
+            class="action-button"
+            [disabled]="isSubmitting || !selectedFile"
+            (click)="submitRanking()">
+            <i class="pi pi-spin pi-spinner" *ngIf="isSubmitting" style="margin-right: 0.5rem;"></i>
+          </button>
+          <button 
+            pButton 
+            type="button" 
+            label="Reset Ranking" 
+            class="action-button"
+            [disabled]="isSubmitting"
+            (click)="resetRanking()">
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Employment History Section - Full Width at Bottom -->
-    <div class="bottom-section">
-      <div class="employment-history-section">
-        <h3>View Extracted Employment History</h3>
+    <!-- Job Description Section -->
+    <div class="job-description-section mb-5">
+      <div class="section-header mb-4">
+        <h2 class="section-title">
+          <span class="title-first-word">Job</span> Description Content
+        </h2>
+      </div>
+      
+      <div class="job-description-card">
+        <h4 class="extracted-sections-title">Extracted Sections</h4>
+        <div class="job-description-content">
+          <div *ngIf="jobDescriptionContent === 'Upload a job description file or select a template to see the extracted content here.'" 
+               class="placeholder-text">
+            <p>{{ jobDescriptionContent }}</p>
+          </div>
+          <div *ngIf="jobDescriptionContent !== 'Upload a job description file or select a template to see the extracted content here.'" 
+               class="formatted-content">
+            <pre>{{ jobDescriptionContent }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section">
+      <div class="section-header mb-4">
+        <h2 class="section-title">
+          <span class="title-first-word">Ranking</span> Results
+        </h2>
+      </div>
+      
+      <!-- Loading Message -->
+      <div *ngIf="filteredApiData.length === 0 && tableData.length === 0" class="no-data-message">
+        <i class="pi pi-info-circle"></i>
+        <p>No CV data available. Please go to Long Listing first to upload and filter CVs.</p>
+      </div>
+
+      <!-- Results Table -->
+      <p-table 
+        *ngIf="tableData.length > 0"
+        [value]="tableData" 
+        [paginator]="tableData.length > 10"
+        [rows]="10"
+        [showCurrentPageReport]="tableData.length > 10"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        class="cv-table shadow-2 border-round overflow-hidden">
         
-        <!-- No Employment History Message -->
-        <div *ngIf="employmentHistory.length === 0" class="no-employment-message">
-          <i class="pi pi-info-circle"></i>
-          <p>Employment history will appear here after processing the ranking. Please submit your filters to see detailed employment information.</p>
-        </div>
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Rank</th>
+            <th>CV ID</th>
+            <th>Name</th>
+            <th>Highest Degree</th>
+            <th>YOE</th>
+            <th>Final Score</th>
+            <th>Gender</th>
+            <th>Nationality</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        
+        <ng-template pTemplate="body" let-result>
+          <tr>
+            <td>{{ result.rank || '--' }}</td>
+            <td>{{ result.cvId || 'N/A' }}</td>
+            <td>{{ result.name || 'Unknown' }}</td>
+            <td>{{ result.highestDegree || 'N/A' }}</td>
+            <td>{{ result.yoe || 'N/A' }}</td>
+            <td>{{ result.finalScore || '--' }}</td>
+            <td>{{ result.gender || 'Unknown' }}</td>
+            <td>{{ result.nationality || 'Unknown' }}</td>
+            <td>
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-eye" 
+                class="p-button-text p-button-sm"
+                pTooltip="View Employment History"
+                (click)="showEmploymentHistory(result)">
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
 
-        <!-- Employment History Accordion -->
-        <div *ngIf="employmentHistory.length > 0" class="employment-accordion-container" [class.scrollable]="employmentHistory.length > 5">
-          <p-accordion [multiple]="false" class="employment-accordion">
-            <p-accordionTab 
-              *ngFor="let history of employmentHistory" 
-              [header]="(history.id || 'CV') + ' - ' + (history.name || 'Unknown')">
-              <div class="employment-details">
-                <pre>{{ history.details || 'No employment details available' }}</pre>
-              </div>
-            </p-accordionTab>
-          </p-accordion>
+    <!-- Employment History Dialog -->
+    <p-dialog 
+      header="{{ selectedCandidateName }}" 
+      [(visible)]="displayEmploymentDialog" 
+      [modal]="true" 
+      [style]="{width: '70vw', maxWidth: '800px'}" 
+      [draggable]="false" 
+      [resizable]="false">
+      <div class="employment-dialog-content">
+        <h4>Employment History</h4>
+        <div class="employment-details">
+          <pre>{{ selectedEmploymentHistory }}</pre>
         </div>
       </div>
-    </div>
+    </p-dialog>
   </div>
-
 </app-navbar>

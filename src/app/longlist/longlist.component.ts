@@ -8,7 +8,7 @@ import { Subject, BehaviorSubject } from 'rxjs';
 // Services
 import { SessionTimerService } from '../services/session-timer.service';
 import { AuthService } from '../services/auth.service';
-import { ResumeService, ResumeData, UploadResumeResponse } from '../services/resume.service';
+import { ResumeService } from '../services/resume.service';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -29,24 +29,23 @@ import { NavbarComponent } from '../shared/navbar/navbar.component';
 // Constants
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const ALLOWED_FILE_TYPE = 'application/pdf';
-const AGE_RANGE_DEFAULT = [18, 65];
 
 // Qualification hierarchy for proper filtering
 const QUALIFICATION_HIERARCHY: Record<string, number> = {
   'Diploma': 1,
   'Bachelor Degree': 2,
-  'Bachelor': 2, // Alternative naming
-  'Bachelors Degree': 2, // Alternative naming
+  'Bachelor': 2,
+  'Bachelors Degree': 2,
   'Masters Degree': 3,
-  'Master Degree': 3, // Alternative naming
-  'Masters': 3, // Alternative naming
-  'Master': 3, // Alternative naming
+  'Master Degree': 3,
+  'Masters': 3,
+  'Master': 3,
   'PhD': 4,
   'Doctorate': 4,
-  'Post-Doctorate': 5, // Alternative naming
-  'Post Graduate': 3, // Alternative naming
-  'Graduate': 2, // Alternative naming
-  'Undergraduate': 2 // Alternative naming
+  'Post-Doctorate': 5,
+  'Post Graduate': 3,
+  'Graduate': 2,
+  'Undergraduate': 2
 };
 
 // Helper function to normalize qualification names
@@ -55,7 +54,6 @@ function normalizeQualification(qualification: string): string {
   
   const normalized = qualification.trim().toLowerCase();
   
-  // Common mappings for different qualification formats
   const mappings: Record<string, string> = {
     'bachelor': 'Bachelor Degree',
     'bachelors': 'Bachelor Degree',
@@ -102,7 +100,31 @@ function getQualificationLevel(qualification: string): number {
   return QUALIFICATION_HIERARCHY[normalized] || 0;
 }
 
-// Interfaces
+// New interfaces for the updated API structure
+interface ApiResumeData {
+  "CV ID": string;
+  "Name": string;
+  "Highest Degree": string;
+  "YOE": number;
+  "Gender": string;
+  "Nationality": string;
+  "Employment History": string;
+}
+
+interface ApiUploadResponse {
+  message: string;
+  pdf_id: number;
+  rows: number;
+  data: ApiResumeData[];
+}
+
+interface SaveFilteredRequest {
+  pdf_id: number;
+  min_experience: number;
+  min_degree: string;
+  data: ApiResumeData[];
+}
+
 interface FilterOption {
   label: string;
   value: string;
@@ -115,11 +137,7 @@ interface FilterState {
   gender: string;
   qualification: string;
   maxQualification: string;
-  languages: string[];
   showMaxQualification: boolean;
-  showLanguageDropdown: boolean;
-  tempSelectedLanguage: string;
-  ageRange: number[];
   openDropdown: string | null;
 }
 
@@ -149,14 +167,14 @@ interface LoadingState {
   styleUrls: ['./longlist.component.scss']
 })
 export class LonglistComponent implements OnInit, OnDestroy {
-  // Dependency Injection using inject() for better tree-shaking
+  // Dependency Injection
   private readonly messageService = inject(MessageService);
   private readonly sessionTimerService = inject(SessionTimerService);
   private readonly authService = inject(AuthService);
   private readonly resumeService = inject(ResumeService);
   private readonly router = inject(Router);
 
-  // Reactive subjects for better performance
+  // Reactive subjects
   private readonly destroy$ = new Subject<void>();
   private readonly loadingState$ = new BehaviorSubject<LoadingState>({
     isUploading: false,
@@ -166,23 +184,17 @@ export class LonglistComponent implements OnInit, OnDestroy {
   // Public observables
   readonly loading$ = this.loadingState$.asObservable();
 
-  // Data
-  resumeData: ResumeData[] = [];
-  filteredResumeData: ResumeData[] = [];
+  // Data - using new API structure
+  originalApiData: ApiResumeData[] = [];
+  filteredApiData: ApiResumeData[] = [];
   pdfId: number | null = null;
 
-  // Filter Options - Moved to constants for better memory management
-  readonly nationalityOptions: readonly FilterOption[] = Object.freeze([
-    { label: 'All Nationalities', value: '' },
-    { label: 'Indian', value: 'Indian' },
-    { label: 'Nepali', value: 'Nepali' },
-    { label: 'Pakistani', value: 'Pakistani' },
-    { label: 'Bangladeshi', value: 'Bangladeshi' },
-    { label: 'American', value: 'American' },
-    { label: 'Spanish', value: 'Spanish' },
-    { label: 'Chinese', value: 'Chinese' }
-  ]);
+  // Dynamic filter options (populated from API data)
+  dynamicNationalityOptions: FilterOption[] = [];
+  dynamicQualificationOptions: FilterOption[] = [];
+  dynamicGenderOptions: FilterOption[] = [];
 
+  // Experience options for dropdowns
   readonly experienceYearOptions: readonly FilterOption[] = Object.freeze([
     { label: '0', value: '0' },
     { label: '1', value: '1' },
@@ -197,36 +209,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
     { label: '10+', value: '10' }
   ]);
 
-  readonly genderOptions: readonly FilterOption[] = Object.freeze([
-    { label: 'Select Gender', value: '' },
-    { label: 'Male', value: 'Male' },
-    { label: 'Female', value: 'Female' },
-    { label: 'Other', value: 'Other' }
-  ]);
-
-  readonly qualificationOptions: readonly FilterOption[] = Object.freeze([
-    { label: 'All Qualifications', value: '' },
-    { label: 'Diploma', value: 'Diploma' },
-    { label: 'Bachelor Degree', value: 'Bachelor Degree' },
-    { label: 'Masters Degree', value: 'Masters Degree' },
-    { label: 'PhD', value: 'PhD' }
-  ]);
-
-  readonly languageOptions: readonly FilterOption[] = Object.freeze([
-    { label: 'English', value: 'English' },
-    { label: 'Hindi', value: 'Hindi' },
-    { label: 'Nepali', value: 'Nepali' },
-    { label: 'Urdu', value: 'Urdu' },
-    { label: 'Spanish', value: 'Spanish' },
-    { label: 'Chinese', value: 'Chinese' },
-    { label: 'Arabic', value: 'Arabic' }
-  ]);
-
-  // Dynamic filter options (populated from API data)
-  dynamicNationalityOptions: FilterOption[] = [];
-  dynamicQualificationOptions: FilterOption[] = [];
-  dynamicGenderOptions: FilterOption[] = [];
-
   // Filter State
   private filterState: FilterState = {
     nationality: '',
@@ -235,11 +217,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
     gender: '',
     qualification: '',
     maxQualification: '',
-    languages: [],
     showMaxQualification: false,
-    showLanguageDropdown: false,
-    tempSelectedLanguage: '',
-    ageRange: [...AGE_RANGE_DEFAULT],
     openDropdown: null
   };
 
@@ -250,25 +228,41 @@ export class LonglistComponent implements OnInit, OnDestroy {
   get selectedGender(): string { return this.filterState.gender; }
   get selectedQualification(): string { return this.filterState.qualification; }
   get selectedMaxQualification(): string { return this.filterState.maxQualification; }
-  get selectedLanguages(): string[] { return this.filterState.languages; }
   get showMaxQualification(): boolean { return this.filterState.showMaxQualification; }
-  get showLanguageDropdown(): boolean { return this.filterState.showLanguageDropdown; }
-  get tempSelectedLanguage(): string { return this.filterState.tempSelectedLanguage; }
-  get ageRange(): number[] { return this.filterState.ageRange; }
   get openDropdown(): string | null { return this.filterState.openDropdown; }
 
-  // Setters
-  set selectedNationality(value: string) { this.filterState.nationality = value; }
-  set selectedMinExperience(value: string) { this.filterState.minExperience = value; }
-  set selectedMaxExperience(value: string) { this.filterState.maxExperience = value; }
-  set selectedGender(value: string) { this.filterState.gender = value; }
-  set selectedQualification(value: string) { this.filterState.qualification = value; }
-  set selectedMaxQualification(value: string) { this.filterState.maxQualification = value; }
-  set selectedLanguages(value: string[]) { this.filterState.languages = value; }
+  // Setters for template access
+  set selectedNationality(value: string) { 
+    this.filterState.nationality = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+  set selectedMinExperience(value: string) { 
+    this.filterState.minExperience = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+  set selectedMaxExperience(value: string) { 
+    this.filterState.maxExperience = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+  set selectedGender(value: string) { 
+    this.filterState.gender = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+  set selectedQualification(value: string) { 
+    this.filterState.qualification = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+  set selectedMaxQualification(value: string) { 
+    this.filterState.maxQualification = value; 
+    this.applyFilters();
+    this.saveState();
+  }
   set showMaxQualification(value: boolean) { this.filterState.showMaxQualification = value; }
-  set showLanguageDropdown(value: boolean) { this.filterState.showLanguageDropdown = value; }
-  set tempSelectedLanguage(value: string) { this.filterState.tempSelectedLanguage = value; }
-  set ageRange(value: number[]) { this.filterState.ageRange = value; }
   set openDropdown(value: string | null) { this.filterState.openDropdown = value; }
 
   // Loading state getters
@@ -280,90 +274,143 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Save state before component destruction to preserve user's work
+    if (this.originalApiData.length > 0 && this.pdfId) {
+      this.saveState();
+      console.log('State preserved on component destroy');
+    }
+    
     this.destroy$.next();
     this.destroy$.complete();
     this.loadingState$.complete();
   }
 
-  // Initialization method
   private initializeComponent(): void {
-    if (this.resumeService.hasData()) {
-      this.restoreDataAndFilters();
+    this.sessionTimerService.startSessionTimer();
+    
+    // Check if we have saved state to restore
+    if (this.resumeService.hasLonglistData()) {
+      this.restoreState();
     } else {
       this.initializeEmptyState();
     }
   }
 
-  // Restore data and filters from service
-  private restoreDataAndFilters(): void {
+  private restoreState(): void {
     try {
-      this.resumeData = this.resumeService.getCurrentResumeData();
-      this.filteredResumeData = this.resumeService.getCurrentFilteredResumeData();
+      console.log('=== RESTORING LONGLIST STATE ===');
+      
+      // Restore data
+      this.originalApiData = this.resumeService.getCurrentOriginalApiData();
+      this.filteredApiData = this.resumeService.getCurrentFilteredApiData();
       this.pdfId = this.resumeService.getCurrentPdfId();
       
-      const savedFilterState = this.resumeService.getCurrentFilterState();
+      // Restore dynamic filter options
+      const dynamicOptions = this.resumeService.getCurrentDynamicFilterOptions();
+      this.dynamicNationalityOptions = dynamicOptions.nationalities || [];
+      this.dynamicQualificationOptions = dynamicOptions.qualifications || [];
+      this.dynamicGenderOptions = dynamicOptions.genders || [];
+      
+      // Restore filter state
+      const savedFilterState = this.resumeService.getCurrentLonglistFilterState();
       if (savedFilterState) {
         this.restoreFilterState(savedFilterState);
-        this.showSuccessMessage(
-          'Data and Filters Restored',
-          `Restored ${this.resumeData.length} resumes with applied filters (${this.filteredResumeData.length} shown)`
-        );
       } else {
-        this.showInfoMessage(
-          'Data Restored',
-          `Restored ${this.resumeData.length} resumes from previous upload`
-        );
+        this.resetFilterState();
       }
       
-      this.updateFilterOptions();
+      console.log('State restored successfully:', {
+        originalDataCount: this.originalApiData.length,
+        filteredDataCount: this.filteredApiData.length,
+        pdfId: this.pdfId,
+        hasFilters: !!savedFilterState,
+        filterState: savedFilterState
+      });
+      
+      const hasFilters = this.resumeService.hasLonglistFilters();
+      const statusMessage = hasFilters 
+        ? `Restored ${this.originalApiData.length} CVs with ${this.filteredApiData.length} shown after applied filters`
+        : `Restored ${this.originalApiData.length} CVs (no filters applied)`;
+      
+      this.showInfoMessage('Welcome Back!', statusMessage);
+      
     } catch (error) {
-      console.error('Error restoring data:', error);
+      console.error('Error restoring state:', error);
       this.showErrorMessage('Restoration Failed', 'Failed to restore previous data');
       this.initializeEmptyState();
     }
   }
 
-  // Initialize empty state
   private initializeEmptyState(): void {
-    this.filteredResumeData = [...this.resumeData];
+    this.originalApiData = [];
+    this.filteredApiData = [];
+    this.pdfId = null;
     this.resetFilterState();
+    this.updateFilterOptions();
   }
 
-  // File upload handling - Single method for both select and drop
+  private restoreFilterState(savedState: any): void {
+    this.filterState = { ...savedState };
+  }
+
+  private saveState(): void {
+    if (this.originalApiData.length > 0 && this.pdfId) {
+      // Save current filter state
+      this.resumeService.setLonglistFilteredData(this.filteredApiData, this.filterState);
+      
+      // Debug logging for state preservation
+      console.log('State saved:', {
+        originalCount: this.originalApiData.length,
+        filteredCount: this.filteredApiData.length,
+        appliedFilters: {
+          nationality: this.selectedNationality,
+          minExperience: this.selectedMinExperience,
+          maxExperience: this.selectedMaxExperience,
+          gender: this.selectedGender,
+          qualification: this.selectedQualification,
+          maxQualification: this.selectedMaxQualification
+        }
+      });
+    }
+  }
+
   handleFileUpload(file: File): void {
-    if (!this.validateFile(file)) return;
+    if (!this.validateFile(file)) {
+      return;
+    }
 
     this.clearExistingData();
     this.uploadFile(file);
   }
 
-  // Optimized file validation
   private validateFile(file: File): boolean {
-    if (file.type !== ALLOWED_FILE_TYPE) {
-      this.showErrorMessage('Invalid File Type', 'Please select a PDF file only.');
+    if (file.size > MAX_FILE_SIZE) {
+      this.showErrorMessage('File Size Error', 'File size must be less than 200MB');
       return false;
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      this.showErrorMessage('File Too Large', 'Please select a file smaller than 200MB.');
+    if (file.type !== ALLOWED_FILE_TYPE) {
+      this.showErrorMessage('File Type Error', 'Only PDF files are allowed');
       return false;
     }
 
     return true;
   }
 
-  // Clear existing data
   private clearExistingData(): void {
-    this.resumeData = [];
-    this.filteredResumeData = [];
+    this.originalApiData = [];
+    this.filteredApiData = [];
     this.pdfId = null;
-    this.resumeService.clearData();
+    this.resetFilterState();
+    this.updateFilterOptions();
+    
+    // Clear state from service
+    this.resumeService.clearLonglistData();
   }
 
-  // Upload file to API
   private uploadFile(file: File): void {
     this.setLoadingState(true, 0);
-
+    
     this.resumeService.uploadResume(file)
       .pipe(
         finalize(() => this.setLoadingState(false, 0)),
@@ -375,9 +422,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
       });
   }
 
-  // Event handlers
   onFileSelect(event: any): void {
-    const file = event.files?.[0];
+    const file = event.files[0];
     if (file) {
       this.handleFileUpload(file);
     }
@@ -385,155 +431,195 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
-    
-    const file = event.dataTransfer?.files?.[0];
-    if (file) {
-      this.handleFileUpload(file);
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFileUpload(files[0]);
     }
   }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
   }
 
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
   }
 
-  // Real-time filter application (no toast messages)
-  private applyFiltersRealtime(): void {
-    try {
-      this.filteredResumeData = this.resumeData.filter(cv => this.matchesFilters(cv));
-      this.saveFilterState();
-    } catch (error) {
-      console.error('Error applying filters:', error);
-    }
-  }
-
-  // Optimized filter application with messaging (kept for reset functionality)
   applyFilters(): void {
-    try {
-      this.filteredResumeData = this.resumeData.filter(cv => this.matchesFilters(cv));
-      
-      this.saveFilterState();
-      
-      // Create detailed filter summary
-      let filterSummary = `${this.filteredResumeData.length} CVs match your criteria`;
-      
-      if (this.selectedQualification) {
-        const minQualLevel = getQualificationLevel(this.selectedQualification);
-        filterSummary += ` (Min qualification: ${this.selectedQualification} and higher)`;
-      }
-      
-      if (this.selectedMaxQualification) {
-        filterSummary += ` (Max qualification: ${this.selectedMaxQualification} and lower)`;
-      }
-      
-      this.showInfoMessage('Filters Applied', filterSummary);
-    } catch (error) {
-      console.error('Error applying filters:', error);
-      this.showErrorMessage('Filter Error', 'Failed to apply filters');
+    if (this.originalApiData.length === 0) {
+      this.filteredApiData = [];
+      return;
     }
+
+    this.filteredApiData = this.originalApiData.filter(cv => this.matchesFilters(cv));
   }
 
-  // Optimized filter matching
-  private matchesFilters(cv: ResumeData): boolean {
+  private matchesFilters(cv: ApiResumeData): boolean {
     // Nationality filter
-    if (this.selectedNationality && cv.nationality !== this.selectedNationality) {
-      return false;
+    if (this.selectedNationality && cv.Nationality) {
+      const cvNationalities = this.parseNationalities(cv.Nationality);
+      if (!cvNationalities.some(nat => nat.toLowerCase().includes(this.selectedNationality.toLowerCase()))) {
+        return false;
+      }
     }
 
-    // Experience filters
+    // Experience filter
+    const cvExperience = cv.YOE || 0;
     if (this.selectedMinExperience) {
       const minExp = parseInt(this.selectedMinExperience);
-      if (cv.experience < minExp) return false;
+      if (cvExperience < minExp) {
+        return false;
+      }
     }
 
     if (this.selectedMaxExperience) {
       const maxExp = parseInt(this.selectedMaxExperience);
-      if (cv.experience > maxExp) return false;
+      if (maxExp < 10 && cvExperience > maxExp) { // 10+ means no upper limit
+        return false;
+      }
     }
 
     // Gender filter
-    if (this.selectedGender && cv.gender !== this.selectedGender) {
-      return false;
-    }
-
-    // Qualification filters - hierarchical comparison
-    const cvQualificationLevel = getQualificationLevel(cv.qualification);
-    
-    // Minimum qualification filter - candidate must have this level or higher
-    if (this.selectedQualification) {
-      const minQualificationLevel = getQualificationLevel(this.selectedQualification);
-      if (cvQualificationLevel < minQualificationLevel) {
+    if (this.selectedGender && cv.Gender) {
+      if (cv.Gender.toLowerCase() !== this.selectedGender.toLowerCase()) {
         return false;
       }
     }
 
-    // Maximum qualification filter - candidate must have this level or lower
-    if (this.selectedMaxQualification) {
-      const maxQualificationLevel = getQualificationLevel(this.selectedMaxQualification);
-      if (cvQualificationLevel > maxQualificationLevel) {
+    // Qualification filter (minimum)
+    if (this.selectedQualification && cv["Highest Degree"]) {
+      const cvQualLevel = getQualificationLevel(cv["Highest Degree"]);
+      const minQualLevel = getQualificationLevel(this.selectedQualification);
+      if (cvQualLevel < minQualLevel) {
         return false;
       }
     }
 
-    // Language filter
-    if (this.selectedLanguages.length > 0) {
-      // Add language matching logic when API supports it
+    // Maximum qualification filter
+    if (this.selectedMaxQualification && cv["Highest Degree"]) {
+      const cvQualLevel = getQualificationLevel(cv["Highest Degree"]);
+      const maxQualLevel = getQualificationLevel(this.selectedMaxQualification);
+      if (cvQualLevel > maxQualLevel) {
+        return false;
+      }
     }
 
     return true;
   }
 
-  // Reset filters
+  private parseNationalities(nationality: string): string[] {
+    if (!nationality) return [];
+    
+    // Handle array-like string format: "['India']" or "['India', 'Nepal']"
+    if (nationality.startsWith('[') && nationality.endsWith(']')) {
+      try {
+        const parsed = nationality.replace(/'/g, '"');
+        return JSON.parse(parsed);
+      } catch {
+        // If parsing fails, treat as single nationality
+        return [nationality.replace(/[\[\]']/g, '')];
+      }
+    }
+    
+    // Handle comma-separated values
+    return nationality.split(',').map(nat => nat.trim());
+  }
+
   resetFilters(): void {
     this.resetFilterState();
-    this.filteredResumeData = [...this.resumeData];
-    this.resumeService.setFilteredData([...this.resumeData], null);
-    
+    this.applyFilters();
+    this.saveState();
     this.showInfoMessage('Filters Reset', 'All filters have been cleared');
   }
 
-  // Reset CV data
   resetCVs(): void {
     this.clearExistingData();
-    this.resetFilterState();
-    
-    this.showInfoMessage('Reset Complete', 'All CV data and filters have been cleared');
+    this.showInfoMessage('Reset Complete', 'All CV data and saved state have been cleared');
   }
 
-  // Move to shortlisting
   moveToShortListing(): void {
-    if (this.filteredResumeData.length === 0) {
-      this.showWarningMessage('No Selection', 'Please select CVs to move to short listing');
-      return;
-    }
-
     if (!this.pdfId) {
-      this.showErrorMessage('Error', 'No PDF ID found. Please upload a file first.');
+      this.showErrorMessage('Error', 'No PDF ID available. Please upload a file first.');
       return;
     }
 
-    this.saveFilteredResumes();
+    if (this.filteredApiData.length === 0) {
+      this.showErrorMessage('Error', 'No filtered data available to move to shortlist.');
+      return;
+    }
+
+    const request: SaveFilteredRequest = {
+      pdf_id: this.pdfId,
+      min_experience: parseInt(this.selectedMinExperience) || 0,
+      min_degree: this.selectedQualification || '',
+      data: this.filteredApiData
+    };
+
+    // Detailed logging for debugging
+    console.log('=== MOVE TO SHORTLIST - DETAILED LOG ===');
+    console.log('PDF ID:', this.pdfId);
+    console.log('Selected Min Experience:', this.selectedMinExperience, '→ Parsed:', parseInt(this.selectedMinExperience) || 0);
+    console.log('Selected Min Degree:', this.selectedQualification);
+    console.log('Original API Data Count:', this.originalApiData.length);
+    console.log('Filtered API Data Count:', this.filteredApiData.length);
+    console.log('Applied Filters:', {
+      nationality: this.selectedNationality,
+      minExperience: this.selectedMinExperience,
+      maxExperience: this.selectedMaxExperience,
+      gender: this.selectedGender,
+      qualification: this.selectedQualification,
+      maxQualification: this.selectedMaxQualification
+    });
+    console.log('Sample of filtered data (first 3 records):');
+    console.log(JSON.stringify(this.filteredApiData.slice(0, 3), null, 2));
+    console.log('Complete request payload being sent to API:');
+    console.log(JSON.stringify(request, null, 2));
+    console.log('API Endpoint: /api/resume/save-filtered (POST)');
+    console.log('========================================');
+
+    this.resumeService.saveFilteredResumes(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('=== API RESPONSE ===');
+          console.log('Save filtered response:', response);
+          console.log('===================');
+          
+          // Save current state before navigation to preserve it for return
+          this.saveState();
+          console.log('State preserved before navigation to shortlist');
+          
+          this.showSuccessMessage('Success', 'Filtered data saved successfully - State preserved for return');
+          this.router.navigate(['/shortlist']);
+        },
+        error: (error) => {
+          console.error('=== API ERROR ===');
+          console.error('Error saving filtered data:', error);
+          console.error('Error details:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            error: error.error
+          });
+          console.error('================');
+          this.showErrorMessage('Error', 'Failed to save filtered data');
+        }
+      });
   }
 
-  // Dropdown management
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     this.openDropdown = null;
   }
 
   toggleDropdown(dropdownName: string, event?: Event): void {
-    event?.stopPropagation();
+    if (event) event.stopPropagation();
     this.openDropdown = this.openDropdown === dropdownName ? null : dropdownName;
   }
 
   getSelectedLabel(options: readonly FilterOption[], value: string): string {
-    return options.find(opt => opt.value === value)?.label || '';
+    const option = options.find(opt => opt.value === value);
+    return option ? option.label : value;
   }
 
   selectOption(dropdownName: string, value: string): void {
@@ -558,211 +644,109 @@ export class LonglistComponent implements OnInit, OnDestroy {
         break;
     }
     this.openDropdown = null;
-    
-    // Apply filters in real-time
-    this.applyFiltersRealtime();
   }
 
   clearSelection(dropdownName: string): void {
     this.selectOption(dropdownName, '');
-    // Note: selectOption already calls applyFiltersRealtime()
   }
 
-  // Language management
-  selectLanguage(value: string): void {
-    this.tempSelectedLanguage = value;
-  }
-
-  clearLanguageSelection(): void {
-    this.tempSelectedLanguage = '';
-  }
-
-  addLanguage(): void {
-    if (this.tempSelectedLanguage && !this.selectedLanguages.includes(this.tempSelectedLanguage)) {
-      this.selectedLanguages = [...this.selectedLanguages, this.tempSelectedLanguage];
-      this.tempSelectedLanguage = '';
-      this.showLanguageDropdown = false;
-      this.applyFiltersRealtime();
-    }
-  }
-
-  removeLanguage(language: string): void {
-    this.selectedLanguages = this.selectedLanguages.filter(lang => lang !== language);
-    this.applyFiltersRealtime();
-  }
-
-  // Qualification management
   addMaximumQualification(): void {
     this.showMaxQualification = true;
+    this.saveState();
   }
 
   removeMaxQualification(): void {
-    this.selectedMaxQualification = '';
     this.showMaxQualification = false;
-    this.applyFiltersRealtime();
+    this.selectedMaxQualification = '';
+    this.applyFilters();
+    this.saveState();
   }
 
-  // Private helper methods
   private setLoadingState(isUploading: boolean, progress: number = 0): void {
     this.loadingState$.next({ isUploading, uploadProgress: progress });
   }
 
-  private handleUploadSuccess(response: UploadResumeResponse): void {
-    try {
-      if (response.data && response.pdf_id) {
-        this.pdfId = response.pdf_id;
-        this.resumeData = this.transformApiData(response.data);
-        this.filteredResumeData = [...this.resumeData];
-        
-        this.resumeService.setResumeData(this.resumeData, this.pdfId);
-        this.updateFilterOptions();
-        
-        this.showSuccessMessage(
-          'File Processed Successfully',
-          `Found ${this.resumeData.length} resumes in the P11 file`
-        );
-      } else {
-        throw new Error('Invalid response structure');
-      }
-    } catch (error) {
-      console.error('Upload success handling error:', error);
-      this.showErrorMessage('Processing Failed', 'Failed to process the uploaded file');
-    }
-  }
-
-  private transformApiData(data: any[]): ResumeData[] {
-    return data.map((item: any) => {
-      let nationality = item['Nationality'] || '';
-      if (nationality.startsWith('[') && nationality.endsWith(']')) {
-        nationality = nationality.slice(1, -1).replace(/'/g, '').trim();
-      }
-      
-      // Normalize qualification for consistent filtering
-      const rawQualification = item['Highest Degree'] || '';
-      const normalizedQualification = normalizeQualification(rawQualification);
-      
-      return {
-        id: item['CV ID'],
-        name: item['Name'] || 'Unknown',
-        nationality: nationality,
-        experience: parseInt(item['YOE']) || 0,
-        qualification: normalizedQualification || rawQualification, // Use normalized if available, otherwise original
-        gender: item['Gender'] || '',
-        employmentHistory: item['Employment History'] || ''
-      };
-    });
+  private handleUploadSuccess(response: ApiUploadResponse): void {
+    console.log('Upload successful:', response);
+    
+    this.originalApiData = response.data || [];
+    this.filteredApiData = [...this.originalApiData];
+    this.pdfId = response.pdf_id;
+    
+    this.updateFilterOptions();
+    this.applyFilters();
+    
+    // Save initial state to service
+    const dynamicOptions = {
+      nationalities: this.dynamicNationalityOptions,
+      qualifications: this.dynamicQualificationOptions,
+      genders: this.dynamicGenderOptions
+    };
+    this.resumeService.setLonglistData(this.originalApiData, this.pdfId, dynamicOptions);
+    
+    this.showSuccessMessage(
+      'Upload Successful',
+      `${response.rows} CVs processed successfully`
+    );
   }
 
   private handleUploadError(error: any): void {
-    console.error('Upload error:', error);
+    console.error('Upload failed:', error);
     
-    let errorMessage = 'Failed to upload file. Please try again.';
-    
-    if (error.status === 422) {
-      errorMessage = 'The server could not process the file. Please check the file format and try again.';
-      
-      if (error.error?.detail) {
-        console.error('422 Validation Error Details:', error.error.detail);
-      }
+    let errorMessage = 'An error occurred during upload';
+    if (error?.error?.message) {
+      errorMessage = error.error.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
     }
     
     this.showErrorMessage('Upload Failed', errorMessage);
   }
 
-  private saveFilteredResumes(): void {
-    if (!this.pdfId || this.filteredResumeData.length === 0) return;
+  private updateFilterOptions(): void {
+    if (this.originalApiData.length === 0) {
+      this.dynamicNationalityOptions = [];
+      this.dynamicQualificationOptions = [];
+      this.dynamicGenderOptions = [];
+      return;
+    }
 
-    // Transform the filtered data back to the original API format for shortlist compatibility
-    const transformedData = this.filteredResumeData.map(cv => ({
-      'CV ID': cv.id || 'Unknown',
-      'Name': cv.name,
-      'Highest Degree': cv.qualification,
-      'YOE': cv.experience,
-      'Gender': cv.gender || 'Unknown',
-      'Nationality': `['${cv.nationality}']`, // Format as array string like "['India']"
-      'Employment History': cv.employmentHistory || ''
-    }));
-
-    const requestPayload = {
-      pdf_id: this.pdfId,
-      data: transformedData
-    };
-
-    console.log('=== SAVING FILTERED RESUMES ===');
-    console.log('Original filtered data:', this.filteredResumeData);
-    console.log('Transformed data for API:', transformedData);
-    console.log('Request payload:', requestPayload);
-    console.log('===============================');
-
-    this.resumeService.saveFilteredResumes(requestPayload)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        console.log('Save filtered response:', response);
-        this.showSuccessMessage('Success', 'Filtered resumes moved to shortlisting');
-        
-        // Update the resume service with the transformed data
-        this.resumeService.setFilteredData(this.filteredResumeData, this.filterState);
-        
-        // Navigate to shortlist component after successful save
-        setTimeout(() => {
-          this.router.navigate(['/shortlist']);
-        }, 1500); // Small delay to show the success message
-      },
-      error: (error) => {
-        console.error('Save filtered error:', error);
-        this.showErrorMessage('Save Failed', 'Failed to save filtered resumes');
+    // Extract unique nationalities
+    const nationalities = new Set<string>();
+    this.originalApiData.forEach(cv => {
+      if (cv.Nationality) {
+        const parsedNats = this.parseNationalities(cv.Nationality);
+        parsedNats.forEach(nat => nationalities.add(nat));
       }
     });
-  }
-
-  private updateFilterOptions(): void {
-    if (this.resumeData.length === 0) return;
-
-    // Update nationality options
-    const nationalities = [...new Set(this.resumeData.map(cv => cv.nationality))]
-      .filter((nationality): nationality is string => Boolean(nationality))
-      .map(nationality => ({ label: nationality, value: nationality }));
-    
     this.dynamicNationalityOptions = [
       { label: 'All Nationalities', value: '' },
-      ...nationalities
+      ...Array.from(nationalities).sort().map(nat => ({ label: nat, value: nat }))
     ];
 
-    // Update qualification options - sort by hierarchy level
-    const uniqueQualifications = [...new Set(this.resumeData.map(cv => cv.qualification))]
-      .filter((qualification): qualification is string => Boolean(qualification))
-      .map(qualification => ({
-        label: qualification,
-        value: qualification,
-        level: getQualificationLevel(qualification)
-      }))
-      .sort((a, b) => a.level - b.level) // Sort by hierarchy level
-      .map(({ label, value }) => ({ label, value }));
-    
+    // Extract unique qualifications
+    const qualifications = new Set<string>();
+    this.originalApiData.forEach(cv => {
+      if (cv["Highest Degree"]) {
+        qualifications.add(cv["Highest Degree"]);
+      }
+    });
     this.dynamicQualificationOptions = [
       { label: 'All Qualifications', value: '' },
-      ...uniqueQualifications
+      ...Array.from(qualifications).sort().map(qual => ({ label: qual, value: qual }))
     ];
 
-    // Update gender options
-    const genders = [...new Set(this.resumeData.map(cv => cv.gender))]
-      .filter((gender): gender is string => Boolean(gender))
-      .map(gender => ({ label: gender, value: gender }));
-    
+    // Extract unique genders
+    const genders = new Set<string>();
+    this.originalApiData.forEach(cv => {
+      if (cv.Gender) {
+        genders.add(cv.Gender);
+      }
+    });
     this.dynamicGenderOptions = [
       { label: 'Select Gender', value: '' },
-      ...genders
+      ...Array.from(genders).sort().map(gender => ({ label: gender, value: gender }))
     ];
-  }
-
-  private saveFilterState(): void {
-    const filterState = { ...this.filterState };
-    this.resumeService.setFilteredData(this.filteredResumeData, filterState);
-  }
-
-  private restoreFilterState(savedState: FilterState): void {
-    this.filterState = { ...savedState };
   }
 
   private resetFilterState(): void {
@@ -773,16 +757,11 @@ export class LonglistComponent implements OnInit, OnDestroy {
       gender: '',
       qualification: '',
       maxQualification: '',
-      languages: [],
       showMaxQualification: false,
-      showLanguageDropdown: false,
-      tempSelectedLanguage: '',
-      ageRange: [...AGE_RANGE_DEFAULT],
       openDropdown: null
     };
   }
 
-  // Message helpers
   private showSuccessMessage(summary: string, detail: string): void {
     this.messageService.add({ severity: 'success', summary, detail });
   }
@@ -797,5 +776,24 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   private showErrorMessage(summary: string, detail: string): void {
     this.messageService.add({ severity: 'error', summary, detail });
+  }
+
+  // Helper method to format nationality for display
+  formatNationalityDisplay(nationality: string): string {
+    if (!nationality) return '';
+    
+    // Handle array-like string format: "['India']" or "['India', 'Nepal']"
+    if (nationality.startsWith('[') && nationality.endsWith(']')) {
+      try {
+        const parsed = nationality.replace(/'/g, '"');
+        const nationalityArray = JSON.parse(parsed);
+        return nationalityArray.join(', ');
+      } catch {
+        // If parsing fails, clean up manually
+        return nationality.replace(/[\[\]']/g, '');
+      }
+    }
+    
+    return nationality;
   }
 }

@@ -634,6 +634,254 @@ html, body {
   }
 }
 
+/* ===== CV TABLE STYLES (LONGLIST & SHORTLIST) ===== */
+/* Global CV Table Styling - Figma Design Implementation */
+.cv-table {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  
+  .p-datatable-wrapper {
+    border-radius: var(--border-radius);
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  
+  .p-datatable-table {
+    border-collapse: separate;
+    border-spacing: 0 0.75rem;
+    width: 100%;
+    background: transparent !important;
+  }
+  
+  /* Header Row - Primary Dark Background */
+  .p-datatable-thead > tr > th {
+    background-color: var(--primary-dark) !important;
+    color: var(--white) !important;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.9rem;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border: none;
+    
+           &:first-child {
+         border-top-left-radius: var(--border-radius-table);
+         border-bottom-left-radius: var(--border-radius-table);
+       }
+    
+    &:last-child {
+      border-top-right-radius: var(--border-radius-table);
+      border-bottom-right-radius: var(--border-radius-table);
+    }
+  }
+  
+  /* Data Rows - Light Gray Background */
+  .p-datatable-tbody > tr {
+    background-color: #f6f6f6 !important;
+    border-radius: var(--border-radius-table);
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    
+         td {
+       background-color: #f6f6f6 !important;
+       color: var(--primary-dark) !important;
+       font-family: var(--font-family);
+       font-weight: var(--font-weight-medium);
+       font-size: 0.9rem;
+       padding: 1rem 1.5rem;
+       border: none;
+       
+       &:first-child {
+         border-top-left-radius: var(--border-radius-table);
+         border-bottom-left-radius: var(--border-radius-table);
+       }
+       
+       &:last-child {
+         border-top-right-radius: var(--border-radius-table);
+         border-bottom-right-radius: var(--border-radius-table);
+       }
+     }
+    
+    /* Hover Effect */
+    &:hover {
+      background-color: var(--primary-blue-light) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      
+      td {
+        background-color: var(--primary-blue-light) !important;
+        color: var(--primary-dark) !important;
+      }
+    }
+  }
+}
+
+/* CV Table Paginator Styling - Figma Minimal Design */
+.cv-table {
+  .p-paginator {
+    background: transparent !important;
+    border: none !important;
+    padding: 2rem 0 1rem 0 !important;
+    margin-top: 1rem !important;
+    justify-content: center !important;
+    
+    /* Page Numbers - Clean Figma Style */
+    .p-paginator-pages {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      
+      .p-paginator-page {
+        background: transparent !important;
+        border: none !important;
+        color: var(--medium-gray) !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: var(--border-radius-small) !important;
+        font-family: var(--font-family) !important;
+        font-weight: var(--font-weight-medium) !important;
+        font-size: 0.85rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        
+        &:hover {
+          background: var(--primary-blue-light) !important;
+          color: var(--primary-dark) !important;
+        }
+        
+        &.p-highlight {
+          background: var(--primary-dark) !important;
+          color: var(--white) !important;
+          font-weight: var(--font-weight-semibold) !important;
+        }
+      }
+    }
+    
+    /* Navigation Buttons - Figma Arrow Style */
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      background: transparent !important;
+      border: none !important;
+      color: var(--medium-gray) !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: var(--border-radius-small) !important;
+      margin: 0 0.5rem !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.2s ease !important;
+      
+      &:hover:not(:disabled) {
+        background: var(--primary-blue-light) !important;
+        color: var(--primary-dark) !important;
+      }
+      
+      &:disabled {
+        background: transparent !important;
+        color: var(--lightest-gray) !important;
+        cursor: not-allowed !important;
+      }
+      
+      .p-paginator-icon {
+        font-size: 0.75rem !important;
+      }
+    }
+    
+         /* Hide dropdown for minimal design but show current page report */
+     .p-dropdown {
+       display: none !important;
+     }
+     
+     /* Current page report - Descriptive text */
+     .p-paginator-current {
+       color: var(--medium-gray) !important;
+       font-family: var(--font-family) !important;
+       font-weight: var(--font-weight-regular) !important;
+       font-size: 0.85rem !important;
+       margin: 0 1rem !important;
+       order: -1; /* Place before pagination controls */
+     }
+    
+    /* Hide first/last buttons for cleaner look */
+    .p-paginator-first,
+    .p-paginator-last {
+      display: none !important;
+    }
+    
+    /* Style the left/right container */
+    .p-paginator-left,
+    .p-paginator-right {
+      display: none !important;
+    }
+  }
+}
+
+/* CV Table Responsive Design */
+@media (max-width: 1024px) {
+  .cv-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+    }
+    
+    .p-datatable-table {
+      border-spacing: 0 0.5rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .cv-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+    
+    .p-datatable-table {
+      border-spacing: 0 0.25rem;
+    }
+    
+    .p-paginator {
+      .p-paginator-pages .p-paginator-page,
+      .p-paginator-prev,
+      .p-paginator-next {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .cv-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.7rem;
+    }
+    
+    .p-paginator {
+      .p-paginator-pages .p-paginator-page,
+      .p-paginator-prev,
+      .p-paginator-next {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.75rem !important;
+        margin: 0 0.25rem !important;
+      }
+    }
+  }
+}
+
 /* ===== UTILITY CLASSES ===== */
 .bg-primary { background-color: var(--primary-dark) !important; }
 .bg-primary-blue { background-color: var(--primary-blue) !important; }
@@ -658,6 +906,79 @@ html, body {
 .rounded-lg { border-radius: var(--border-radius-large) !important; }
 .shadow-light { box-shadow: var(--shadow-light) !important; }
 .shadow-medium { box-shadow: var(--shadow-medium) !important; }
+
+/* ===== GLOBAL ACTION BUTTONS ===== */
+/* Reusable button styles for filter actions, reset buttons, etc. */
+.action-button {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  color: var(--white) !important;
+  font-family: var(--font-family) !important;
+  font-weight: var(--font-weight-medium) !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.3s ease !important;
+  min-width: 150px;
+  
+  &:hover:not(:disabled) {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+    color: var(--white) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  &:enabled:hover {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+    color: var(--white) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+  }
+}
+
+/* Large Action Buttons for main actions */
+.action-button-large {
+  @extend .action-button;
+  padding: 0.875rem 2rem !important;
+  min-width: 200px;
+  font-size: 1rem !important;
+}
+
+/* Action Button Container */
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+    
+    .action-button,
+    .action-button-large {
+      width: 100% !important;
+      max-width: 300px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .action-button,
+    .action-button-large {
+      width: 100% !important;
+      min-width: auto !important;
+    }
+  }
+}
 
 /* ===== ANIMATION CLASSES ===== */
 .fade-in {
