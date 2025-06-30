@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService, LoginRequest, LoginVerifyRequest } from '../../services/auth.service';
+import { AuthService, LoginRequest, LoginVerifyRequest, LoginResendOtpRequest } from '../../services/auth.service';
 import { SessionTimerService } from '../../services/session-timer.service';
 
 // PrimeNG Imports
@@ -236,19 +236,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     
     this.resendLoading = true;
     
-    // Call login API again to resend OTP
-    const loginData: LoginRequest = {
-      email: this.userEmail,
-      password: this.loginForm.get('password')?.value
+    // Use the dedicated resend OTP API
+    const resendData: LoginResendOtpRequest = {
+      user_id: this.userId
     };
     
-    this.authService.login(loginData).subscribe({
+    this.authService.resendLoginOtp(resendData).subscribe({
       next: (response) => {
         this.resendLoading = false;
         console.log('Resend OTP response:', response);
         
-        // Extract user_id from response
-        this.userId = response.user_id || response.id || response.userId || 0;
         this.startCountdown();
         
         this.messageService.add({
@@ -257,22 +254,47 @@ export class LoginComponent implements OnInit, OnDestroy {
           detail: `A new verification code has been sent to ${this.userEmail}`
         });
         
-        console.log('OTP resent to:', this.userEmail);
+        console.log('OTP resent to:', this.userEmail, 'for user ID:', this.userId);
       },
       error: (error) => {
         this.resendLoading = false;
         console.error('Resend OTP error:', error);
         
+        // Handle specific error cases
         let errorMessage = 'Failed to resend OTP. Please try again.';
+        let errorSummary = 'Resend Failed';
+        
         if (error.error && error.error.detail) {
-          errorMessage = error.error.detail;
+          const detail = error.error.detail;
+          if (detail.includes('user not found') || detail.includes('invalid user')) {
+            errorMessage = 'User session expired. Please login again.';
+            errorSummary = 'Session Expired';
+            // Reset to login step
+            this.onBackToLogin();
+          } else if (detail.includes('rate limit') || detail.includes('too many')) {
+            errorMessage = 'Too many requests. Please wait before requesting another OTP.';
+            errorSummary = 'Rate Limited';
+          } else {
+            errorMessage = detail;
+          }
         } else if (error.error && error.error.message) {
           errorMessage = error.error.message;
+        } else if (error.status === 400) {
+          errorMessage = 'Invalid request. Please try logging in again.';
+          errorSummary = 'Invalid Request';
+        } else if (error.status === 404) {
+          errorMessage = 'User session not found. Please login again.';
+          errorSummary = 'Session Not Found';
+          // Reset to login step
+          this.onBackToLogin();
+        } else if (error.status === 429) {
+          errorMessage = 'Too many requests. Please wait before requesting another OTP.';
+          errorSummary = 'Rate Limited';
         }
         
         this.messageService.add({
           severity: 'error',
-          summary: 'Resend Failed',
+          summary: errorSummary,
           detail: errorMessage
         });
       }

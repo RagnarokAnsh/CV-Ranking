@@ -634,6 +634,460 @@ html, body {
   }
 }
 
+
+/* ===== UPLOAD SECTION STYLING - BOTH SHORTLIST & LONGLIST ===== */
+.upload-card {
+  // background: #f6f6f6;
+  // padding: 2rem;
+  
+  .upload-drop-zone {
+    background-color: #F6f6f6;
+    // border: 2px dashed #E0E0E0;
+    border-radius: var(--border-radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    
+    &:hover {
+      border-color: var(--primary-blue);
+      background-color: #F8FAFE;
+    }
+    
+    &.drag-over {
+      border-color: var(--primary-blue);
+      background-color: #F8FAFE;
+    }
+  }
+  
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .upload-icon-container {
+    width: 64px;
+    height: 64px;
+    background: var(--primary-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    
+    .upload-icon {
+      color: var(--white) !important;
+      font-size: 1.75rem;
+    }
+  }
+  
+  .upload-title {
+    color: var(--primary-dark);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1.125rem;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .upload-subtitle {
+    color: var(--medium-gray);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-regular);
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .browse-button {
+    margin-top: 1rem;
+  }
+
+
+
+
+  
+  .upload-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+
+  
+  .upload-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    
+    .loading-text {
+      margin-top: 1rem;
+      
+      .loading-title {
+        color: var(--primary-dark);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-semibold);
+        font-size: 1rem;
+        margin: 0 0 0.5rem 0;
+      }
+      
+      .loading-subtitle {
+        color: var(--medium-gray);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight-regular);
+        font-size: 0.875rem;
+        margin: 0;
+        line-height: 1.4;
+      }
+    }
+  }
+  
+  /* Selected File Display */
+  .selected-file {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(91, 146, 229, 0.1);
+    border: 2px solid var(--primary-blue);
+    border-radius: var(--border-radius);
+    margin-top: 1rem;
+    
+    .file-icon {
+      color: var(--primary-blue);
+      font-size: 1.25rem;
+      min-width: 20px;
+    }
+    
+    .file-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      
+      .file-label {
+        color: var(--primary-dark);
+        font-weight: var(--font-weight-semibold);
+        font-size: 0.9rem;
+        word-break: break-word;
+      }
+      
+      .upload-progress {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        
+        .progress-text {
+          color: var(--medium-gray);
+          font-size: 0.8rem;
+          font-weight: var(--font-weight-medium);
+        }
+      }
+    }
+    
+    .remove-file-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--error-red);
+      color: var(--white);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      
+      &:hover:not(:disabled) {
+        background: #d32f2f;
+        transform: scale(1.05);
+      }
+      
+      &:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      i {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}
+
+/* ===== UPLOAD SECTION RESPONSIVE MEDIA QUERIES ===== */
+/* Tablet and larger screens */
+@media (max-width: 1024px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 2.5rem 1.5rem !important;
+    }
+    
+    .upload-icon-container {
+      width: 56px !important;
+      height: 56px !important;
+      
+      .upload-icon {
+        font-size: 1.5rem !important;
+      }
+    }
+    
+    .upload-title {
+      font-size: 1rem !important;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.8rem !important;
+    }
+    
+
+  }
+}
+
+/* Mobile landscape and small tablets */
+@media (max-width: 768px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 2rem 1rem !important;
+      margin-bottom: 1rem !important;
+    }
+    
+    .upload-content {
+      gap: 0.5rem !important;
+    }
+    
+    .upload-icon-container {
+      width: 48px !important;
+      height: 48px !important;
+      margin-bottom: 0.25rem !important;
+      
+      .upload-icon {
+        font-size: 1.25rem !important;
+      }
+    }
+    
+    .upload-title {
+      font-size: 0.9rem !important;
+      text-align: center !important;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.75rem !important;
+      text-align: center !important;
+    }
+    
+    .browse-button {
+      margin-top: 0.75rem !important;
+    }
+    
+    .upload-actions {
+      justify-content: center !important;
+      margin-top: 0.75rem !important;
+    }
+    
+    .upload-loading {
+      padding: 1.5rem !important;
+      
+      .loading-text {
+        .loading-title {
+          font-size: 0.9rem !important;
+        }
+        
+        .loading-subtitle {
+          font-size: 0.8rem !important;
+        }
+      }
+    }
+    
+    .selected-file {
+      padding: 0.75rem !important;
+      gap: 0.5rem !important;
+      
+      .file-info {
+        .file-label {
+          font-size: 0.8rem !important;
+        }
+        
+        .upload-progress {
+          .progress-text {
+            font-size: 0.7rem !important;
+          }
+        }
+      }
+      
+      .remove-file-btn {
+        width: 24px !important;
+        height: 24px !important;
+        
+        i {
+          font-size: 0.7rem !important;
+        }
+      }
+    }
+  }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 1.5rem 0.75rem !important;
+      border-radius: 6px !important;
+    }
+    
+    .upload-content {
+      gap: 0.4rem !important;
+    }
+    
+    .upload-icon-container {
+      width: 40px !important;
+      height: 40px !important;
+      margin-bottom: 0.25rem !important;
+      
+      .upload-icon {
+        font-size: 1rem !important;
+      }
+    }
+    
+    .upload-title {
+      font-size: 0.8rem !important;
+      line-height: 1.2 !important;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.7rem !important;
+      line-height: 1.2 !important;
+    }
+    
+    .browse-button {
+      margin-top: 0.5rem !important;
+    }
+    
+    .upload-actions {
+      margin-top: 0.5rem !important;
+    }
+    
+    .upload-loading {
+      padding: 1rem !important;
+      
+      .loading-text {
+        margin-top: 0.75rem !important;
+        
+        .loading-title {
+          font-size: 0.8rem !important;
+          margin: 0 0 0.25rem 0 !important;
+        }
+        
+        .loading-subtitle {
+          font-size: 0.7rem !important;
+          line-height: 1.3 !important;
+        }
+      }
+    }
+    
+    .selected-file {
+      padding: 0.5rem !important;
+      gap: 0.4rem !important;
+      margin-top: 0.75rem !important;
+      
+      .file-icon {
+        font-size: 1rem !important;
+        min-width: 16px !important;
+      }
+      
+      .file-info {
+        .file-label {
+          font-size: 0.7rem !important;
+          line-height: 1.2 !important;
+        }
+        
+        .upload-progress {
+          .progress-text {
+            font-size: 0.65rem !important;
+          }
+        }
+      }
+      
+      .remove-file-btn {
+        width: 20px !important;
+        height: 20px !important;
+        
+        i {
+          font-size: 0.6rem !important;
+        }
+      }
+    }
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 1rem 0.5rem !important;
+    }
+    
+    .upload-icon-container {
+      width: 36px !important;
+      height: 36px !important;
+      
+      .upload-icon {
+        font-size: 0.9rem !important;
+      }
+    }
+    
+    .upload-title {
+      font-size: 0.75rem !important;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.65rem !important;
+    }
+    
+    .selected-file {
+      padding: 0.4rem !important;
+      gap: 0.3rem !important;
+      
+      .file-icon {
+        font-size: 0.9rem !important;
+        min-width: 14px !important;
+      }
+      
+      .file-info {
+        .file-label {
+          font-size: 0.65rem !important;
+        }
+        
+        .upload-progress {
+          .progress-text {
+            font-size: 0.6rem !important;
+          }
+        }
+      }
+      
+      .remove-file-btn {
+        width: 18px !important;
+        height: 18px !important;
+        
+        i {
+          font-size: 0.55rem !important;
+        }
+      }
+    }
+  }
+}
+
 /* ===== CV TABLE STYLES (LONGLIST & SHORTLIST) ===== */
 /* Global CV Table Styling - Figma Design Implementation */
 .cv-table {
@@ -1015,5 +1469,262 @@ html, body {
     .pi {
       color: #818182 !important;
     }
+  }
+}
+
+/* ===== NUCLEAR CSS OVERRIDES - MUST BE LAST ===== */
+/* Ultra-aggressive overrides to force blue button colors and white text */
+
+/* Base button styling - covering all possible selectors */
+.p-fileupload-choose,
+.p-fileupload-choose.p-button,
+.p-fileupload-choose.p-component,
+.p-fileupload-choose.p-button.p-component,
+.p-fileupload-choose.p-button.p-component.p-button-success,
+.p-fileupload-choose.p-button.p-component.p-button-primary,
+.p-fileupload-choose.p-button.p-component.p-button-secondary,
+.p-fileupload-choose.p-button.p-component.p-button-info,
+.p-fileupload-choose.p-button.p-component.p-button-warning,
+.p-fileupload-choose.p-button.p-component.p-button-help,
+.p-fileupload-choose.p-button.p-component.p-button-danger,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component,
+p-fileupload .p-fileupload-choose,
+p-fileupload .p-fileupload-choose.p-button,
+p-fileupload .p-fileupload-choose.p-component,
+p-fileupload .p-fileupload-choose.p-button.p-component,
+button.p-fileupload-choose,
+[class*="p-fileupload-choose"] {
+  background: #5B92E5 !important;
+  background-color: #5B92E5 !important;
+  // background-image: linear-gradient(135deg, #5B92E5 0%, #4A7BC8 100%) !important;
+  border: 1px solid #5B92E5 !important;
+  border-color: #5B92E5 !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  height: 48px !important;
+  min-width: 130px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Text color for all possible button label selectors */
+.p-fileupload-choose .p-button-label,
+.p-fileupload-choose.p-button .p-button-label,
+.p-fileupload-choose.p-component .p-button-label,
+.p-fileupload-choose.p-button.p-component .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-success .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-primary .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-secondary .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component .p-button-label,
+p-fileupload .p-fileupload-choose .p-button-label,
+p-fileupload .p-fileupload-choose.p-button .p-button-label,
+p-fileupload .p-fileupload-choose.p-component .p-button-label,
+p-fileupload .p-fileupload-choose.p-button.p-component .p-button-label,
+button.p-fileupload-choose .p-button-label,
+[class*="p-fileupload-choose"] .p-button-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* Hover states - covering all possible selectors */
+.p-fileupload-choose:hover,
+.p-fileupload-choose.p-button:hover,
+.p-fileupload-choose.p-component:hover,
+.p-fileupload-choose.p-button.p-component:hover,
+.p-fileupload-choose.p-button.p-component.p-button-success:hover,
+.p-fileupload-choose.p-button.p-component.p-button-primary:hover,
+.p-fileupload-choose.p-button.p-component.p-button-secondary:hover,
+.p-fileupload-choose.p-button.p-component.p-button-info:hover,
+.p-fileupload-choose.p-button.p-component.p-button-warning:hover,
+.p-fileupload-choose.p-button.p-component.p-button-help:hover,
+.p-fileupload-choose.p-button.p-component.p-button-danger:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component:hover,
+p-fileupload .p-fileupload-choose:hover,
+p-fileupload .p-fileupload-choose.p-button:hover,
+p-fileupload .p-fileupload-choose.p-component:hover,
+p-fileupload .p-fileupload-choose.p-button.p-component:hover,
+button.p-fileupload-choose:hover,
+[class*="p-fileupload-choose"]:hover {
+  background: #4A7BC8 !important;
+  background-color: #4A7BC8 !important;
+  // background-image: linear-gradient(135deg, #4A7BC8 0%, #3968B0 100%) !important;
+  border-color: #4A7BC8 !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(74, 123, 200, 0.35) !important;
+}
+
+/* Text color for hover states */
+.p-fileupload-choose:hover .p-button-label,
+.p-fileupload-choose.p-button:hover .p-button-label,
+.p-fileupload-choose.p-component:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-success:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-primary:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-secondary:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component:hover .p-button-label,
+p-fileupload .p-fileupload-choose:hover .p-button-label,
+p-fileupload .p-fileupload-choose.p-button:hover .p-button-label,
+p-fileupload .p-fileupload-choose.p-component:hover .p-button-label,
+p-fileupload .p-fileupload-choose.p-button.p-component:hover .p-button-label,
+button.p-fileupload-choose:hover .p-button-label,
+[class*="p-fileupload-choose"]:hover .p-button-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* Focus and active states */
+.p-fileupload-choose:focus,
+.p-fileupload-choose:active,
+.p-fileupload-choose.p-button:focus,
+.p-fileupload-choose.p-button:active,
+.p-fileupload-choose.p-component:focus,
+.p-fileupload-choose.p-component:active,
+.p-fileupload-choose.p-button.p-component:focus,
+.p-fileupload-choose.p-button.p-component:active {
+  background: #4A7BC8 !important;
+  background-color: #4A7BC8 !important;
+  // background-image: linear-gradient(135deg, #4A7BC8 0%, #3968B0 100%) !important;
+  border-color: #4A7BC8 !important;
+  color: white !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(91, 146, 229, 0.2), 0 2px 8px rgba(91, 146, 229, 0.25) !important;
+}
+
+.p-fileupload-choose:focus .p-button-label,
+.p-fileupload-choose:active .p-button-label,
+.p-fileupload-choose.p-button:focus .p-button-label,
+.p-fileupload-choose.p-button:active .p-button-label,
+.p-fileupload-choose.p-component:focus .p-button-label,
+.p-fileupload-choose.p-component:active .p-button-label,
+.p-fileupload-choose.p-button.p-component:focus .p-button-label,
+.p-fileupload-choose.p-button.p-component:active .p-button-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* ===== NUCLEAR FILE LABEL HIDING - MUST BE LAST ===== */
+/* Ultra-aggressive overrides to hide all file upload labels */
+
+/* Hide all possible file label elements globally */
+.p-fileupload-basic .p-fileupload-filename,
+.p-fileupload-basic .p-fileupload-file-details,
+.p-fileupload-basic .p-fileupload-file-info,
+.p-fileupload-basic .p-fileupload-file-name,
+.p-fileupload.p-fileupload-basic .p-fileupload-filename,
+.p-fileupload.p-fileupload-basic .p-fileupload-file-details,
+.p-fileupload.p-fileupload-basic .p-fileupload-file-info,
+.p-fileupload.p-fileupload-basic .p-fileupload-file-name,
+p-fileupload .p-fileupload-filename,
+p-fileupload .p-fileupload-file-details,
+p-fileupload .p-fileupload-file-info,
+p-fileupload .p-fileupload-file-name,
+p-fileupload[mode="basic"] .p-fileupload-filename,
+p-fileupload[mode="basic"] .p-fileupload-file-details,
+p-fileupload[mode="basic"] .p-fileupload-file-info,
+p-fileupload[mode="basic"] .p-fileupload-file-name {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide text spans that are not button related */
+.p-fileupload-basic span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
+.p-fileupload.p-fileupload-basic span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
+p-fileupload span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
+p-fileupload[mode="basic"] span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide spans after buttons */
+.p-fileupload-basic .p-button ~ span,
+.p-fileupload-basic .p-fileupload-choose ~ span,
+.p-fileupload.p-fileupload-basic .p-button ~ span,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose ~ span,
+p-fileupload .p-button ~ span,
+p-fileupload .p-fileupload-choose ~ span,
+p-fileupload[mode="basic"] .p-button ~ span,
+p-fileupload[mode="basic"] .p-fileupload-choose ~ span {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide file input siblings */
+.p-fileupload-basic input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
+.p-fileupload.p-fileupload-basic input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
+p-fileupload input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
+p-fileupload[mode="basic"] input[type="file"] ~ span:not(.p-button):not([class*="p-button"]) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Target any text content that shows file selection status */
+.p-fileupload-basic *:not(.p-button):not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]) {
+  &:contains("no file chosen"),
+  &:contains("file chosen"),
+  &:contains("files selected") {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+}
+
+/* Hide any loose text nodes that might contain file info */
+.p-fileupload-basic,
+.p-fileupload.p-fileupload-basic,
+p-fileupload,
+p-fileupload[mode="basic"] {
+  font-size: 0 !important;
+  
+  .p-button,
+  .p-fileupload-choose {
+    font-size: 16px !important;
+  }
+  
+  .p-button-label {
+    font-size: 16px !important;
   }
 }

@@ -26,6 +26,16 @@ export interface LoginVerifyRequest {
   otp: string;
 }
 
+export interface LoginResendOtpRequest {
+  user_id: number;
+}
+
+export interface LoginResendOtpResponse {
+  message?: string;
+  success?: boolean;
+  [key: string]: any; // Allow any additional properties
+}
+
 export interface LoginResponse {
   user_id?: number;
   id?: number;
@@ -222,6 +232,14 @@ export class AuthService {
           console.error('Cannot proceed without valid JWT token');
         }
       })
+    );
+  }
+
+  resendLoginOtp(data: LoginResendOtpRequest): Observable<LoginResendOtpResponse> {
+    return this.http.post<LoginResendOtpResponse>(
+      `${this.baseUrl}/login-resend-otp`, 
+      data, 
+      this.httpOptions
     );
   }
 

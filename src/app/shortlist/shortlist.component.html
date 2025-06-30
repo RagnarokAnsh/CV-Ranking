@@ -32,7 +32,9 @@
               [auto]="false"
               [disabled]="isSubmitting"
               chooseLabel="Browse files"
-              class="browse-button">
+              class="browse-button"
+              styleClass="hide-file-label custom-blue-button"
+              [style]="{'--p-button-primary-background': '#5B92E5', '--p-button-primary-border-color': '#5B92E5'}">
             </p-fileUpload>
           </div>
         </div>
@@ -40,7 +42,9 @@
         <!-- Selected File Display -->
         <div class="selected-file" *ngIf="selectedFile">
           <i class="pi pi-file-pdf file-icon"></i>
-          <span class="file-label">{{ selectedFile.name }}</span>
+          <div class="file-info">
+            <span class="file-label">{{ selectedFile.name }}</span>
+          </div>
           <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
             <i class="pi pi-times"></i>
           </button>
@@ -89,14 +93,42 @@
           </div>
 
           <div class="filter-container search-container">
-            <div class="filter-field">
-              <label class="filter-label">Keyword Search</label>
-              <input 
-                type="text" 
-                pInputText 
-                [(ngModel)]="searchQuery" 
-                placeholder="Enter search query"
-                class="search-input">
+            <div class="search-fields-row">
+              <div class="search-operator-field">
+                <label class="filter-label">Search operator</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input 
+                      type="radio" 
+                      id="search-and" 
+                      name="searchOperator" 
+                      value="and" 
+                      [(ngModel)]="searchOperator"
+                      class="custom-radio">
+                    <label for="search-and" class="radio-label">AND</label>
+                  </div>
+                  <div class="radio-option">
+                    <input 
+                      type="radio" 
+                      id="search-or" 
+                      name="searchOperator" 
+                      value="or" 
+                      [(ngModel)]="searchOperator"
+                      class="custom-radio">
+                    <label for="search-or" class="radio-label">OR</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="keyword-search-field">
+                <label class="filter-label">Keyword Search</label>
+                <input 
+                  type="text" 
+                  pInputText 
+                  [(ngModel)]="searchQuery" 
+                  placeholder="Enter search query"
+                  class="keyword-input">
+              </div>
             </div>
           </div>
         </div>
@@ -182,16 +214,28 @@
         <!-- Selected Filters Info -->
         <div class="selected-filters-info">
           <div class="info-item">
-            <span class="info-label">Min Years Experience:</span>
-            <span class="info-value">{{ selectedMinYearsExperience }} years</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Required Degree:</span>
-            <span class="info-value">{{ selectedRequiredDegree }}</span>
+            <span class="info-label">Nationality:</span>
+            <span class="info-value">{{ selectedNationality }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Gender Filter:</span>
             <span class="info-value">{{ selectedGenderFilter }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Min Experience:</span>
+            <span class="info-value">{{ selectedMinYearsExperience }} years</span>
+          </div>
+          <div class="info-item" *ngIf="selectedMaxYearsExperience !== null">
+            <span class="info-label">Max Experience:</span>
+            <span class="info-value">{{ selectedMaxYearsExperience }} years</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Min Qualification:</span>
+            <span class="info-value">{{ selectedRequiredDegree }}</span>
+          </div>
+          <div class="info-item" *ngIf="selectedMaxQualification !== 'Any'">
+            <span class="info-label">Max Qualification:</span>
+            <span class="info-value">{{ selectedMaxQualification }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Total Filtered CVs:</span>
@@ -231,7 +275,17 @@
       </div>
       
       <div class="job-description-card">
-        <h4 class="extracted-sections-title">Extracted Sections</h4>
+        <div class="jd-header">
+          <h4 class="extracted-sections-title">Extracted Sections</h4>
+          <button 
+            *ngIf="jobDescriptionContent !== 'Upload a job description file or select a template to see the extracted content here.'"
+            type="button" 
+            class="expand-btn"
+            (click)="showJobDescriptionDialog()"
+            pTooltip="View Full Content">
+            <i class="pi pi-external-link"></i>
+          </button>
+        </div>
         <div class="job-description-content">
           <div *ngIf="jobDescriptionContent === 'Upload a job description file or select a template to see the extracted content here.'" 
                class="placeholder-text">
@@ -313,13 +367,28 @@
       header="{{ selectedCandidateName }}" 
       [(visible)]="displayEmploymentDialog" 
       [modal]="true" 
-      [style]="{width: '70vw', maxWidth: '800px'}" 
+      [style]="{width: 'auto'}" 
       [draggable]="false" 
       [resizable]="false">
       <div class="employment-dialog-content">
         <h4>Employment History</h4>
         <div class="employment-details">
           <pre>{{ selectedEmploymentHistory }}</pre>
+        </div>
+      </div>
+    </p-dialog>
+
+    <!-- Job Description Dialog -->
+    <p-dialog 
+      header="Job Description Content" 
+      [(visible)]="displayJobDescriptionDialog" 
+      [modal]="true" 
+      [style]="{width: '80vw', maxWidth: '1000px', height: '80vh'}" 
+      [draggable]="false" 
+      [resizable]="true">
+      <div class="job-description-dialog-content">
+        <div class="dialog-content-wrapper">
+          <pre>{{ jobDescriptionContent }}</pre>
         </div>
       </div>
     </p-dialog>

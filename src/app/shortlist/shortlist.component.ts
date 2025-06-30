@@ -108,6 +108,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   // Form Values
   selectedJobTemplate: string = 'UNV Template';
   searchQuery: string = '';
+  searchOperator: string = 'and';
   
   // Weight values with API default values (0.3, 0.3, 0.4)
   weightExperience: number = 0.3;
@@ -127,6 +128,11 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   selectedMinYearsExperience: number = 0;
   selectedRequiredDegree: string = 'Any';
   selectedGenderFilter: string = 'Any';
+  
+  // Additional selected filters from longlist
+  selectedNationality: string = 'Any';
+  selectedMaxYearsExperience: number | null = null;
+  selectedMaxQualification: string = 'Any';
 
   // Job Description Content
   jobDescriptionContent: string = 'Upload a job description file or select a template to see the extracted content here.';
@@ -138,6 +144,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   displayEmploymentDialog: boolean = false;
   selectedEmploymentHistory: string = '';
   selectedCandidateName: string = '';
+
+  // Job Description Dialog
+  displayJobDescriptionDialog: boolean = false;
 
   constructor() {
     console.log('ShortlistComponent constructor called');
@@ -186,9 +195,21 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     console.log('Filter state from service:', filterState);
     
     if (filterState) {
+      // Map all filter properties from longlist
       this.selectedMinYearsExperience = parseInt(filterState.minExperience) || 0;
       this.selectedRequiredDegree = filterState.qualification || 'Any';
       this.selectedGenderFilter = filterState.gender || 'Any';
+      this.selectedNationality = filterState.nationality || 'Any';
+      this.selectedMaxYearsExperience = filterState.maxExperience ? parseInt(filterState.maxExperience) : null;
+      this.selectedMaxQualification = filterState.maxQualification || 'Any';
+    } else {
+      // Reset to default values if no filter state
+      this.selectedMinYearsExperience = 0;
+      this.selectedRequiredDegree = 'Any';
+      this.selectedGenderFilter = 'Any';
+      this.selectedNationality = 'Any';
+      this.selectedMaxYearsExperience = null;
+      this.selectedMaxQualification = 'Any';
     }
 
     // Initialize table data without rankings
@@ -237,6 +258,11 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.selectedCandidateName = `${rowData.cvId} - ${rowData.name}`;
     this.selectedEmploymentHistory = rowData.employmentHistory || 'No employment history available';
     this.displayEmploymentDialog = true;
+  }
+
+  // Show job description dialog
+  showJobDescriptionDialog(): void {
+    this.displayJobDescriptionDialog = true;
   }
 
   // Weight adjustment methods
@@ -319,7 +345,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       this.selectedFile,
       this.selectedJobTemplate,
       this.searchQuery,
-      'and', // Default search operator
+      this.searchOperator,
       this.weightExperience,
       this.weightQualifications,
       this.weightSkills
@@ -399,6 +425,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.jobDescriptionContent = 'Upload a job description file or select a template to see the extracted content here.';
     this.selectedFile = null;
     this.searchQuery = '';
+    this.searchOperator = 'and';
     this.selectedJobTemplate = 'UNV Template';
     
     // Reset weights to defaults

@@ -31,9 +31,26 @@
               (onSelect)="onFileSelect($event)"
               [auto]="false"
               chooseLabel="Browse files"
-              class="browse-button">
+              class="browse-button"
+              styleClass="hide-file-label custom-blue-button"
+              [style]="{'--p-button-primary-background': '#5B92E5', '--p-button-primary-border-color': '#5B92E5'}">
             </p-fileUpload>
           </div>
+        </div>
+        
+        <!-- Selected File Display -->
+        <div class="selected-file" *ngIf="selectedFile">
+          <i class="pi pi-file-pdf file-icon"></i>
+          <div class="file-info">
+            <span class="file-label">{{ selectedFile.name }}</span>
+            <div class="upload-progress" *ngIf="isUploading">
+              <p-progressBar [value]="uploadProgress" [showValue]="false"></p-progressBar>
+              <span class="progress-text">Processing your file...</span>
+            </div>
+          </div>
+          <button type="button" class="remove-file-btn" (click)="removeSelectedFile()" [disabled]="isUploading">
+            <i class="pi pi-times"></i>
+          </button>
         </div>
         
         <!-- Reset Button Container -->
@@ -48,19 +65,7 @@
           </button>
         </div>
         
-        <!-- Loading Spinner -->
-        <div class="upload-loading" *ngIf="isUploading">
-          <p-progressSpinner 
-            [style]="{'width': '40px', 'height': '40px'}" 
-            strokeWidth="4"
-            fill="var(--surface-ground)"
-            animationDuration=".5s">
-          </p-progressSpinner>
-          <div class="loading-text">
-            <p class="loading-title">Processing your file...</p>
-            <p class="loading-subtitle">This may take a few moments. Please don't refresh the page.</p>
-          </div>
-        </div>
+
       </div>
     </div>
 

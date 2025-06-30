@@ -20,7 +20,7 @@ import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { MessageService } from 'primeng/api';
 
 // Navbar Component Import
@@ -160,7 +160,7 @@ interface LoadingState {
     CardModule,
     CheckboxModule,
     TagModule,
-    ProgressSpinnerModule,
+    ProgressBarModule,
     NavbarComponent
   ],
   templateUrl: './longlist.component.html',
@@ -188,6 +188,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   originalApiData: ApiResumeData[] = [];
   filteredApiData: ApiResumeData[] = [];
   pdfId: number | null = null;
+  selectedFile: File | null = null;
 
   // Dynamic filter options (populated from API data)
   dynamicNationalityOptions: FilterOption[] = [];
@@ -380,6 +381,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
     }
 
     this.clearExistingData();
+    this.selectedFile = file;
     this.uploadFile(file);
   }
 
@@ -411,15 +413,33 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private uploadFile(file: File): void {
     this.setLoadingState(true, 0);
     
+    // Simulate progress since API doesn't provide real progress
+    this.simulateProgress();
+    
     this.resumeService.uploadResume(file)
       .pipe(
-        finalize(() => this.setLoadingState(false, 0)),
+        finalize(() => this.setLoadingState(false, 100)),
         takeUntil(this.destroy$)
       )
       .subscribe({
         next: (response) => this.handleUploadSuccess(response),
         error: (error) => this.handleUploadError(error)
       });
+  }
+
+  private simulateProgress(): void {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 20; // Random increment
+      if (progress >= 90) {
+        progress = 90; // Stop at 90% until real response
+        clearInterval(interval);
+      }
+      this.setLoadingState(true, progress);
+    }, 300);
+    
+    // Store interval so we can clear it if component is destroyed
+    setTimeout(() => clearInterval(interval), 10000); // Clear after 10 seconds max
   }
 
   onFileSelect(event: any): void {
@@ -443,6 +463,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
+  }
+
+  removeSelectedFile(): void {
+    this.selectedFile = null;
   }
 
   applyFilters(): void {
@@ -534,6 +558,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   resetCVs(): void {
     this.clearExistingData();
+    this.selectedFile = null;
     this.showInfoMessage('Reset Complete', 'All CV data and saved state have been cleared');
   }
 
