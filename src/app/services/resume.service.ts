@@ -8,15 +8,15 @@ export interface ResumeData {
   name: string;
   nationality: string;
   experience: number;
-  age?: number; // Coming Soon feature
+  age?: number; 
   qualification: string;
   gender?: string;
   languages?: string[];
   employmentHistory?: string;
-  [key: string]: any; // Allow additional properties from API
+  [key: string]: any; 
 }
 
-// New API structure interfaces
+
 export interface ApiResumeData {
   "CV ID": string;
   "Name": string;
@@ -75,7 +75,7 @@ export interface ShortlistCandidate {
   nationality?: string;
   employmentHistory?: string;
   employment_history?: string;
-  [key: string]: any; // Allow any additional fields
+  [key: string]: any;
 }
 
 export interface ShortlistResponse {
@@ -113,6 +113,10 @@ export class ResumeService {
     qualifications: [],
     genders: []
   });
+  private selectedFileInfoSubject = new BehaviorSubject<{ name: string; size: number } | null>(null);
+  
+  // Shortlist state management
+  private shortlistStateSubject = new BehaviorSubject<any>(null);
   
   public resumeData$ = this.resumeDataSubject.asObservable();
   public filteredResumeData$ = this.filteredResumeDataSubject.asObservable();
@@ -124,6 +128,8 @@ export class ResumeService {
   public filteredApiData$ = this.filteredApiDataSubject.asObservable();
   public longlistFilterState$ = this.longlistFilterStateSubject.asObservable();
   public dynamicFilterOptions$ = this.dynamicFilterOptionsSubject.asObservable();
+  public selectedFileInfo$ = this.selectedFileInfoSubject.asObservable();
+  public shortlistState$ = this.shortlistStateSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -212,18 +218,34 @@ export class ResumeService {
     return this.dynamicFilterOptionsSubject.value;
   }
 
+  // Get current selected file info
+  getCurrentSelectedFileInfo(): { name: string; size: number } | null {
+    return this.selectedFileInfoSubject.value;
+  }
+
+  // Get current shortlist state
+  getCurrentShortlistState(): any {
+    return this.shortlistStateSubject.value;
+  }
+
   // Set longlist data after upload
-  setLonglistData(originalData: ApiResumeData[], pdfId: number, dynamicOptions: any): void {
+  setLonglistData(originalData: ApiResumeData[], pdfId: number, dynamicOptions: any, fileInfo?: { name: string; size: number }): void {
     this.originalApiDataSubject.next(originalData);
     this.filteredApiDataSubject.next([...originalData]); // Initially, filtered = original
     this.pdfIdSubject.next(pdfId);
     this.dynamicFilterOptionsSubject.next(dynamicOptions);
     this.longlistFilterStateSubject.next(null); // Reset filter state
     
+    // Store file info if provided
+    if (fileInfo) {
+      this.selectedFileInfoSubject.next(fileInfo);
+    }
+    
     console.log('State saved to service:', {
       originalDataCount: originalData.length,
       pdfId,
-      dynamicOptions
+      dynamicOptions,
+      fileInfo
     });
   }
 
@@ -248,6 +270,8 @@ export class ResumeService {
       qualifications: [],
       genders: []
     });
+    this.selectedFileInfoSubject.next(null); // Clear file info
+    this.shortlistStateSubject.next(null); // Clear shortlist state
   }
 
   // Check if longlist data exists
@@ -266,6 +290,24 @@ export class ResumeService {
       filterState.qualification || 
       filterState.maxQualification
     );
+  }
+
+  // === SHORTLIST STATE MANAGEMENT METHODS ===
+
+  // Set shortlist state
+  setShortlistState(state: any): void {
+    this.shortlistStateSubject.next(state);
+    console.log('Shortlist state saved to service:', state);
+  }
+
+  // Clear shortlist state
+  clearShortlistState(): void {
+    this.shortlistStateSubject.next(null);
+  }
+
+  // Check if shortlist state exists
+  hasShortlistState(): boolean {
+    return this.shortlistStateSubject.value !== null;
   }
 
   private getAuthHeaders(): HttpHeaders {

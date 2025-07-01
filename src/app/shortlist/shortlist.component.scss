@@ -10,6 +10,33 @@
 /* ===== HEADING STRUCTURE AND ALIGNMENT ===== */
 .section-header {
   margin-bottom: 1.5rem;
+  
+  .restored-state-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(91, 146, 229, 0.1);
+    border: 1px solid var(--primary-blue);
+    border-radius: var(--border-radius);
+    color: var(--primary-blue);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    
+    i {
+      font-size: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.6rem;
+      
+      i {
+        font-size: 0.9rem;
+      }
+    }
+  }
 }
 
 .section-title {
@@ -61,14 +88,57 @@
 
 
 
-.p-dialog-header {
-  background-color: var(--primary-dark);
-}
-
-.p-dialog-content {
-  background: #f6f6f6;
-  color: #000000;
+/* ===== DIALOG STYLING ===== */
+::ng-deep .p-dialog {
+  .p-dialog-header {
+    background-color: var(--primary-dark) !important;
+    color: white !important;
+    border-bottom: 1px solid var(--border-gray);
+    
+    .p-dialog-title {
+      color: white !important;
+      font-weight: var(--font-weight-semibold);
+      font-size: 1.1rem;
+    }
+    
+    .p-dialog-header-icon {
+      color: white !important;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+      }
+    }
+  }
   
+  .p-dialog-content {
+    background: #f6f6f6 !important;
+    color: var(--primary-dark) !important;
+    padding: 1.5rem;
+    
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--primary-dark);
+      border-radius: 3px;
+      opacity: 0.7;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+    
+    /* Firefox scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-dark) transparent;
+  }
 }
 
 /* ===== FILTERS SECTION STYLING ===== */
@@ -82,7 +152,7 @@
     gap: 1rem;
     
     &:first-child {
-      grid-template-columns: 1fr 2fr; // Radio box 1/3, Search container 2/3
+      grid-template-columns: 1fr 1fr; // Make both containers equal width
     }
     
     &.weight-controls-row {
@@ -104,7 +174,7 @@
       // Special container for search operator and keywords
       .search-fields-row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1.5fr; // Give keyword search slightly more space
         gap: 1rem;
         
         @media (max-width: 768px) {
@@ -187,11 +257,9 @@
   border: 1px solid var(--border-gray);
   border-radius: var(--border-radius-large);
   padding: 1.5rem;
+  position: relative;
 
   .jd-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 1rem;
     
     .extracted-sections-title {
@@ -201,33 +269,39 @@
       font-size: 1rem;
       margin: 0;
     }
+  }
+  
+  .expand-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--primary-dark);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+    background: transparent;
+    color: var(--primary-dark);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    z-index: 10;
     
-    .expand-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border: none;
-      background: var(--primary-blue);
+    &:hover {
+      background: var(--primary-dark);
       color: var(--white);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.875rem;
-      
-      &:hover {
-        background: var(--primary-blue-dark);
-        transform: scale(1.05);
-      }
-      
-      &:active {
-        transform: scale(0.95);
-      }
-      
-      i {
-        font-size: 0.75rem;
-      }
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    i {
+      font-size: 1rem;
     }
   }
   
@@ -243,6 +317,7 @@
       pre {
         background: var(--background-gray);
         padding: 1rem;
+        padding-bottom: 3rem; 
         border-radius: var(--border-radius);
         font-family: var(--font-family);
         font-size: 0.875rem;
@@ -250,8 +325,20 @@
         color: var(--primary-dark);
         white-space: pre-wrap;
         word-wrap: break-word;
-        max-height: 300px;
-        overflow-y: auto;
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 50px; 
+          background: linear-gradient(transparent, var(--background-gray));
+          pointer-events: none;
+        }
       }
     }
   }
@@ -540,19 +627,229 @@
   flex-wrap: nowrap;
 }
 
-/* Job Description Dialog Styling */
+/* File validation error styling */
+.file-validation-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(248, 0, 0, 0.1);
+  border: 1px solid var(--error-red);
+  border-radius: var(--border-radius);
+  color: var(--error-red);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+/* Progress Bar Section Styling */
+.progress-section {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--background-gray);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-gray);
+  
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    
+    .progress-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      
+      .progress-label {
+        color: var(--primary-dark);
+        font-weight: var(--font-weight-medium);
+        font-size: 0.875rem;
+        line-height: 1.3;
+      }
+      
+      .progress-percentage {
+        color: var(--medium-gray);
+        font-size: 0.75rem;
+        font-weight: var(--font-weight-regular);
+      }
+    }
+    
+    .cancel-upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--error-red);
+      background: var(--white);
+      color: var(--error-red);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.75rem;
+      
+      &:hover:not(:disabled) {
+        background: var(--error-red);
+        color: var(--white);
+        transform: scale(1.05);
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      
+      &:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+    }
+  }
+  
+  ::ng-deep .upload-progress-bar {
+    .p-progressbar {
+      height: 8px;
+      background: var(--lightest-gray);
+      border-radius: 4px;
+      overflow: hidden;
+      
+      .p-progressbar-value {
+        background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+    }
+  }
+}
+
+/* Enhanced selected file display */
+.selected-file {
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    
+    .file-size {
+      font-size: 0.75rem;
+      color: var(--medium-gray);
+      font-weight: var(--font-weight-regular);
+    }
+    
+    .file-status {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.7rem;
+      color: var(--primary-blue);
+      font-weight: var(--font-weight-medium);
+      font-style: italic;
+      
+      i {
+        font-size: 0.7rem;
+      }
+    }
+  }
+  
+  .remove-file-btn {
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      
+      &:hover {
+        background: var(--error-red);
+        transform: none;
+      }
+    }
+  }
+}
+
+/* ===== EMPLOYMENT HISTORY DIALOG STYLING ===== */
+.employment-dialog-content {
+  h4 {
+    color: var(--primary-dark);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+  
+  .employment-details {
+    pre {
+      background: var(--white);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--border-gray);
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: var(--font-family);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: var(--primary-dark);
+      max-height: 400px;
+      overflow-y: auto;
+      
+      /* Custom scrollbar styling */
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--primary-dark);
+        border-radius: 3px;
+        opacity: 0.7;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+      
+      /* Firefox scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-dark) transparent;
+    }
+  }
+}
+
+/* ===== JOB DESCRIPTION DIALOG STYLING ===== */
 .job-description-dialog-content {
   height: 100%;
   display: flex;
-  background-color: var(--primary-dark);
-  color: #FFFFFF;
   flex-direction: column;
   
   .dialog-content-wrapper {
     flex: 1;
     overflow-y: auto;
+    background: var(--white);
     padding: 1rem;
     border-radius: var(--border-radius);
+    border: 1px solid var(--border-gray);
+    
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--primary-dark);
+      border-radius: 3px;
+      opacity: 0.7;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+    
+    /* Firefox scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-dark) transparent;
     
     pre {
       margin: 0;

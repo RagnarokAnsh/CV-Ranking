@@ -162,7 +162,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'success',
               summary: 'Login Successful',
-              detail: 'Welcome back! Redirecting to dashboard...'
+              detail: 'Welcome back! Redirecting...'
             });
             
             console.log('Login successful with OTP:', response);
@@ -170,7 +170,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             // Navigate after a short delay to allow user to see the success message
             setTimeout(() => {
               this.router.navigate(['/longlist']);
-            }, 1500);
+            }, 500);
 
             // Start session timer
             this.sessionTimerService.startSessionTimer();

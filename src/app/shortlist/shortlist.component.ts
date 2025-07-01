@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, finalize } from 'rxjs';
+import { Subject, takeUntil, finalize, Subscription, BehaviorSubject } from 'rxjs';
 
 // Services
 import { ResumeService, ApiResumeData, ShortlistResponse } from '../services/resume.service';
@@ -20,6 +20,8 @@ import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 // Navbar Component Import
@@ -27,7 +29,9 @@ import { NavbarComponent } from '../shared/navbar/navbar.component';
 
 // Constants
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
-const ALLOWED_FILE_TYPE = 'application/pdf';
+const ALLOWED_FILE_TYPES = ['application/pdf', 'text/plain'];
+const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.txt'];
+const DEFAULT_WEIGHTS = { experience: 0.3, qualifications: 0.3, skills: 0.4 };
 
 interface FilterOption {
   label: string;
@@ -60,6 +64,60 @@ interface TableRowData {
   employmentHistory?: string;
 }
 
+// Enhanced state management interfaces
+interface UploadState {
+  isUploading: boolean;
+  uploadProgress: number;
+  canCancel: boolean;
+  progressText: string;
+}
+
+interface FilterState {
+  minYearsExperience: number;
+  requiredDegree: string;
+  genderFilter: string;
+  nationality: string;
+  maxYearsExperience: number | null;
+  maxQualification: string;
+}
+
+interface WeightState {
+  experience: number;
+  qualifications: number;
+  skills: number;
+  validationError: string;
+}
+
+interface FormState {
+  selectedJobTemplate: string;
+  searchQuery: string;
+  searchOperator: string;
+  selectedFile: File | null;
+  fileValidationError: string;
+}
+
+interface DialogState {
+  employment: {
+    visible: boolean;
+    candidateName: string;
+    history: string;
+  };
+  jobDescription: {
+    visible: boolean;
+  };
+}
+
+interface ComponentState {
+  isLoading: boolean;
+  isSubmitting: boolean;
+  hasData: boolean;
+  hasRankings: boolean;
+  jobDescriptionContent: string;
+  filteredApiData: ApiResumeData[];
+  tableData: TableRowData[];
+  pdfId: number | null;
+}
+
 @Component({
   selector: 'app-shortlist',
   standalone: true,
@@ -77,6 +135,8 @@ interface TableRowData {
     DialogModule,
     InputTextModule,
     ProgressSpinnerModule,
+    ProgressBarModule,
+    TooltipModule,
     NavbarComponent
   ],
   templateUrl: './shortlist.component.html',
@@ -92,12 +152,64 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
   // Destroy subject for cleanup
   private readonly destroy$ = new Subject<void>();
+  private uploadSubscription: Subscription | null = null;
 
-  // Data from longlist - using new API structure
-  filteredApiData: ApiResumeData[] = [];
-  pdfId: number | null = null;
+  // State management with BehaviorSubjects for better control
+  private readonly uploadState$ = new BehaviorSubject<UploadState>({
+    isUploading: false,
+    uploadProgress: 0,
+    canCancel: false,
+    progressText: ''
+  });
 
-  // Job Description Template Options (case sensitive as per API requirement)
+  private readonly componentState$ = new BehaviorSubject<ComponentState>({
+    isLoading: false,
+    isSubmitting: false,
+    hasData: false,
+    hasRankings: false,
+    jobDescriptionContent: 'Upload a job description file or select a template to see the extracted content here.',
+    filteredApiData: [],
+    tableData: [],
+    pdfId: null
+  });
+
+  private readonly filterState$ = new BehaviorSubject<FilterState>({
+    minYearsExperience: 0,
+    requiredDegree: 'Any',
+    genderFilter: 'Any',
+    nationality: 'Any',
+    maxYearsExperience: null,
+    maxQualification: 'Any'
+  });
+
+  private readonly weightState$ = new BehaviorSubject<WeightState>({
+    experience: DEFAULT_WEIGHTS.experience,
+    qualifications: DEFAULT_WEIGHTS.qualifications,
+    skills: DEFAULT_WEIGHTS.skills,
+    validationError: ''
+  });
+
+  private readonly formState$ = new BehaviorSubject<FormState>({
+    selectedJobTemplate: 'UNV Template',
+    searchQuery: '',
+    searchOperator: 'and',
+    selectedFile: null,
+    fileValidationError: ''
+  });
+
+  private readonly dialogState$ = new BehaviorSubject<DialogState>({
+    employment: {
+      visible: false,
+      candidateName: '',
+      history: ''
+    },
+    jobDescription: {
+      visible: false
+    }
+  });
+
+  // Constants
+  private readonly defaultJobDescriptionText = 'Upload a job description file or select a template to see the extracted content here.';
   readonly jobDescriptionTemplates: readonly FilterOption[] = Object.freeze([
     { label: 'UNV Template', value: 'UNV Template' },
     { label: 'SC Template', value: 'SC Template' },
@@ -105,89 +217,388 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     { label: 'IC Consultant Template', value: 'IC Consultant Template' }
   ]);
 
-  // Form Values
-  selectedJobTemplate: string = 'UNV Template';
-  searchQuery: string = '';
-  searchOperator: string = 'and';
-  
-  // Weight values with API default values (0.3, 0.3, 0.4)
-  weightExperience: number = 0.3;
-  weightQualifications: number = 0.3;
-  weightSkills: number = 0.4;
-  
-  // Validation
-  weightValidationError: string = '';
+  // Public getters for template access
+  get uploadState(): UploadState { return this.uploadState$.value; }
+  get componentState(): ComponentState { return this.componentState$.value; }
+  get filterState(): FilterState { return this.filterState$.value; }
+  get weightState(): WeightState { return this.weightState$.value; }
+  get formState(): FormState { return this.formState$.value; }
+  get dialogState(): DialogState { return this.dialogState$.value; }
 
-  // File upload
-  selectedFile: File | null = null;
+  // Computed properties
+  get hasJobDescriptionContent(): boolean {
+    return this.componentState.jobDescriptionContent !== this.defaultJobDescriptionText;
+  }
 
-  // Loading states
-  isSubmitting: boolean = false;
+  get isUploadInProgress(): boolean { return this.uploadState.isUploading; }
+  get canCancel(): boolean { return this.uploadState.canCancel; }
+  get uploadProgressText(): string { return this.uploadState.progressText; }
 
-  // Selected filters from longlist (populated from service)
-  selectedMinYearsExperience: number = 0;
-  selectedRequiredDegree: string = 'Any';
-  selectedGenderFilter: string = 'Any';
-  
-  // Additional selected filters from longlist
-  selectedNationality: string = 'Any';
-  selectedMaxYearsExperience: number | null = null;
-  selectedMaxQualification: string = 'Any';
+  // Template access properties
+  get isSubmitting(): boolean { return this.componentState.isSubmitting; }
+  get tableData(): TableRowData[] { return this.componentState.tableData; }
+  get filteredApiData(): ApiResumeData[] { return this.componentState.filteredApiData; }
+  get jobDescriptionContent(): string { return this.componentState.jobDescriptionContent; }
 
-  // Job Description Content
-  jobDescriptionContent: string = 'Upload a job description file or select a template to see the extracted content here.';
+  get selectedJobTemplate(): string { return this.formState.selectedJobTemplate; }
+  set selectedJobTemplate(value: string) { 
+    this.updateFormState({ selectedJobTemplate: value });
+    this.saveShortlistState();
+  }
 
-  // Table data - Initially show filtered data without rankings
-  tableData: TableRowData[] = [];
+  get searchQuery(): string { return this.formState.searchQuery; }
+  set searchQuery(value: string) { 
+    this.updateFormState({ searchQuery: value });
+    this.saveShortlistState();
+  }
 
-  // Employment History Dialog
-  displayEmploymentDialog: boolean = false;
-  selectedEmploymentHistory: string = '';
-  selectedCandidateName: string = '';
+  get searchOperator(): string { return this.formState.searchOperator; }
+  set searchOperator(value: string) { 
+    this.updateFormState({ searchOperator: value });
+    this.saveShortlistState();
+  }
 
-  // Job Description Dialog
-  displayJobDescriptionDialog: boolean = false;
+  get selectedFile(): File | null { return this.formState.selectedFile; }
+  get fileValidationError(): string { return this.formState.fileValidationError; }
+
+  get weightExperience(): number { return this.weightState.experience; }
+  get weightQualifications(): number { return this.weightState.qualifications; }
+  get weightSkills(): number { return this.weightState.skills; }
+  get weightValidationError(): string { return this.weightState.validationError; }
+
+  get selectedMinYearsExperience(): number { return this.filterState.minYearsExperience; }
+  get selectedRequiredDegree(): string { return this.filterState.requiredDegree; }
+  get selectedGenderFilter(): string { return this.filterState.genderFilter; }
+  get selectedNationality(): string { return this.filterState.nationality; }
+  get selectedMaxYearsExperience(): number | null { return this.filterState.maxYearsExperience; }
+  get selectedMaxQualification(): string { return this.filterState.maxQualification; }
+
+  get displayEmploymentDialog(): boolean { return this.dialogState.employment.visible; }
+  set displayEmploymentDialog(value: boolean) { 
+    this.updateDialogState({ 
+      employment: { ...this.dialogState.employment, visible: value } 
+    }); 
+  }
+
+  get displayJobDescriptionDialog(): boolean { return this.dialogState.jobDescription.visible; }
+  set displayJobDescriptionDialog(value: boolean) { 
+    this.updateDialogState({ 
+      jobDescription: { visible: value } 
+    }); 
+  }
+
+  get selectedEmploymentHistory(): string { return this.dialogState.employment.history; }
+  get selectedCandidateName(): string { return this.dialogState.employment.candidateName; }
+
+  get uploadProgress(): number { return this.uploadState.uploadProgress; }
+
+  // Check if the component has restored state
+  get hasRestoredState(): boolean {
+    return this.resumeService.hasShortlistState() && 
+           (this.hasJobDescriptionContent || this.componentState.hasRankings);
+  }
+
+  // Check if current file is restored from previous session
+  isRestoredFile(): boolean {
+    return this.hasRestoredState && this.formState.selectedFile !== null;
+  }
+
+  // Check if we have valid ranking data
+  get hasValidRankingData(): boolean {
+    return this.componentState.hasRankings && 
+           this.componentState.tableData.length > 0 &&
+           this.componentState.tableData.some(row => row.rank !== undefined && row.finalScore !== undefined);
+  }
+
+  // Check if the longlist data has changed compared to saved shortlist data
+  private shouldUpdateTableWithNewData(): boolean {
+    try {
+      const currentFilteredData = this.componentState.filteredApiData;
+      const currentTableData = this.componentState.tableData;
+      
+      // If no current table data, we should update
+      if (!currentTableData || currentTableData.length === 0) {
+        return true;
+      }
+      
+      // If the number of records is different, data has changed
+      if (currentFilteredData.length !== currentTableData.length) {
+        console.log('Data length changed:', {
+          filtered: currentFilteredData.length,
+          table: currentTableData.length
+        });
+        return true;
+      }
+      
+      // Check if the CV IDs match (more reliable than comparing full objects)
+      const currentCvIds = new Set(currentFilteredData.map(cv => cv["CV ID"]));
+      const tableCvIds = new Set(currentTableData.map(row => row.cvId));
+      
+      // Compare the sets of CV IDs
+      if (currentCvIds.size !== tableCvIds.size) {
+        console.log('Different number of unique CV IDs');
+        return true;
+      }
+      
+      // Check if all CV IDs from current data exist in table data
+      for (const cvId of currentCvIds) {
+        if (!tableCvIds.has(cvId)) {
+          console.log('CV ID mismatch found:', cvId);
+          return true;
+        }
+      }
+      
+      // Additional check: compare filter states if available
+      const savedState = this.resumeService.getCurrentShortlistState();
+      const currentLonglistFilter = this.resumeService.getCurrentLonglistFilterState();
+      
+      if (savedState?.lastLonglistFilter && currentLonglistFilter) {
+        const savedFilter = savedState.lastLonglistFilter;
+        const filtersChanged = (
+          savedFilter.nationality !== currentLonglistFilter.nationality ||
+          savedFilter.minExperience !== currentLonglistFilter.minExperience ||
+          savedFilter.maxExperience !== currentLonglistFilter.maxExperience ||
+          savedFilter.gender !== currentLonglistFilter.gender ||
+          savedFilter.qualification !== currentLonglistFilter.qualification ||
+          savedFilter.maxQualification !== currentLonglistFilter.maxQualification
+        );
+        
+        if (filtersChanged) {
+          console.log('Longlist filters have changed:', {
+            saved: savedFilter,
+            current: currentLonglistFilter
+          });
+          return true;
+        }
+      }
+      
+      console.log('Longlist data appears unchanged - same CV IDs, count, and filters');
+      return false;
+      
+    } catch (error) {
+      console.error('Error checking if table should update:', error);
+      // If there's an error, safer to update
+      return true;
+    }
+  }
 
   constructor() {
     console.log('ShortlistComponent constructor called');
+    this.setupStateSubscriptions();
   }
 
   ngOnInit(): void {
     console.log('ShortlistComponent ngOnInit called');
+    this.restoreShortlistState();
     this.loadDataFromLonglist();
     this.validateWeights();
   }
 
   ngOnDestroy(): void {
+    this.saveShortlistState(); // Save state before destroying
     this.destroy$.next();
     this.destroy$.complete();
+    this.cancelUpload();
+  }
+
+  // State management methods
+  private setupStateSubscriptions(): void {
+    // Subscribe to upload state changes
+    this.uploadState$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.changeDetectorRef.markForCheck();
+      });
+  }
+
+  private updateUploadState(partial: Partial<UploadState>): void {
+    this.uploadState$.next({ ...this.uploadState$.value, ...partial });
+  }
+
+  private updateComponentState(partial: Partial<ComponentState>): void {
+    this.componentState$.next({ ...this.componentState$.value, ...partial });
+  }
+
+  private updateFilterState(partial: Partial<FilterState>): void {
+    this.filterState$.next({ ...this.filterState$.value, ...partial });
+  }
+
+  private updateWeightState(partial: Partial<WeightState>): void {
+    this.weightState$.next({ ...this.weightState$.value, ...partial });
+  }
+
+  private updateFormState(partial: Partial<FormState>): void {
+    this.formState$.next({ ...this.formState$.value, ...partial });
+  }
+
+  private updateDialogState(partial: Partial<DialogState>): void {
+    this.dialogState$.next({ ...this.dialogState$.value, ...partial });
+  }
+
+  // === STATE PERSISTENCE METHODS ===
+
+  private saveShortlistState(): void {
+    try {
+      const state = {
+        componentState: this.componentState$.value,
+        filterState: this.filterState$.value,
+        weightState: this.weightState$.value,
+        formState: {
+          ...this.formState$.value,
+          selectedFile: this.formState$.value.selectedFile ? {
+            name: this.formState$.value.selectedFile.name,
+            size: this.formState$.value.selectedFile.size,
+            type: this.formState$.value.selectedFile.type
+          } : null
+        },
+        dialogState: this.dialogState$.value,
+        uploadState: this.uploadState$.value,
+        lastLonglistFilter: this.resumeService.getCurrentLonglistFilterState(), // Save current longlist filter for comparison
+        timestamp: Date.now()
+      };
+
+      this.resumeService.setShortlistState(state);
+      console.log('=== SHORTLIST STATE SAVED ===');
+      console.log('Component State:', {
+        hasRankings: state.componentState?.hasRankings,
+        tableDataLength: state.componentState?.tableData?.length || 0,
+        firstRowSample: state.componentState?.tableData?.[0],
+        jobDescriptionNotDefault: state.componentState?.jobDescriptionContent !== this.defaultJobDescriptionText
+      });
+      console.log('============================');
+    } catch (error) {
+      console.error('Error saving shortlist state:', error);
+    }
+  }
+
+  private restoreShortlistState(): void {
+    try {
+      const savedState = this.resumeService.getCurrentShortlistState();
+      
+      if (!savedState) {
+        console.log('No saved shortlist state found');
+        return;
+      }
+
+      console.log('=== RESTORING SHORTLIST STATE ===');
+      console.log('Restored state:', savedState);
+      console.log('=================================');
+
+      // Restore component state (but preserve loading state)
+      if (savedState.componentState) {
+        console.log('Restoring component state:', {
+          hasRankings: savedState.componentState.hasRankings,
+          tableDataLength: savedState.componentState.tableData?.length || 0,
+          jobDescriptionContent: savedState.componentState.jobDescriptionContent !== this.defaultJobDescriptionText
+        });
+        
+        this.componentState$.next({
+          ...savedState.componentState,
+          isLoading: false,
+          isSubmitting: false
+        });
+      }
+
+      // Restore filter state
+      if (savedState.filterState) {
+        this.filterState$.next(savedState.filterState);
+      }
+
+      // Restore weight state
+      if (savedState.weightState) {
+        this.weightState$.next(savedState.weightState);
+      }
+
+      // Restore form state with file reconstruction
+      if (savedState.formState) {
+        const formState = { ...savedState.formState };
+        
+        // Reconstruct file object if it existed
+        if (savedState.formState.selectedFile) {
+          const fileInfo = savedState.formState.selectedFile;
+          const mockFile = new File([], fileInfo.name, { type: fileInfo.type });
+          Object.defineProperty(mockFile, 'size', {
+            value: fileInfo.size,
+            writable: false
+          });
+          formState.selectedFile = mockFile;
+        }
+        
+        this.formState$.next(formState);
+      }
+
+      // Restore dialog state (but keep dialogs closed)
+      if (savedState.dialogState) {
+        this.dialogState$.next({
+          employment: {
+            ...savedState.dialogState.employment,
+            visible: false
+          },
+          jobDescription: {
+            visible: false
+          }
+        });
+      }
+
+      // Don't restore upload state - always start fresh for uploads
+      this.uploadState$.next({
+        isUploading: false,
+        uploadProgress: 0,
+        canCancel: false,
+        progressText: ''
+      });
+
+    } catch (error) {
+      console.error('Error restoring shortlist state:', error);
+    }
   }
 
   // Load data from longlist component
   private loadDataFromLonglist(): void {
+    this.updateComponentState({ isLoading: true });
+
+    try {
     // Get filtered data from the resume service using new API structure
-    this.filteredApiData = this.resumeService.getCurrentFilteredApiData();
-    this.pdfId = this.resumeService.getCurrentPdfId();
+      const filteredApiData = this.resumeService.getCurrentFilteredApiData();
+      const pdfId = this.resumeService.getCurrentPdfId();
 
     console.log('=== LOADING DATA IN SHORTLIST ===');
-    console.log('Filtered API data from service:', this.filteredApiData);
-    console.log('PDF ID:', this.pdfId);
-    console.log('Data length:', this.filteredApiData.length);
+      console.log('Filtered API data from service:', filteredApiData);
+      console.log('PDF ID:', pdfId);
+      console.log('Data length:', filteredApiData.length);
     console.log('===============================');
 
-    if (this.filteredApiData.length === 0 || !this.pdfId) {
+      if (filteredApiData.length === 0 || !pdfId) {
       console.warn('No filtered data found, checking for original data...');
       
       // Fallback to original data if no filtered data
-      this.filteredApiData = this.resumeService.getCurrentOriginalApiData();
-      
-      if (this.filteredApiData.length === 0) {
+        const originalData = this.resumeService.getCurrentOriginalApiData();
+        
+        if (originalData.length === 0) {
+          this.updateComponentState({ 
+            isLoading: false, 
+            hasData: false,
+            filteredApiData: [],
+            pdfId: null
+          });
         this.showWarningMessage(
           'No Data Available', 
           'Please go back to Long Listing and upload/filter CVs first.'
         );
         return;
       }
+
+        this.updateComponentState({ 
+          filteredApiData: originalData,
+          pdfId: pdfId,
+          hasData: true
+        });
+      } else {
+        this.updateComponentState({ 
+          filteredApiData,
+          pdfId,
+          hasData: true
+        });
     }
 
     // Get filter state to populate the "Selected" fields
@@ -195,35 +606,61 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     console.log('Filter state from service:', filterState);
     
     if (filterState) {
-      // Map all filter properties from longlist
-      this.selectedMinYearsExperience = parseInt(filterState.minExperience) || 0;
-      this.selectedRequiredDegree = filterState.qualification || 'Any';
-      this.selectedGenderFilter = filterState.gender || 'Any';
-      this.selectedNationality = filterState.nationality || 'Any';
-      this.selectedMaxYearsExperience = filterState.maxExperience ? parseInt(filterState.maxExperience) : null;
-      this.selectedMaxQualification = filterState.maxQualification || 'Any';
-    } else {
-      // Reset to default values if no filter state
-      this.selectedMinYearsExperience = 0;
-      this.selectedRequiredDegree = 'Any';
-      this.selectedGenderFilter = 'Any';
-      this.selectedNationality = 'Any';
-      this.selectedMaxYearsExperience = null;
-      this.selectedMaxQualification = 'Any';
+        this.updateFilterState({
+          minYearsExperience: parseInt(filterState.minExperience) || 0,
+          requiredDegree: filterState.qualification || 'Any',
+          genderFilter: filterState.gender || 'Any',
+          nationality: filterState.nationality || 'Any',
+          maxYearsExperience: filterState.maxExperience ? parseInt(filterState.maxExperience) : null,
+          maxQualification: filterState.maxQualification || 'Any'
+        });
     }
 
-    // Initialize table data without rankings
-    this.initializeTableData();
+        // Check if the longlist data has changed compared to what we have saved
+    const shouldUpdateTable = this.shouldUpdateTableWithNewData();
+    
+    if (!this.hasValidRankingData || shouldUpdateTable) {
+      if (shouldUpdateTable) {
+        console.log('Longlist data has changed, updating table with new filtered data');
+        // Clear any existing rankings when data changes
+        this.updateComponentState({ hasRankings: false });
+        this.resumeService.clearShortlistState();
+      } else {
+        console.log('No valid ranking data found, initializing fresh table data');
+      }
+      this.initializeTableData();
+    } else {
+      console.log('Valid ranking data found and longlist data unchanged, keeping restored table data');
+      console.log('Table data sample:', this.componentState.tableData[0]);
+    }
 
-    this.showInfoMessage(
-      'Data Loaded', 
-      `Loaded ${this.filteredApiData.length} filtered CVs from Long Listing`
-    );
+    this.updateComponentState({ isLoading: false });
+    
+    let message: string;
+    
+    if (shouldUpdateTable && this.hasValidRankingData) {
+      message = `Updated with ${this.componentState.filteredApiData.length} newly filtered CVs from Long Listing (previous rankings cleared)`;
+    } else if (this.hasValidRankingData) {
+      message = `Restored ${this.componentState.tableData.length} ranked candidates from previous session`;
+    } else {
+      message = `Loaded ${this.componentState.filteredApiData.length} filtered CVs from Long Listing`;
+    }
+      
+    this.showInfoMessage('Data Loaded', message);
+
+    } catch (error) {
+      console.error('Error loading data from longlist:', error);
+      this.updateComponentState({ 
+        isLoading: false, 
+        hasData: false 
+      });
+      this.showErrorMessage('Loading Error', 'Failed to load data from Long Listing');
+    }
   }
 
   // Initialize table data without rankings
   private initializeTableData(): void {
-    this.tableData = this.filteredApiData.map((cv) => ({
+    const tableData = this.componentState.filteredApiData.map((cv) => ({
       cvId: cv["CV ID"],
       name: cv["Name"],
       highestDegree: cv["Highest Degree"],
@@ -232,6 +669,11 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       nationality: this.formatNationalityDisplay(cv["Nationality"]),
       employmentHistory: cv["Employment History"]
     }));
+
+    this.updateComponentState({ 
+      tableData,
+      hasRankings: false
+    });
   }
 
   // Helper method to format nationality for display
@@ -255,109 +697,171 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
   // Show employment history dialog
   showEmploymentHistory(rowData: TableRowData): void {
-    this.selectedCandidateName = `${rowData.cvId} - ${rowData.name}`;
-    this.selectedEmploymentHistory = rowData.employmentHistory || 'No employment history available';
-    this.displayEmploymentDialog = true;
+    this.updateDialogState({
+      employment: {
+        visible: true,
+        candidateName: `${rowData.cvId} - ${rowData.name}`,
+        history: rowData.employmentHistory || 'No employment history available'
+      }
+    });
   }
 
   // Show job description dialog
   showJobDescriptionDialog(): void {
-    this.displayJobDescriptionDialog = true;
+    this.updateDialogState({
+      jobDescription: { visible: true }
+    });
   }
 
   // Weight adjustment methods
   adjustWeight(field: string, increment: boolean): void {
     const step = 0.05; // Smaller increments for finer control
+    const currentWeights = this.weightState;
+    const newWeights = { ...currentWeights };
     
     if (increment) {
       switch (field) {
         case 'experience':
-          this.weightExperience = Math.min(1, this.weightExperience + step);
+          newWeights.experience = Math.min(1, currentWeights.experience + step);
           break;
         case 'qualifications':
-          this.weightQualifications = Math.min(1, this.weightQualifications + step);
+          newWeights.qualifications = Math.min(1, currentWeights.qualifications + step);
           break;
         case 'skills':
-          this.weightSkills = Math.min(1, this.weightSkills + step);
+          newWeights.skills = Math.min(1, currentWeights.skills + step);
           break;
       }
     } else {
       switch (field) {
         case 'experience':
-          this.weightExperience = Math.max(0, this.weightExperience - step);
+          newWeights.experience = Math.max(0, currentWeights.experience - step);
           break;
         case 'qualifications':
-          this.weightQualifications = Math.max(0, this.weightQualifications - step);
+          newWeights.qualifications = Math.max(0, currentWeights.qualifications - step);
           break;
         case 'skills':
-          this.weightSkills = Math.max(0, this.weightSkills - step);
+          newWeights.skills = Math.max(0, currentWeights.skills - step);
           break;
       }
     }
     
+    this.updateWeightState(newWeights);
     this.validateWeights();
+    // Save state when weights are adjusted
+    this.saveShortlistState();
   }
 
   validateWeights(): void {
-    const total = this.weightExperience + this.weightQualifications + this.weightSkills;
+    const weights = this.weightState;
+    const total = weights.experience + weights.qualifications + weights.skills;
     const tolerance = 0.01; // Allow small floating point differences
     
-    if (Math.abs(total - 1.0) > tolerance) {
-      this.weightValidationError = `Weights must add up to 1.0 (currently: ${total.toFixed(2)})`;
-    } else {
-      this.weightValidationError = '';
-    }
+    const validationError = Math.abs(total - 1.0) > tolerance 
+      ? `Weights must add up to 1.0 (currently: ${total.toFixed(2)})`
+      : '';
+
+    this.updateWeightState({ validationError });
   }
 
   submitRanking(): void {
-    if (this.weightValidationError) {
-      this.showErrorMessage('Validation Error', this.weightValidationError);
+    if (this.weightState.validationError) {
+      this.showErrorMessage('Validation Error', this.weightState.validationError);
       return;
     }
 
-    if (!this.pdfId) {
+    if (!this.componentState.pdfId) {
       this.showErrorMessage('Error', 'No PDF ID available. Please upload CVs first.');
       return;
     }
 
-    if (!this.selectedFile) {
+    if (!this.formState.selectedFile) {
       this.showErrorMessage('Error', 'Please upload a job description file.');
       return;
     }
 
-    this.isSubmitting = true;
+    // Re-validate file before submission
+    if (!this.validateFile(this.formState.selectedFile)) {
+      return;
+    }
+
+    this.updateComponentState({ isSubmitting: true });
+    this.updateUploadState({ 
+      isUploading: true, 
+      uploadProgress: 30, 
+      canCancel: true, 
+      progressText: 'Uploading job description... (Click X to cancel)' 
+    });
 
     // Detailed logging for debugging
     console.log('=== SUBMITTING SHORTLIST REQUEST ===');
-    console.log('PDF ID:', this.pdfId);
-    console.log('Job Template:', this.selectedJobTemplate);
-    console.log('Search Query:', this.searchQuery);
+    console.log('PDF ID:', this.componentState.pdfId);
+    console.log('Job Template:', this.formState.selectedJobTemplate);
+    console.log('Search Query:', this.formState.searchQuery);
     console.log('Weights:', {
-      experience: this.weightExperience,
-      qualifications: this.weightQualifications,
-      skills: this.weightSkills
+      experience: this.weightState.experience,
+      qualifications: this.weightState.qualifications,
+      skills: this.weightState.skills
     });
-    console.log('File:', this.selectedFile?.name);
+    console.log('File:', this.formState.selectedFile?.name);
     console.log('====================================');
 
-    this.resumeService.submitShortlistWithFile(
-      this.pdfId,
-      this.selectedFile,
-      this.selectedJobTemplate,
-      this.searchQuery,
-      this.searchOperator,
-      this.weightExperience,
-      this.weightQualifications,
-      this.weightSkills
+    this.uploadSubscription = this.resumeService.submitShortlistWithFile(
+      this.componentState.pdfId,
+      this.formState.selectedFile,
+      this.formState.selectedJobTemplate,
+      this.formState.searchQuery,
+      this.formState.searchOperator,
+      this.weightState.experience,
+      this.weightState.qualifications,
+      this.weightState.skills
     )
     .pipe(
-      finalize(() => this.isSubmitting = false),
+      finalize(() => {
+        this.updateComponentState({ isSubmitting: false });
+        // Complete progress bar on both success and error
+        this.updateUploadState({ 
+          isUploading: true, 
+          uploadProgress: 100, 
+          canCancel: false, 
+          progressText: 'Processing complete!' 
+        });
+        setTimeout(() => {
+          this.updateUploadState({ 
+            isUploading: false, 
+            uploadProgress: 0, 
+            canCancel: false, 
+            progressText: '' 
+          });
+        }, 1500);
+      }),
       takeUntil(this.destroy$)
     )
     .subscribe({
-      next: (response) => this.handleRankingSuccess(response),
-      error: (error) => this.handleRankingError(error)
+      next: (response) => {
+        this.updateUploadState({ 
+          uploadProgress: 80, 
+          progressText: 'Processing rankings...' 
+        });
+        this.handleRankingSuccess(response);
+      },
+      error: (error) => {
+        this.updateUploadState({ 
+          uploadProgress: 100, 
+          progressText: 'Processing failed' 
+        });
+        this.handleRankingError(error);
+      }
     });
+
+    // Simulate progress updates
+    setTimeout(() => {
+      if (this.uploadState.isUploading) {
+        this.updateUploadState({ 
+          uploadProgress: 85, 
+          progressText: 'Analyzing job description...' 
+        });
+      }
+    }, 1000);
   }
 
   private handleRankingSuccess(response: ShortlistResponse): void {
@@ -367,14 +871,15 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
     // Update job description content
     if (response.relevant_section_text) {
-      this.jobDescriptionContent = response.relevant_section_text;
+      this.updateComponentState({ 
+        jobDescriptionContent: response.relevant_section_text 
+      });
     }
 
     // Update table data with rankings
-    // Check if response has shortlisted data in the expected format
     const shortlistedData = (response as any).shortlisted;
     if (shortlistedData && shortlistedData.length > 0) {
-      this.tableData = shortlistedData.map((candidate: any) => ({
+      const tableData = shortlistedData.map((candidate: any) => ({
         cvId: candidate.CV,
         name: candidate["Applicant Name"],
         highestDegree: candidate["Highest Degree"],
@@ -385,6 +890,14 @@ export class ShortlistComponent implements OnInit, OnDestroy {
         finalScore: candidate["Final Score"],
         employmentHistory: candidate["Employment History"]
       }));
+
+      this.updateComponentState({ 
+        tableData,
+        hasRankings: true
+      });
+
+      // Save state after successful ranking
+      this.saveShortlistState();
 
       this.showSuccessMessage(
         'Ranking Complete',
@@ -420,36 +933,88 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   }
 
   resetRanking(): void {
-    // Reset to initial state without rankings
+    // Reset form state
+    this.updateFormState({
+      selectedJobTemplate: 'UNV Template',
+      searchQuery: '',
+      searchOperator: 'and',
+      selectedFile: null,
+      fileValidationError: ''
+    });
+
+    // Reset weight state
+    this.updateWeightState({
+      experience: DEFAULT_WEIGHTS.experience,
+      qualifications: DEFAULT_WEIGHTS.qualifications,
+      skills: DEFAULT_WEIGHTS.skills,
+      validationError: ''
+    });
+
+    // Reset component state
+    this.updateComponentState({
+      jobDescriptionContent: this.defaultJobDescriptionText,
+      hasRankings: false
+    });
+
+    // Reset table data without rankings
     this.initializeTableData();
-    this.jobDescriptionContent = 'Upload a job description file or select a template to see the extracted content here.';
-    this.selectedFile = null;
-    this.searchQuery = '';
-    this.searchOperator = 'and';
-    this.selectedJobTemplate = 'UNV Template';
-    
-    // Reset weights to defaults
-    this.weightExperience = 0.3;
-    this.weightQualifications = 0.3;
-    this.weightSkills = 0.4;
     this.validateWeights();
+
+    // Clear saved state when resetting completely
+    this.resumeService.clearShortlistState();
 
     this.showInfoMessage('Reset Complete', 'Ranking has been reset to initial state');
   }
 
-  // File handling methods
+  // Cancel upload functionality
+  cancelUpload(): void {
+    if (this.uploadSubscription && !this.uploadSubscription.closed) {
+      console.log('Cancelling upload...');
+      this.uploadSubscription.unsubscribe();
+      this.uploadSubscription = null;
+      this.updateUploadState({ 
+        isUploading: false, 
+        uploadProgress: 0, 
+        canCancel: false, 
+        progressText: '' 
+      });
+      this.updateComponentState({ isSubmitting: false });
+      this.showInfoMessage('Upload Cancelled', 'Job description upload has been cancelled');
+    }
+  }
+
+  // File handling methods with enhanced validation
   onFileSelect(event: any): void {
     const file = event.files[0];
-    if (file && this.validateFile(file)) {
-      this.selectedFile = file;
+    if (file) {
+      if (this.validateFile(file)) {
+        this.updateFormState({ 
+          selectedFile: file,
+          fileValidationError: ''
+        });
+        // Save state when file is selected
+        this.saveShortlistState();
+        this.showInfoMessage('File Selected', `Selected: ${file.name}`);
+      }
+      // Clear the file input to allow selecting the same file again
+      event.target.value = '';
     }
   }
 
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
     const files = event.dataTransfer?.files;
-    if (files && files.length > 0 && this.validateFile(files[0])) {
-      this.selectedFile = files[0];
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (this.validateFile(file)) {
+        this.updateFormState({ 
+          selectedFile: file,
+          fileValidationError: ''
+        });
+        // Save state when file is dropped
+        this.saveShortlistState();
+        this.showInfoMessage('File Dropped', `Selected: ${file.name}`);
+      }
     }
   }
 
@@ -462,20 +1027,54 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   }
 
   removeSelectedFile(): void {
-    this.selectedFile = null;
+    this.updateFormState({ 
+      selectedFile: null,
+      fileValidationError: ''
+    });
+    
+    // Clear any existing ranking results when file is removed
+    this.initializeTableData();
+    this.updateComponentState({ 
+      jobDescriptionContent: this.defaultJobDescriptionText,
+      hasRankings: false
+    });
+    // Save state when file is removed
+    this.saveShortlistState();
+    this.showInfoMessage('File Removed', 'Job description file has been removed');
   }
 
   private validateFile(file: File): boolean {
+    // Check file size
+    if (file.size === 0) {
+      const error = 'Empty file detected. Please select a valid file.';
+      this.updateFormState({ fileValidationError: error });
+      this.showErrorMessage('Invalid File', error);
+      return false;
+    }
+
     if (file.size > MAX_FILE_SIZE) {
-      this.showErrorMessage('File Size Error', 'File size must be less than 200MB');
+      const error = 'File size must be less than 200MB';
+      this.updateFormState({ fileValidationError: error });
+      this.showErrorMessage('File Size Error', error);
       return false;
     }
 
-    if (file.type !== ALLOWED_FILE_TYPE) {
-      this.showErrorMessage('File Type Error', 'Only PDF files are allowed');
+    // Check file extension
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_FILE_EXTENSIONS.includes(fileExtension)) {
+      const error = 'Only PDF and TXT files are allowed';
+      this.updateFormState({ fileValidationError: error });
+      this.showErrorMessage('File Type Error', error);
       return false;
     }
 
+    // Check MIME type (if available)
+    if (file.type && !ALLOWED_FILE_TYPES.includes(file.type)) {
+      console.warn('MIME type check failed, but proceeding based on extension:', file.type);
+    }
+
+    // Clear any previous validation errors
+    this.updateFormState({ fileValidationError: '' });
     return true;
   }
 

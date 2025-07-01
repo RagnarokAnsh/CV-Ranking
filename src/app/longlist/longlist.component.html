@@ -20,7 +20,7 @@
               <i class="pi pi-cloud-upload upload-icon"></i>
             </div>
             <h3 class="upload-title">Drag and drop file here</h3>
-            <p class="upload-subtitle">Limit 200MB • Only PDF</p>
+            <p class="upload-subtitle">Limit 10MB • Only PDF</p>
             
             <!-- Browse Files Button -->
             <p-fileUpload 
@@ -43,12 +43,17 @@
           <i class="pi pi-file-pdf file-icon"></i>
           <div class="file-info">
             <span class="file-label">{{ selectedFile.name }}</span>
+            <span class="file-size">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</span>
             <div class="upload-progress" *ngIf="isUploading">
               <p-progressBar [value]="uploadProgress" [showValue]="false"></p-progressBar>
-              <span class="progress-text">Processing your file...</span>
+              <span class="progress-text">Processing your file... (Click X to cancel)</span>
+            </div>
+            <div class="restored-indicator" *ngIf="isRestoredFile()">
+              <i class="pi pi-history"></i>
+              <span>Previously uploaded file</span>
             </div>
           </div>
-          <button type="button" class="remove-file-btn" (click)="removeSelectedFile()" [disabled]="isUploading">
+          <button type="button" class="remove-file-btn" (click)="removeSelectedFile()" [title]="isUploading ? 'Cancel upload' : 'Remove file'">
             <i class="pi pi-times"></i>
           </button>
         </div>
@@ -61,7 +66,7 @@
             label="Reset CVs" 
             class="action-button"
             (click)="resetCVs()"
-            [disabled]="isUploading">
+            [disabled]="isUploading || !originalApiData.length">
           </button>
         </div>
         

@@ -6,6 +6,11 @@
         <h2 class="section-title">
           <span class="title-first-word">Upload</span> Job Description (PDF or TXT)
         </h2>
+        <!-- Restored State Indicator -->
+        <!-- <div class="restored-state-indicator" *ngIf="hasRestoredState">
+          <i class="pi pi-history"></i>
+          <span>Previous session data restored</span>
+        </div> -->
       </div>
       
       <div class="upload-card">
@@ -14,23 +19,23 @@
              (dragover)="onDragOver($event)" 
              (dragleave)="onDragLeave($event)"
              (drop)="onFileDrop($event)"
-             [class.disabled]="isSubmitting">
+             [class.disabled]="isSubmitting || isUploadInProgress">
           <div class="upload-content">
             <div class="upload-icon-container">
               <i class="pi pi-cloud-upload upload-icon"></i>
             </div>
             <h3 class="upload-title">Drag and drop file here</h3>
-            <p class="upload-subtitle">Limit 200MB • Only PDF</p>
+            <p class="upload-subtitle">Limit 10MB • PDF or TXT files</p>
             
             <!-- Browse Files Button -->
             <p-fileUpload 
               mode="basic" 
               [multiple]="false"
-              accept=".pdf"
+              accept=".pdf,.txt"
               [maxFileSize]="200000000"
               (onSelect)="onFileSelect($event)"
               [auto]="false"
-              [disabled]="isSubmitting"
+              [disabled]="isSubmitting || isUploadInProgress"
               chooseLabel="Browse files"
               class="browse-button"
               styleClass="hide-file-label custom-blue-button"
@@ -41,13 +46,31 @@
         
         <!-- Selected File Display -->
         <div class="selected-file" *ngIf="selectedFile">
-          <i class="pi pi-file-pdf file-icon"></i>
+          <i class="pi" 
+             [class.pi-file-pdf]="selectedFile.name.toLowerCase().endsWith('.pdf')"
+             [class.pi-file]="selectedFile.name.toLowerCase().endsWith('.txt')"
+             [class.file-icon]="true"></i>
           <div class="file-info">
             <span class="file-label">{{ selectedFile.name }}</span>
+            <span class="file-size">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</span>
+            <span class="file-status" *ngIf="isRestoredFile()">
+              <i class="pi pi-history"></i>
+              Previously uploaded file
+            </span>
           </div>
-          <button type="button" class="remove-file-btn" (click)="removeSelectedFile()">
+          <button type="button" 
+                  class="remove-file-btn" 
+                  (click)="removeSelectedFile()"
+                  [disabled]="isUploadInProgress"
+                  pTooltip="Remove file">
             <i class="pi pi-times"></i>
           </button>
+        </div>
+
+        <!-- File Validation Error -->
+        <div class="file-validation-error" *ngIf="fileValidationError">
+          <i class="pi pi-exclamation-triangle"></i>
+          <span>{{ fileValidationError }}</span>
         </div>
         
         <!-- Reset Button Container -->
@@ -263,6 +286,30 @@
             (click)="resetRanking()">
           </button>
         </div>
+
+        <!-- Progress Bar Section -->
+        <div class="progress-section" *ngIf="isUploadInProgress">
+          <div class="progress-header">
+            <div class="progress-info">
+              <span class="progress-label">{{ uploadProgressText }}</span>
+              <span class="progress-percentage">{{ uploadProgress }}%</span>
+            </div>
+            <button 
+              *ngIf="canCancel"
+              type="button" 
+              class="cancel-upload-btn"
+              (click)="cancelUpload()"
+              pTooltip="Cancel Upload"
+              [disabled]="!canCancel">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+          <p-progressBar 
+            [value]="uploadProgress" 
+            [showValue]="false"
+            styleClass="upload-progress-bar">
+          </p-progressBar>
+        </div>
       </div>
     </div>
 
@@ -278,7 +325,7 @@
         <div class="jd-header">
           <h4 class="extracted-sections-title">Extracted Sections</h4>
           <button 
-            *ngIf="jobDescriptionContent !== 'Upload a job description file or select a template to see the extracted content here.'"
+            *ngIf="hasJobDescriptionContent"
             type="button" 
             class="expand-btn"
             (click)="showJobDescriptionDialog()"
@@ -287,11 +334,11 @@
           </button>
         </div>
         <div class="job-description-content">
-          <div *ngIf="jobDescriptionContent === 'Upload a job description file or select a template to see the extracted content here.'" 
+          <div *ngIf="!hasJobDescriptionContent" 
                class="placeholder-text">
             <p>{{ jobDescriptionContent }}</p>
           </div>
-          <div *ngIf="jobDescriptionContent !== 'Upload a job description file or select a template to see the extracted content here.'" 
+          <div *ngIf="hasJobDescriptionContent" 
                class="formatted-content">
             <pre>{{ jobDescriptionContent }}</pre>
           </div>

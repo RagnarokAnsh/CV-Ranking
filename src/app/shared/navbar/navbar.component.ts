@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -26,11 +27,13 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   sidebarItems: MenuItem[] = [];
   userMenuItems: MenuItem[] = [];
   currentRoute: string = '';
   sidebarCollapsed: boolean = false;
+  isMobile: boolean = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -38,9 +41,15 @@ export class NavbarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.checkScreenSize();
     this.initializeSidebarItems();
     this.initializeUserMenu();
     this.currentRoute = this.router.url;
+    
+    // On mobile, start with sidebar collapsed
+    if (this.isMobile) {
+      this.sidebarCollapsed = true;
+    }
     
     // Subscribe to user changes to update sidebar items
     this.authService.currentUser$.subscribe(user => {
@@ -53,7 +62,34 @@ export class NavbarComponent implements OnInit {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
         this.currentRoute = event.url;
+        // Auto-close sidebar on mobile after navigation
+        if (this.isMobile) {
+          this.sidebarCollapsed = true;
+        }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize() {
+    this.isMobile = window.innerWidth <= 767;
+    
+    // Auto-manage sidebar state based on screen size
+    if (this.isMobile && !this.sidebarCollapsed) {
+      // On mobile, start collapsed
+      this.sidebarCollapsed = true;
+    } else if (!this.isMobile && this.sidebarCollapsed) {
+      // On desktop, start expanded
+      this.sidebarCollapsed = false;
+    }
   }
 
   initializeSidebarItems() {
@@ -154,7 +190,9 @@ export class NavbarComponent implements OnInit {
   }
 
   logout() {
-    // Logout functionality
+    // Call the auth service logout method to clear authentication state
+    this.authService.logout();
+    // Navigate to login page
     this.router.navigate(['/login']);
   }
 
@@ -178,6 +216,13 @@ export class NavbarComponent implements OnInit {
 
   toggleSidebar(): void {
     this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  // Method to close sidebar when clicking outside on mobile
+  closeSidebarOnMobile(): void {
+    if (this.isMobile) {
+      this.sidebarCollapsed = true;
+    }
   }
 
   getCurrentUserName(): string {

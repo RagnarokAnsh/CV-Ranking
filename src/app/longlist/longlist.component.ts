@@ -189,6 +189,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   filteredApiData: ApiResumeData[] = [];
   pdfId: number | null = null;
   selectedFile: File | null = null;
+  uploadSubscription: any = null;
 
   // Dynamic filter options (populated from API data)
   dynamicNationalityOptions: FilterOption[] = [];
@@ -275,6 +276,12 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Cancel any ongoing upload
+    if (this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
+      this.uploadSubscription = null;
+    }
+    
     // Save state before component destruction to preserve user's work
     if (this.originalApiData.length > 0 && this.pdfId) {
       this.saveState();
@@ -311,6 +318,18 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicNationalityOptions = dynamicOptions.nationalities || [];
       this.dynamicQualificationOptions = dynamicOptions.qualifications || [];
       this.dynamicGenderOptions = dynamicOptions.genders || [];
+      
+      // Restore file information
+      const fileInfo = this.resumeService.getCurrentSelectedFileInfo();
+      if (fileInfo) {
+        // Create a mock file object to show in the UI
+        this.selectedFile = new File([], fileInfo.name, { type: 'application/pdf' });
+        // Store the original file size for display
+        Object.defineProperty(this.selectedFile, 'size', {
+          value: fileInfo.size,
+          writable: false
+        });
+      }
       
       // Restore filter state
       const savedFilterState = this.resumeService.getCurrentLonglistFilterState();
@@ -350,6 +369,14 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.updateFilterOptions();
   }
 
+  // Check if the current file is restored from session
+  isRestoredFile(): boolean {
+    return this.selectedFile !== null && 
+           this.originalApiData.length > 0 && 
+           !this.isUploading &&
+           this.resumeService.getCurrentSelectedFileInfo() !== null;
+  }
+
   private restoreFilterState(savedState: any): void {
     this.filterState = { ...savedState };
   }
@@ -386,13 +413,28 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   private validateFile(file: File): boolean {
+    // Check file size
     if (file.size > MAX_FILE_SIZE) {
       this.showErrorMessage('File Size Error', 'File size must be less than 200MB');
       return false;
     }
 
+    // Check file type by MIME type
     if (file.type !== ALLOWED_FILE_TYPE) {
-      this.showErrorMessage('File Type Error', 'Only PDF files are allowed');
+      this.showErrorMessage('File Type Error', 'Only PDF files are allowed. Please select a valid PDF file.');
+      return false;
+    }
+
+    // Additional check by file extension
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.pdf')) {
+      this.showErrorMessage('File Type Error', 'File must have a .pdf extension. Please select a valid PDF file.');
+      return false;
+    }
+
+    // Check if file is empty
+    if (file.size === 0) {
+      this.showErrorMessage('File Error', 'Selected file is empty. Please select a valid PDF file.');
       return false;
     }
 
@@ -414,20 +456,27 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.setLoadingState(true, 0);
     
     // Simulate progress since API doesn't provide real progress
-    this.simulateProgress();
+    const progressInterval = this.simulateProgress();
     
-    this.resumeService.uploadResume(file)
+    this.uploadSubscription = this.resumeService.uploadResume(file)
       .pipe(
-        finalize(() => this.setLoadingState(false, 100)),
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (response) => this.handleUploadSuccess(response),
-        error: (error) => this.handleUploadError(error)
+        next: (response) => {
+          clearInterval(progressInterval);
+          this.uploadSubscription = null;
+          this.handleUploadSuccess(response);
+        },
+        error: (error) => {
+          clearInterval(progressInterval);
+          this.uploadSubscription = null;
+          this.handleUploadError(error);
+        }
       });
   }
 
-  private simulateProgress(): void {
+  private simulateProgress(): number {
     let progress = 0;
     const interval = setInterval(() => {
       progress += Math.random() * 20; // Random increment
@@ -440,6 +489,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
     
     // Store interval so we can clear it if component is destroyed
     setTimeout(() => clearInterval(interval), 10000); // Clear after 10 seconds max
+    
+    return interval as any; // Return interval ID for manual clearing
   }
 
   onFileSelect(event: any): void {
@@ -466,6 +517,20 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   removeSelectedFile(): void {
+    // Cancel ongoing upload if any
+    if (this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
+      this.uploadSubscription = null;
+      this.showInfoMessage('Upload Cancelled', 'File upload has been cancelled');
+    }
+    
+    // Reset loading state
+    this.setLoadingState(false, 0);
+    
+    // Clear existing data and reset table
+    this.clearExistingData();
+    
+    // Remove selected file
     this.selectedFile = null;
   }
 
@@ -694,6 +759,9 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private handleUploadSuccess(response: ApiUploadResponse): void {
     console.log('Upload successful:', response);
     
+    // Complete progress bar
+    this.setLoadingState(true, 100);
+    
     this.originalApiData = response.data || [];
     this.filteredApiData = [...this.originalApiData];
     this.pdfId = response.pdf_id;
@@ -707,16 +775,31 @@ export class LonglistComponent implements OnInit, OnDestroy {
       qualifications: this.dynamicQualificationOptions,
       genders: this.dynamicGenderOptions
     };
-    this.resumeService.setLonglistData(this.originalApiData, this.pdfId, dynamicOptions);
+    
+    // Save file info
+    const fileInfo = this.selectedFile ? {
+      name: this.selectedFile.name,
+      size: this.selectedFile.size
+    } : undefined;
+    
+    this.resumeService.setLonglistData(this.originalApiData, this.pdfId, dynamicOptions, fileInfo);
     
     this.showSuccessMessage(
       'Upload Successful',
       `${response.rows} CVs processed successfully`
     );
+    
+    // Hide progress bar after a short delay to show completion
+    setTimeout(() => {
+      this.setLoadingState(false, 0);
+    }, 1000);
   }
 
   private handleUploadError(error: any): void {
     console.error('Upload failed:', error);
+    
+    // Complete progress bar to show it's finished (even though it failed)
+    this.setLoadingState(true, 100);
     
     let errorMessage = 'An error occurred during upload';
     if (error?.error?.message) {
@@ -726,6 +809,13 @@ export class LonglistComponent implements OnInit, OnDestroy {
     }
     
     this.showErrorMessage('Upload Failed', errorMessage);
+    
+    // Hide progress bar after a short delay to show completion
+    setTimeout(() => {
+      this.setLoadingState(false, 0);
+      // Remove the selected file on error
+      this.selectedFile = null;
+    }, 1500);
   }
 
   private updateFilterOptions(): void {

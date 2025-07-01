@@ -25,6 +25,13 @@
     </nav>
   </div>
 
+  <!-- Mobile Overlay -->
+  <div 
+    class="mobile-overlay" 
+    *ngIf="isMobile && !sidebarCollapsed"
+    (click)="closeSidebarOnMobile()">
+  </div>
+
   <!-- Main Content Area -->
   <div class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
     <!-- Top Header/Navbar -->
