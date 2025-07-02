@@ -635,25 +635,17 @@ html, body {
 }
 
 
-/* ===== UPLOAD SECTION STYLING - BOTH SHORTLIST & LONGLIST ===== */
+/* ===== UPLOAD SECTION STYLING - SHARED COMPONENTS ===== */
 .upload-card {
-  // background: #f6f6f6;
-  // padding: 2rem;
-  
   .upload-drop-zone {
     background-color: #F6f6f6;
-    // border: 2px dashed #E0E0E0;
     border-radius: var(--border-radius);
     padding: 3rem 2rem;
     text-align: center;
     transition: all 0.3s ease;
     margin-bottom: 1.5rem;
     
-    &:hover {
-      border-color: var(--primary-blue);
-      background-color: #F8FAFE;
-    }
-    
+    &:hover,
     &.drag-over {
       border-color: var(--primary-blue);
       background-color: #F8FAFE;
@@ -704,48 +696,12 @@ html, body {
   .browse-button {
     margin-top: 1rem;
   }
-
-
-
-
   
   .upload-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     margin-top: 1rem;
-  }
-  
-
-  
-  .upload-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    text-align: center;
-    
-    .loading-text {
-      margin-top: 1rem;
-      
-      .loading-title {
-        color: var(--primary-dark);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-semibold);
-        font-size: 1rem;
-        margin: 0 0 0.5rem 0;
-      }
-      
-      .loading-subtitle {
-        color: var(--medium-gray);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight-regular);
-        font-size: 0.875rem;
-        margin: 0;
-        line-height: 1.4;
-      }
-    }
   }
   
   /* Selected File Display */
@@ -776,18 +732,6 @@ html, body {
         font-weight: var(--font-weight-semibold);
         font-size: 0.9rem;
         word-break: break-word;
-      }
-      
-      .upload-progress {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        
-        .progress-text {
-          color: var(--medium-gray);
-          font-size: 0.8rem;
-          font-weight: var(--font-weight-medium);
-        }
       }
     }
     
@@ -826,270 +770,159 @@ html, body {
   }
 }
 
-/* ===== UPLOAD SECTION RESPONSIVE MEDIA QUERIES ===== */
-/* Tablet and larger screens */
+/* ===== UPLOAD SECTION RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
   .upload-card {
     .upload-drop-zone {
-      padding: 2.5rem 1.5rem !important;
+      padding: 2.5rem 1.5rem;
     }
     
     .upload-icon-container {
-      width: 56px !important;
-      height: 56px !important;
+      width: 56px;
+      height: 56px;
       
       .upload-icon {
-        font-size: 1.5rem !important;
+        font-size: 1.5rem;
       }
     }
     
     .upload-title {
-      font-size: 1rem !important;
+      font-size: 1rem;
     }
     
     .upload-subtitle {
-      font-size: 0.8rem !important;
+      font-size: 0.8rem;
     }
-    
-
   }
 }
 
-/* Mobile landscape and small tablets */
 @media (max-width: 768px) {
   .upload-card {
     .upload-drop-zone {
-      padding: 2rem 1rem !important;
-      margin-bottom: 1rem !important;
+      padding: 2rem 1rem;
+      margin-bottom: 1rem;
     }
     
     .upload-content {
-      gap: 0.5rem !important;
+      gap: 0.5rem;
     }
     
     .upload-icon-container {
-      width: 48px !important;
-      height: 48px !important;
-      margin-bottom: 0.25rem !important;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.25rem;
       
       .upload-icon {
-        font-size: 1.25rem !important;
+        font-size: 1.25rem;
       }
     }
     
     .upload-title {
-      font-size: 0.9rem !important;
-      text-align: center !important;
+      font-size: 0.9rem;
+      text-align: center;
     }
     
     .upload-subtitle {
-      font-size: 0.75rem !important;
-      text-align: center !important;
+      font-size: 0.75rem;
+      text-align: center;
     }
     
     .browse-button {
-      margin-top: 0.75rem !important;
+      margin-top: 0.75rem;
     }
     
     .upload-actions {
-      justify-content: center !important;
-      margin-top: 0.75rem !important;
-    }
-    
-    .upload-loading {
-      padding: 1.5rem !important;
-      
-      .loading-text {
-        .loading-title {
-          font-size: 0.9rem !important;
-        }
-        
-        .loading-subtitle {
-          font-size: 0.8rem !important;
-        }
-      }
+      justify-content: center;
+      margin-top: 0.75rem;
     }
     
     .selected-file {
-      padding: 0.75rem !important;
-      gap: 0.5rem !important;
+      padding: 0.75rem;
+      gap: 0.5rem;
       
-      .file-info {
-        .file-label {
-          font-size: 0.8rem !important;
-        }
-        
-        .upload-progress {
-          .progress-text {
-            font-size: 0.7rem !important;
-          }
-        }
+      .file-info .file-label {
+        font-size: 0.8rem;
       }
       
       .remove-file-btn {
-        width: 24px !important;
-        height: 24px !important;
+        width: 24px;
+        height: 24px;
         
         i {
-          font-size: 0.7rem !important;
+          font-size: 0.7rem;
         }
       }
     }
   }
 }
 
-/* Mobile portrait */
 @media (max-width: 480px) {
   .upload-card {
     .upload-drop-zone {
-      padding: 1.5rem 0.75rem !important;
-      border-radius: 6px !important;
+      padding: 1.5rem 0.75rem;
+      border-radius: 6px;
     }
     
     .upload-content {
-      gap: 0.4rem !important;
+      gap: 0.4rem;
     }
     
     .upload-icon-container {
-      width: 40px !important;
-      height: 40px !important;
-      margin-bottom: 0.25rem !important;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 0.25rem;
       
       .upload-icon {
-        font-size: 1rem !important;
+        font-size: 1rem;
       }
     }
     
     .upload-title {
-      font-size: 0.8rem !important;
-      line-height: 1.2 !important;
+      font-size: 0.8rem;
+      line-height: 1.2;
     }
     
     .upload-subtitle {
-      font-size: 0.7rem !important;
-      line-height: 1.2 !important;
+      font-size: 0.7rem;
+      line-height: 1.2;
     }
     
     .browse-button {
-      margin-top: 0.5rem !important;
+      margin-top: 0.5rem;
     }
     
     .upload-actions {
-      margin-top: 0.5rem !important;
-    }
-    
-    .upload-loading {
-      padding: 1rem !important;
-      
-      .loading-text {
-        margin-top: 0.75rem !important;
-        
-        .loading-title {
-          font-size: 0.8rem !important;
-          margin: 0 0 0.25rem 0 !important;
-        }
-        
-        .loading-subtitle {
-          font-size: 0.7rem !important;
-          line-height: 1.3 !important;
-        }
-      }
+      margin-top: 0.5rem;
     }
     
     .selected-file {
-      padding: 0.5rem !important;
-      gap: 0.4rem !important;
-      margin-top: 0.75rem !important;
+      padding: 0.5rem;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
       
       .file-icon {
-        font-size: 1rem !important;
-        min-width: 16px !important;
+        font-size: 1rem;
+        min-width: 16px;
       }
       
-      .file-info {
-        .file-label {
-          font-size: 0.7rem !important;
-          line-height: 1.2 !important;
-        }
-        
-        .upload-progress {
-          .progress-text {
-            font-size: 0.65rem !important;
-          }
-        }
+      .file-info .file-label {
+        font-size: 0.7rem;
+        line-height: 1.2;
       }
       
       .remove-file-btn {
-        width: 20px !important;
-        height: 20px !important;
+        width: 20px;
+        height: 20px;
         
         i {
-          font-size: 0.6rem !important;
+          font-size: 0.6rem;
         }
       }
     }
   }
 }
 
-/* Extra small devices */
-@media (max-width: 360px) {
-  .upload-card {
-    .upload-drop-zone {
-      padding: 1rem 0.5rem !important;
-    }
-    
-    .upload-icon-container {
-      width: 36px !important;
-      height: 36px !important;
-      
-      .upload-icon {
-        font-size: 0.9rem !important;
-      }
-    }
-    
-    .upload-title {
-      font-size: 0.75rem !important;
-    }
-    
-    .upload-subtitle {
-      font-size: 0.65rem !important;
-    }
-    
-    .selected-file {
-      padding: 0.4rem !important;
-      gap: 0.3rem !important;
-      
-      .file-icon {
-        font-size: 0.9rem !important;
-        min-width: 14px !important;
-      }
-      
-      .file-info {
-        .file-label {
-          font-size: 0.65rem !important;
-        }
-        
-        .upload-progress {
-          .progress-text {
-            font-size: 0.6rem !important;
-          }
-        }
-      }
-      
-      .remove-file-btn {
-        width: 18px !important;
-        height: 18px !important;
-        
-        i {
-          font-size: 0.55rem !important;
-        }
-      }
-    }
-  }
-}
-
-/* ===== CV TABLE STYLES (LONGLIST & SHORTLIST) ===== */
-/* Global CV Table Styling - Figma Design Implementation */
+/* ===== CV TABLE STYLES - SHARED COMPONENTS ===== */
 .cv-table {
   background: transparent !important;
   border: none !important;
@@ -1108,7 +941,7 @@ html, body {
     background: transparent !important;
   }
   
-  /* Header Row - Primary Dark Background */
+  /* Header Row */
   .p-datatable-thead > tr > th {
     background-color: var(--primary-dark) !important;
     color: var(--white) !important;
@@ -1119,10 +952,10 @@ html, body {
     text-align: left;
     border: none;
     
-           &:first-child {
-         border-top-left-radius: var(--border-radius-table);
-         border-bottom-left-radius: var(--border-radius-table);
-       }
+    &:first-child {
+      border-top-left-radius: var(--border-radius-table);
+      border-bottom-left-radius: var(--border-radius-table);
+    }
     
     &:last-child {
       border-top-right-radius: var(--border-radius-table);
@@ -1130,32 +963,32 @@ html, body {
     }
   }
   
-  /* Data Rows - Light Gray Background */
+  /* Data Rows */
   .p-datatable-tbody > tr {
     background-color: #f6f6f6 !important;
     border-radius: var(--border-radius-table);
     margin-bottom: 0.75rem;
     transition: all 0.3s ease;
     
-         td {
-       background-color: #f6f6f6 !important;
-       color: var(--primary-dark) !important;
-       font-family: var(--font-family);
-       font-weight: var(--font-weight-medium);
-       font-size: 0.9rem;
-       padding: 1rem 1.5rem;
-       border: none;
-       
-       &:first-child {
-         border-top-left-radius: var(--border-radius-table);
-         border-bottom-left-radius: var(--border-radius-table);
-       }
-       
-       &:last-child {
-         border-top-right-radius: var(--border-radius-table);
-         border-bottom-right-radius: var(--border-radius-table);
-       }
-     }
+    td {
+      background-color: #f6f6f6 !important;
+      color: var(--primary-dark) !important;
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      border: none;
+      
+      &:first-child {
+        border-top-left-radius: var(--border-radius-table);
+        border-bottom-left-radius: var(--border-radius-table);
+      }
+      
+      &:last-child {
+        border-top-right-radius: var(--border-radius-table);
+        border-bottom-right-radius: var(--border-radius-table);
+      }
+    }
     
     /* Hover Effect */
     &:hover {
@@ -1171,108 +1004,96 @@ html, body {
   }
 }
 
-/* CV Table Paginator Styling - Figma Minimal Design */
-.cv-table {
-  .p-paginator {
-    background: transparent !important;
-    border: none !important;
-    padding: 2rem 0 1rem 0 !important;
-    margin-top: 1rem !important;
-    justify-content: center !important;
+/* CV Table Paginator Styling */
+.cv-table .p-paginator {
+  background: transparent !important;
+  border: none !important;
+  padding: 2rem 0 1rem 0 !important;
+  margin-top: 1rem !important;
+  justify-content: center !important;
+  
+  /* Page Numbers */
+  .p-paginator-pages {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
     
-    /* Page Numbers - Clean Figma Style */
-    .p-paginator-pages {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      
-      .p-paginator-page {
-        background: transparent !important;
-        border: none !important;
-        color: var(--medium-gray) !important;
-        width: 32px !important;
-        height: 32px !important;
-        border-radius: var(--border-radius-small) !important;
-        font-family: var(--font-family) !important;
-        font-weight: var(--font-weight-medium) !important;
-        font-size: 0.85rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transition: all 0.2s ease !important;
-        
-        &:hover {
-          background: var(--primary-blue-light) !important;
-          color: var(--primary-dark) !important;
-        }
-        
-        &.p-highlight {
-          background: var(--primary-dark) !important;
-          color: var(--white) !important;
-          font-weight: var(--font-weight-semibold) !important;
-        }
-      }
-    }
-    
-    /* Navigation Buttons - Figma Arrow Style */
-    .p-paginator-first,
-    .p-paginator-prev,
-    .p-paginator-next,
-    .p-paginator-last {
+    .p-paginator-page {
       background: transparent !important;
       border: none !important;
       color: var(--medium-gray) !important;
       width: 32px !important;
       height: 32px !important;
       border-radius: var(--border-radius-small) !important;
-      margin: 0 0.5rem !important;
+      font-family: var(--font-family) !important;
+      font-weight: var(--font-weight-medium) !important;
+      font-size: 0.85rem !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       transition: all 0.2s ease !important;
       
-      &:hover:not(:disabled) {
+      &:hover {
         background: var(--primary-blue-light) !important;
         color: var(--primary-dark) !important;
       }
       
-      &:disabled {
-        background: transparent !important;
-        color: var(--lightest-gray) !important;
-        cursor: not-allowed !important;
-      }
-      
-      .p-paginator-icon {
-        font-size: 0.75rem !important;
+      &.p-highlight {
+        background: var(--primary-dark) !important;
+        color: var(--white) !important;
+        font-weight: var(--font-weight-semibold) !important;
       }
     }
+  }
+  
+  /* Navigation Buttons */
+  .p-paginator-prev,
+  .p-paginator-next {
+    background: transparent !important;
+    border: none !important;
+    color: var(--medium-gray) !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: var(--border-radius-small) !important;
+    margin: 0 0.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
     
-         /* Hide dropdown for minimal design but show current page report */
-     .p-dropdown {
-       display: none !important;
-     }
-     
-     /* Current page report - Descriptive text */
-     .p-paginator-current {
-       color: var(--medium-gray) !important;
-       font-family: var(--font-family) !important;
-       font-weight: var(--font-weight-regular) !important;
-       font-size: 0.85rem !important;
-       margin: 0 1rem !important;
-       order: -1; /* Place before pagination controls */
-     }
-    
-    /* Hide first/last buttons for cleaner look */
-    .p-paginator-first,
-    .p-paginator-last {
-      display: none !important;
+    &:hover:not(:disabled) {
+      background: var(--primary-blue-light) !important;
+      color: var(--primary-dark) !important;
     }
     
-    /* Style the left/right container */
-    .p-paginator-left,
-    .p-paginator-right {
-      display: none !important;
+    &:disabled {
+      background: transparent !important;
+      color: var(--lightest-gray) !important;
+      cursor: not-allowed !important;
     }
+    
+    .p-paginator-icon {
+      font-size: 0.75rem !important;
+    }
+  }
+  
+  /* Current page report */
+  .p-paginator-current {
+    color: var(--medium-gray) !important;
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-regular) !important;
+    font-size: 0.85rem !important;
+    margin: 0 1rem !important;
+    order: -1;
+  }
+  
+  /* Hide unnecessary elements */
+  .p-dropdown,
+  .p-paginator-first,
+  .p-paginator-last,
+  .p-paginator-left,
+  .p-paginator-right {
+    display: none !important;
   }
 }
 
@@ -1362,7 +1183,6 @@ html, body {
 .shadow-medium { box-shadow: var(--shadow-medium) !important; }
 
 /* ===== GLOBAL ACTION BUTTONS ===== */
-/* Reusable button styles for filter actions, reset buttons, etc. */
 .action-button {
   background-color: var(--primary-dark) !important;
   border-color: var(--primary-dark) !important;
@@ -1375,14 +1195,7 @@ html, body {
   transition: all 0.3s ease !important;
   min-width: 150px;
   
-  &:hover:not(:disabled) {
-    background-color: var(--primary-blue) !important;
-    border-color: var(--primary-blue) !important;
-    color: var(--white) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
-  }
-  
+  &:hover:not(:disabled),
   &:enabled:hover {
     background-color: var(--primary-blue) !important;
     border-color: var(--primary-blue) !important;
@@ -1398,7 +1211,6 @@ html, body {
   }
 }
 
-/* Large Action Buttons for main actions */
 .action-button-large {
   @extend .action-button;
   padding: 0.875rem 2rem !important;
@@ -1406,7 +1218,6 @@ html, body {
   font-size: 1rem !important;
 }
 
-/* Action Button Container */
 .action-buttons-container {
   display: flex;
   justify-content: center;
@@ -1472,9 +1283,7 @@ html, body {
   }
 }
 
-/* ===== NUCLEAR CSS OVERRIDES - MUST BE LAST ===== */
-/* Ultra-aggressive overrides to force blue button colors and white text */
-
+/* ===== PRIMENG FILE UPLOAD BUTTON OVERRIDES ===== */
 /* Base button styling - covering all possible selectors */
 .p-fileupload-choose,
 .p-fileupload-choose.p-button,
@@ -1499,7 +1308,6 @@ button.p-fileupload-choose,
 [class*="p-fileupload-choose"] {
   background: #5B92E5 !important;
   background-color: #5B92E5 !important;
-  // background-image: linear-gradient(135deg, #5B92E5 0%, #4A7BC8 100%) !important;
   border: 1px solid #5B92E5 !important;
   border-color: #5B92E5 !important;
   color: white !important;
@@ -1558,7 +1366,6 @@ button.p-fileupload-choose:hover,
 [class*="p-fileupload-choose"]:hover {
   background: #4A7BC8 !important;
   background-color: #4A7BC8 !important;
-  // background-image: linear-gradient(135deg, #4A7BC8 0%, #3968B0 100%) !important;
   border-color: #4A7BC8 !important;
   color: white !important;
   transform: translateY(-1px) !important;
@@ -1598,7 +1405,6 @@ button.p-fileupload-choose:hover .p-button-label,
 .p-fileupload-choose.p-button.p-component:active {
   background: #4A7BC8 !important;
   background-color: #4A7BC8 !important;
-  // background-image: linear-gradient(135deg, #4A7BC8 0%, #3968B0 100%) !important;
   border-color: #4A7BC8 !important;
   color: white !important;
   outline: none !important;
@@ -1617,102 +1423,29 @@ button.p-fileupload-choose:hover .p-button-label,
   font-weight: 500 !important;
 }
 
-/* ===== NUCLEAR FILE LABEL HIDING - MUST BE LAST ===== */
-/* Ultra-aggressive overrides to hide all file upload labels */
-
-/* Hide all possible file label elements globally */
+/* ===== HIDE FILE UPLOAD LABELS ===== */
 .p-fileupload-basic .p-fileupload-filename,
 .p-fileupload-basic .p-fileupload-file-details,
 .p-fileupload-basic .p-fileupload-file-info,
 .p-fileupload-basic .p-fileupload-file-name,
 .p-fileupload.p-fileupload-basic .p-fileupload-filename,
-.p-fileupload.p-fileupload-basic .p-fileupload-file-details,
-.p-fileupload.p-fileupload-basic .p-fileupload-file-info,
-.p-fileupload.p-fileupload-basic .p-fileupload-file-name,
 p-fileupload .p-fileupload-filename,
-p-fileupload .p-fileupload-file-details,
-p-fileupload .p-fileupload-file-info,
-p-fileupload .p-fileupload-file-name,
-p-fileupload[mode="basic"] .p-fileupload-filename,
-p-fileupload[mode="basic"] .p-fileupload-file-details,
-p-fileupload[mode="basic"] .p-fileupload-file-info,
-p-fileupload[mode="basic"] .p-fileupload-file-name {
+p-fileupload[mode="basic"] .p-fileupload-filename {
   display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
 }
 
-/* Hide text spans that are not button related */
 .p-fileupload-basic span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
 .p-fileupload.p-fileupload-basic span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
 p-fileupload span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
-p-fileupload[mode="basic"] span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]) {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
-}
-
-/* Hide spans after buttons */
 .p-fileupload-basic .p-button ~ span,
 .p-fileupload-basic .p-fileupload-choose ~ span,
-.p-fileupload.p-fileupload-basic .p-button ~ span,
-.p-fileupload.p-fileupload-basic .p-fileupload-choose ~ span,
 p-fileupload .p-button ~ span,
 p-fileupload .p-fileupload-choose ~ span,
-p-fileupload[mode="basic"] .p-button ~ span,
-p-fileupload[mode="basic"] .p-fileupload-choose ~ span {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
-}
-
-/* Hide file input siblings */
 .p-fileupload-basic input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
-.p-fileupload.p-fileupload-basic input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
-p-fileupload input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
-p-fileupload[mode="basic"] input[type="file"] ~ span:not(.p-button):not([class*="p-button"]) {
+p-fileupload input[type="file"] ~ span:not(.p-button):not([class*="p-button"]) {
   display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
 }
 
-/* Target any text content that shows file selection status */
-.p-fileupload-basic *:not(.p-button):not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]) {
-  &:contains("no file chosen"),
-  &:contains("file chosen"),
-  &:contains("files selected") {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    position: absolute !important;
-    left: -9999px !important;
-  }
-}
-
-/* Hide any loose text nodes that might contain file info */
 .p-fileupload-basic,
 .p-fileupload.p-fileupload-basic,
 p-fileupload,
@@ -1720,10 +1453,7 @@ p-fileupload[mode="basic"] {
   font-size: 0 !important;
   
   .p-button,
-  .p-fileupload-choose {
-    font-size: 16px !important;
-  }
-  
+  .p-fileupload-choose,
   .p-button-label {
     font-size: 16px !important;
   }

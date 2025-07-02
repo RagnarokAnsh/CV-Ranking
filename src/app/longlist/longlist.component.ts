@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -173,6 +173,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly resumeService = inject(ResumeService);
   private readonly router = inject(Router);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   // Reactive subjects
   private readonly destroy$ = new Subject<void>();
@@ -285,7 +286,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
     // Save state before component destruction to preserve user's work
     if (this.originalApiData.length > 0 && this.pdfId) {
       this.saveState();
-      console.log('State preserved on component destroy');
     }
     
     this.destroy$.next();
@@ -306,8 +306,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   private restoreState(): void {
     try {
-      console.log('=== RESTORING LONGLIST STATE ===');
-      
       // Restore data
       this.originalApiData = this.resumeService.getCurrentOriginalApiData();
       this.filteredApiData = this.resumeService.getCurrentFilteredApiData();
@@ -339,14 +337,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
         this.resetFilterState();
       }
       
-      console.log('State restored successfully:', {
-        originalDataCount: this.originalApiData.length,
-        filteredDataCount: this.filteredApiData.length,
-        pdfId: this.pdfId,
-        hasFilters: !!savedFilterState,
-        filterState: savedFilterState
-      });
-      
       const hasFilters = this.resumeService.hasLonglistFilters();
       const statusMessage = hasFilters 
         ? `Restored ${this.originalApiData.length} CVs with ${this.filteredApiData.length} shown after applied filters`
@@ -355,7 +345,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.showInfoMessage('Welcome Back!', statusMessage);
       
     } catch (error) {
-      console.error('Error restoring state:', error);
       this.showErrorMessage('Restoration Failed', 'Failed to restore previous data');
       this.initializeEmptyState();
     }
@@ -385,20 +374,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
     if (this.originalApiData.length > 0 && this.pdfId) {
       // Save current filter state
       this.resumeService.setLonglistFilteredData(this.filteredApiData, this.filterState);
-      
-      // Debug logging for state preservation
-      console.log('State saved:', {
-        originalCount: this.originalApiData.length,
-        filteredCount: this.filteredApiData.length,
-        appliedFilters: {
-          nationality: this.selectedNationality,
-          minExperience: this.selectedMinExperience,
-          maxExperience: this.selectedMaxExperience,
-          gender: this.selectedGender,
-          qualification: this.selectedQualification,
-          maxQualification: this.selectedMaxQualification
-        }
-      });
     }
   }
 
@@ -447,12 +422,16 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.pdfId = null;
     this.resetFilterState();
     this.updateFilterOptions();
-    
-    // Clear state from service
     this.resumeService.clearLonglistData();
   }
 
   private uploadFile(file: File): void {
+    // Check authentication before starting upload
+    if (!this.authService.isAuthenticated()) {
+      this.showErrorMessage('Authentication Required', 'Please login to upload files.');
+      return;
+    }
+    
     this.setLoadingState(true, 0);
     
     // Simulate progress since API doesn't provide real progress
@@ -537,10 +516,18 @@ export class LonglistComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     if (this.originalApiData.length === 0) {
       this.filteredApiData = [];
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
       return;
     }
 
-    this.filteredApiData = this.originalApiData.filter(cv => this.matchesFilters(cv));
+    // Create a new array reference to ensure change detection
+    const filtered = this.originalApiData.filter(cv => this.matchesFilters(cv));
+    this.filteredApiData = filtered.map(item => ({ ...item }));
+    
+    // Force change detection
+    this.changeDetectorRef.markForCheck();
+    this.changeDetectorRef.detectChanges();
   }
 
   private matchesFilters(cv: ApiResumeData): boolean {
@@ -645,53 +632,16 @@ export class LonglistComponent implements OnInit, OnDestroy {
       data: this.filteredApiData
     };
 
-    // Detailed logging for debugging
-    console.log('=== MOVE TO SHORTLIST - DETAILED LOG ===');
-    console.log('PDF ID:', this.pdfId);
-    console.log('Selected Min Experience:', this.selectedMinExperience, '→ Parsed:', parseInt(this.selectedMinExperience) || 0);
-    console.log('Selected Min Degree:', this.selectedQualification);
-    console.log('Original API Data Count:', this.originalApiData.length);
-    console.log('Filtered API Data Count:', this.filteredApiData.length);
-    console.log('Applied Filters:', {
-      nationality: this.selectedNationality,
-      minExperience: this.selectedMinExperience,
-      maxExperience: this.selectedMaxExperience,
-      gender: this.selectedGender,
-      qualification: this.selectedQualification,
-      maxQualification: this.selectedMaxQualification
-    });
-    console.log('Sample of filtered data (first 3 records):');
-    console.log(JSON.stringify(this.filteredApiData.slice(0, 3), null, 2));
-    console.log('Complete request payload being sent to API:');
-    console.log(JSON.stringify(request, null, 2));
-    console.log('API Endpoint: /api/resume/save-filtered (POST)');
-    console.log('========================================');
-
     this.resumeService.saveFilteredResumes(request)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('=== API RESPONSE ===');
-          console.log('Save filtered response:', response);
-          console.log('===================');
-          
           // Save current state before navigation to preserve it for return
           this.saveState();
-          console.log('State preserved before navigation to shortlist');
-          
-          this.showSuccessMessage('Success', 'Filtered data saved successfully - State preserved for return');
+          this.showSuccessMessage('Success', 'Filtered data saved successfully');
           this.router.navigate(['/shortlist']);
         },
         error: (error) => {
-          console.error('=== API ERROR ===');
-          console.error('Error saving filtered data:', error);
-          console.error('Error details:', {
-            status: error.status,
-            statusText: error.statusText,
-            message: error.message,
-            error: error.error
-          });
-          console.error('================');
           this.showErrorMessage('Error', 'Failed to save filtered data');
         }
       });
@@ -757,63 +707,161 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   private handleUploadSuccess(response: ApiUploadResponse): void {
-    console.log('Upload successful:', response);
-    
     // Complete progress bar
     this.setLoadingState(true, 100);
     
-    this.originalApiData = response.data || [];
-    this.filteredApiData = [...this.originalApiData];
-    this.pdfId = response.pdf_id;
+    // Validate response data
+    if (!response.data || !Array.isArray(response.data)) {
+      this.handleUploadError({ message: 'Invalid response data from server' });
+      return;
+    }
     
-    this.updateFilterOptions();
-    this.applyFilters();
+    try {
+      // Step 1: Clear existing data completely
+      this.originalApiData = [];
+      this.filteredApiData = [];
+      this.changeDetectorRef.detectChanges();
+      
+      // Step 2: Create deep copies with new references
+      const originalDataCopy = response.data.map(item => ({ ...item }));
+      const filteredDataCopy = response.data.map(item => ({ ...item }));
+      
+      // Step 3: Set data with proper timing
+      this.originalApiData = originalDataCopy;
+      this.filteredApiData = filteredDataCopy;
+      this.pdfId = response.pdf_id;
+      
+      // Step 4: Force immediate change detection
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
+      
+      // Step 5: Update filter options
+      this.updateFilterOptionsFromResponseData(response.data);
+      
+      // Step 6: Force change detection after filter options
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
+      
+      // Step 7: Save state to service
+      const dynamicOptions = {
+        nationalities: this.dynamicNationalityOptions,
+        qualifications: this.dynamicQualificationOptions,
+        genders: this.dynamicGenderOptions
+      };
+      
+      const fileInfo = this.selectedFile ? {
+        name: this.selectedFile.name,
+        size: this.selectedFile.size
+      } : undefined;
+      
+      this.resumeService.setLonglistData(response.data, this.pdfId, dynamicOptions, fileInfo);
+      
+      this.showSuccessMessage(
+        'Upload Successful',
+        `${response.rows} CVs processed successfully`
+      );
+      
+      // Step 8: Multiple change detection cycles with delays
+      setTimeout(() => {
+        this.changeDetectorRef.markForCheck();
+        this.changeDetectorRef.detectChanges();
+      }, 50);
+      
+      setTimeout(() => {
+        this.changeDetectorRef.markForCheck();
+        this.changeDetectorRef.detectChanges();
+      }, 150);
+      
+      setTimeout(() => {
+        this.changeDetectorRef.markForCheck();
+        this.changeDetectorRef.detectChanges();
+      }, 300);
+      
+      // Step 9: Force table refresh after all changes
+      setTimeout(() => {
+        this.forceTableRefresh();
+      }, 400);
+      
+      // Step 10: Ensure table is properly initialized
+      setTimeout(() => {
+        this.ensureTableInitialization();
+      }, 500);
+      
+      // Step 12: Handle PrimeNG table issues
+      setTimeout(() => {
+        this.handlePrimeNGTableIssues();
+      }, 700);
+      
+      // Step 13: Ensure component state synchronization
+      setTimeout(() => {
+        this.ensureComponentStateSync();
+      }, 800);
+      
+      // Step 15: Handle zone.js issues
+      setTimeout(() => {
+        this.handleZoneIssues();
+      }, 1000);
+      
+    } catch (error) {
+      this.handleUploadError({ message: 'Error processing server response' });
+      return;
+    }
     
-    // Save initial state to service
-    const dynamicOptions = {
-      nationalities: this.dynamicNationalityOptions,
-      qualifications: this.dynamicQualificationOptions,
-      genders: this.dynamicGenderOptions
-    };
-    
-    // Save file info
-    const fileInfo = this.selectedFile ? {
-      name: this.selectedFile.name,
-      size: this.selectedFile.size
-    } : undefined;
-    
-    this.resumeService.setLonglistData(this.originalApiData, this.pdfId, dynamicOptions, fileInfo);
-    
-    this.showSuccessMessage(
-      'Upload Successful',
-      `${response.rows} CVs processed successfully`
-    );
-    
-    // Hide progress bar after a short delay to show completion
+    // Hide progress bar after a short delay
     setTimeout(() => {
       this.setLoadingState(false, 0);
     }, 1000);
   }
 
   private handleUploadError(error: any): void {
-    console.error('Upload failed:', error);
-    
     // Complete progress bar to show it's finished (even though it failed)
     this.setLoadingState(true, 100);
     
     let errorMessage = 'An error occurred during upload';
-    if (error?.error?.message) {
+    let errorSummary = 'Upload Failed';
+    
+    // Handle specific error cases
+    if (error?.status === 401) {
+      errorSummary = 'Authentication Failed';
+      errorMessage = 'Your session has expired. Please login again.';
+      this.authService.logout();
+      this.router.navigate(['/login']);
+      return;
+    } else if (error?.status === 403) {
+      errorSummary = 'Access Denied';
+      errorMessage = 'You do not have permission to upload files.';
+    } else if (error?.status === 413) {
+      errorSummary = 'File Too Large';
+      errorMessage = 'The file size exceeds the maximum allowed limit.';
+    } else if (error?.status === 415) {
+      errorSummary = 'Invalid File Type';
+      errorMessage = 'Only PDF files are allowed.';
+    } else if (error?.status === 0 || error?.status === 504 || error?.status === 408) {
+      errorSummary = 'Connection Timeout';
+      errorMessage = 'The upload took too long or the server is not responding. Please try again with a smaller file or check your internet connection.';
+    } else if (error?.status === 500) {
+      errorSummary = 'Server Error';
+      errorMessage = 'The server encountered an error processing your file. Please try again.';
+    } else if (error?.status === 502 || error?.status === 503) {
+      errorSummary = 'Server Unavailable';
+      errorMessage = 'The server is temporarily unavailable. Please try again later.';
+    } else if (error?.message?.includes('No authentication token')) {
+      errorSummary = 'Authentication Required';
+      errorMessage = 'Please login to upload files.';
+      this.authService.logout();
+      this.router.navigate(['/login']);
+      return;
+    } else if (error?.error?.message) {
       errorMessage = error.error.message;
     } else if (error?.message) {
       errorMessage = error.message;
     }
     
-    this.showErrorMessage('Upload Failed', errorMessage);
+    this.showErrorMessage(errorSummary, errorMessage);
     
     // Hide progress bar after a short delay to show completion
     setTimeout(() => {
       this.setLoadingState(false, 0);
-      // Remove the selected file on error
       this.selectedFile = null;
     }, 1500);
   }
@@ -864,6 +912,52 @@ export class LonglistComponent implements OnInit, OnDestroy {
     ];
   }
 
+  private updateFilterOptionsFromResponseData(data: ApiResumeData[]): void {
+    if (data.length === 0) {
+      this.dynamicNationalityOptions = [];
+      this.dynamicQualificationOptions = [];
+      this.dynamicGenderOptions = [];
+      return;
+    }
+
+    // Extract unique nationalities
+    const nationalities = new Set<string>();
+    data.forEach(cv => {
+      if (cv.Nationality) {
+        const parsedNats = this.parseNationalities(cv.Nationality);
+        parsedNats.forEach(nat => nationalities.add(nat));
+      }
+    });
+    this.dynamicNationalityOptions = [
+      { label: 'All Nationalities', value: '' },
+      ...Array.from(nationalities).sort().map(nat => ({ label: nat, value: nat }))
+    ];
+
+    // Extract unique qualifications
+    const qualifications = new Set<string>();
+    data.forEach(cv => {
+      if (cv["Highest Degree"]) {
+        qualifications.add(cv["Highest Degree"]);
+      }
+    });
+    this.dynamicQualificationOptions = [
+      { label: 'All Qualifications', value: '' },
+      ...Array.from(qualifications).sort().map(qual => ({ label: qual, value: qual }))
+    ];
+
+    // Extract unique genders
+    const genders = new Set<string>();
+    data.forEach(cv => {
+      if (cv.Gender) {
+        genders.add(cv.Gender);
+      }
+    });
+    this.dynamicGenderOptions = [
+      { label: 'Select Gender', value: '' },
+      ...Array.from(genders).sort().map(gender => ({ label: gender, value: gender }))
+    ];
+  }
+
   private resetFilterState(): void {
     this.filterState = {
       nationality: '',
@@ -894,21 +988,98 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   // Helper method to format nationality for display
-  formatNationalityDisplay(nationality: string): string {
-    if (!nationality) return '';
-    
-    // Handle array-like string format: "['India']" or "['India', 'Nepal']"
-    if (nationality.startsWith('[') && nationality.endsWith(']')) {
-      try {
-        const parsed = nationality.replace(/'/g, '"');
-        const nationalityArray = JSON.parse(parsed);
-        return nationalityArray.join(', ');
-      } catch {
-        // If parsing fails, clean up manually
-        return nationality.replace(/[\[\]']/g, '');
-      }
+  formatNationalityDisplay(nationality: any): string {
+    if (nationality == null) return '';
+    if (Array.isArray(nationality)) {
+      return nationality.join(', ');
     }
+    if (typeof nationality === 'string') {
+      // Handle array-like string format: "['India']" or "['India', 'Nepal']"
+      if (nationality.startsWith('[') && nationality.endsWith(']')) {
+        try {
+          const parsed = nationality.replace(/'/g, '"');
+          const nationalityArray = JSON.parse(parsed);
+          return Array.isArray(nationalityArray) ? nationalityArray.join(', ') : String(nationalityArray);
+        } catch {
+          // If parsing fails, clean up manually
+          return nationality.replace(/[\[\]']/g, '');
+        }
+      }
+      return nationality;
+    }
+    // Fallback for any other type
+    return String(nationality);
+  }
+
+  // Helper method to format YOE for display
+  formatYOE(yoe: number | null | undefined): string {
+    if (yoe === null || yoe === undefined) {
+      return 'N/A';
+    }
+    return yoe.toString();
+  }
+
+  // Helper method to force table refresh
+  private forceTableRefresh(): void {
+    // Temporarily clear and restore data to force table update
+    const currentData = [...this.filteredApiData];
+    this.filteredApiData = [];
+    this.changeDetectorRef.detectChanges();
     
-    return nationality;
+    // Restore data with new references
+    this.filteredApiData = currentData.map(item => ({ ...item }));
+    this.changeDetectorRef.markForCheck();
+    this.changeDetectorRef.detectChanges();
+  }
+
+  // Helper method to ensure table is properly initialized
+  private ensureTableInitialization(): void {
+    // Force multiple change detection cycles to ensure table is fully updated
+    this.changeDetectorRef.markForCheck();
+    this.changeDetectorRef.detectChanges();
+    
+    // Additional cycle after a brief delay
+    setTimeout(() => {
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
+    }, 10);
+  }
+
+  // Helper method to validate data is properly set
+  private validateDataSetup(): void {}
+
+  // Helper method to handle PrimeNG table issues
+  private handlePrimeNGTableIssues(): void {
+    // Force table to recognize new data by triggering multiple change detection cycles
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => {
+        this.changeDetectorRef.markForCheck();
+        this.changeDetectorRef.detectChanges();
+      }, i * 50);
+    }
+  }
+
+  // Helper method to ensure component state synchronization
+  private ensureComponentStateSync(): void {
+    // Ensure filtered data matches original data if no filters are applied
+    if (this.filteredApiData.length === 0 && this.originalApiData.length > 0) {
+      this.filteredApiData = this.originalApiData.map(item => ({ ...item }));
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
+    }
+  }
+
+  // Helper method to handle zone.js issues
+  private handleZoneIssues(): void {
+    // Force zone.js to recognize changes by triggering multiple async operations
+    Promise.resolve().then(() => {
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
+    });
+    
+    setTimeout(() => {
+      this.changeDetectorRef.markForCheck();
+      this.changeDetectorRef.detectChanges();
+    }, 0);
   }
 }

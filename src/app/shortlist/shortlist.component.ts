@@ -167,7 +167,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     isSubmitting: false,
     hasData: false,
     hasRankings: false,
-    jobDescriptionContent: 'Upload a job description file or select a template to see the extracted content here.',
+    jobDescriptionContent: 'Upload a job description file and select a template to see the extracted content here.',
     filteredApiData: [],
     tableData: [],
     pdfId: null
@@ -209,7 +209,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   });
 
   // Constants
-  private readonly defaultJobDescriptionText = 'Upload a job description file or select a template to see the extracted content here.';
+  private readonly defaultJobDescriptionText = 'Upload a job description file and select a template to see the extracted content here.';
   readonly jobDescriptionTemplates: readonly FilterOption[] = Object.freeze([
     { label: 'UNV Template', value: 'UNV Template' },
     { label: 'SC Template', value: 'SC Template' },
