@@ -288,7 +288,8 @@
             type="button" 
             label="Reset Filters" 
             class="action-button"
-            (click)="resetFilters()">
+            (click)="resetFilters()"
+            [disabled]="originalApiData.length === 0">
           </button>
         </div>
       </div>
@@ -298,17 +299,33 @@
     <div class="results-section">
       <div class="section-header mb-4">
         <h2 class="section-title">
-          <span class="title-first-word">Ranking</span> Results
+          <span class="title-first-word">Long</span> Listed CVs
         </h2>
       </div>
+
+      <!-- No Data Message -->
+      <div *ngIf="filteredApiData.length === 0" class="no-data-message">
+        <i class="pi pi-info-circle"></i>
+        <p>No CV data available. Please upload a P11 file to upload and filter CVs.</p>
+      </div>
       
+      <!-- Results Table -->
       <p-table 
+        *ngIf="filteredApiData.length > 0"
         [value]="filteredApiData" 
         [paginator]="filteredApiData.length > 15"
         [rows]="10"
         [showCurrentPageReport]="filteredApiData.length > 15"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-        class="cv-table shadow-2 border-round overflow-hidden">
+        class="cv-table shadow-2 border-round overflow-hidden"
+        dataKey="CV ID"
+        [lazy]="false"
+        [loading]="false"
+        [scrollable]="false"
+        [resizableColumns]="false"
+        [reorderableColumns]="false"
+        [rowHover]="true"
+        [stripedRows]="false">
         
         <ng-template pTemplate="header">
           <tr>
@@ -326,7 +343,7 @@
             <td>{{ cv["CV ID"] }}</td>
             <td>{{ cv["Name"] }}</td>
             <td>{{ cv["Highest Degree"] }}</td>
-            <td>{{ cv["YOE"] }}</td>
+            <td>{{ formatYOE(cv["YOE"]) }}</td>
             <td>{{ cv["Gender"] }}</td>
             <td>{{ formatNationalityDisplay(cv["Nationality"]) }}</td>
           </tr>
@@ -335,13 +352,14 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons-container mt-4">
-                  <button 
-            pButton 
-            type="button" 
-            label="Move to Short Listing" 
-            class="action-button-large"
-            (click)="moveToShortListing()">
-          </button>
+        <button 
+          pButton 
+          type="button" 
+          label="Move to Short Listing" 
+          class="action-button-large"
+          (click)="moveToShortListing()"
+          [disabled]="originalApiData.length === 0">
+        </button>
       </div>
     </div>
   </div>

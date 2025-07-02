@@ -172,7 +172,7 @@ export class RegisterComponent implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(1)]],
       lastName: ['', [Validators.required, Validators.minLength(1)]],
       email: ['', [Validators.required, Validators.email]],
-      countryCode: ['+1', [Validators.required]],
+      countryCode: ['+91', [Validators.required]],
       phone: ['', [Validators.required, RegisterComponent.phoneValidator]],
       dateOfBirth: ['', [Validators.required]],
       gender: ['', [Validators.required, RegisterComponent.genderValidator]],

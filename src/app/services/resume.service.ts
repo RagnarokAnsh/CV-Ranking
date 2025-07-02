@@ -230,8 +230,12 @@ export class ResumeService {
 
   // Set longlist data after upload
   setLonglistData(originalData: ApiResumeData[], pdfId: number, dynamicOptions: any, fileInfo?: { name: string; size: number }): void {
-    this.originalApiDataSubject.next(originalData);
-    this.filteredApiDataSubject.next([...originalData]); // Initially, filtered = original
+    // Create deep copies to ensure new references
+    const originalDataCopy = originalData.map(item => ({ ...item }));
+    const filteredDataCopy = originalData.map(item => ({ ...item }));
+    
+    this.originalApiDataSubject.next(originalDataCopy);
+    this.filteredApiDataSubject.next(filteredDataCopy);
     this.pdfIdSubject.next(pdfId);
     this.dynamicFilterOptionsSubject.next(dynamicOptions);
     this.longlistFilterStateSubject.next(null); // Reset filter state
@@ -240,24 +244,14 @@ export class ResumeService {
     if (fileInfo) {
       this.selectedFileInfoSubject.next(fileInfo);
     }
-    
-    console.log('State saved to service:', {
-      originalDataCount: originalData.length,
-      pdfId,
-      dynamicOptions,
-      fileInfo
-    });
   }
 
   // Set filtered longlist data and filter state
   setLonglistFilteredData(filteredData: ApiResumeData[], filterState: any): void {
-    this.filteredApiDataSubject.next(filteredData);
+    // Create deep copy to ensure new reference
+    const filteredDataCopy = filteredData.map(item => ({ ...item }));
+    this.filteredApiDataSubject.next(filteredDataCopy);
     this.longlistFilterStateSubject.next(filterState);
-    
-    console.log('Filter state saved to service:', {
-      filteredDataCount: filteredData.length,
-      filterState
-    });
   }
 
   // Clear longlist data
@@ -297,7 +291,7 @@ export class ResumeService {
   // Set shortlist state
   setShortlistState(state: any): void {
     this.shortlistStateSubject.next(state);
-    console.log('Shortlist state saved to service:', state);
+
   }
 
   // Clear shortlist state
@@ -312,11 +306,13 @@ export class ResumeService {
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.getToken();
-    console.log('Getting auth headers, token:', token ? `${token.substring(0, 20)}...` : 'null');
     
     if (!token) {
-      console.error('No authentication token found!');
-      return new HttpHeaders();
+      throw new Error('No authentication token available. Please login again.');
+    }
+    
+    if (token === 'verified') {
+      throw new Error('Invalid authentication token. Please login again.');
     }
     
     return new HttpHeaders({
@@ -325,29 +321,19 @@ export class ResumeService {
   }
 
   uploadResume(file: File): Observable<UploadResumeResponse> {
-    console.log('Starting upload for file:', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-
     const formData = new FormData();
     formData.append('cv_file', file);
 
-    // Debug: Log FormData entries
-    console.log('FormData entries:');
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
     const headers = this.getAuthHeaders();
-    console.log('Upload headers:', headers.keys());
-    console.log('Authorization header:', headers.get('Authorization'));
 
     return this.http.post<UploadResumeResponse>(
       `${this.apiUrl}/upload-resume`,
       formData,
-      { headers }
+      { 
+        headers,
+        // Add timeout and better error handling for large files
+        reportProgress: false
+      }
     );
   }
 
@@ -372,14 +358,7 @@ export class ResumeService {
     weightQualifications: number,
     weightSkills: number
   ): Observable<ShortlistResponse> {
-    console.log('Starting shortlist submission with file:', {
-      pdfId,
-      jdFile: jdFile.name,
-      jdTemplate,
-      searchQuery,
-      searchOperator,
-      weights: { weightExperience, weightQualifications, weightSkills }
-    });
+
 
     const formData = new FormData();
     formData.append('pdf_id', pdfId.toString());
@@ -410,13 +389,7 @@ export class ResumeService {
     weightQualifications: number,
     weightSkills: number
   ): Observable<ShortlistResponse> {
-    console.log('Starting shortlist submission with template only:', {
-      pdfId,
-      jdTemplate,
-      searchQuery,
-      searchOperator,
-      weights: { weightExperience, weightQualifications, weightSkills }
-    });
+
 
     const request = {
       pdf_id: pdfId,

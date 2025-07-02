@@ -1,4 +1,4 @@
-// Shortlist Component Styles
+// Shortlist Component Styles - Optimized for Production
 // Based on Figma design with matching colors and layout
 
 .shortlist-container {
@@ -7,36 +7,9 @@
   padding: 1.5rem;
 }
 
-/* ===== HEADING STRUCTURE AND ALIGNMENT ===== */
+/* ===== SECTION HEADERS ===== */
 .section-header {
   margin-bottom: 1.5rem;
-  
-  .restored-state-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(91, 146, 229, 0.1);
-    border: 1px solid var(--primary-blue);
-    border-radius: var(--border-radius);
-    color: var(--primary-blue);
-    font-size: 0.875rem;
-    font-weight: var(--font-weight-medium);
-    
-    i {
-      font-size: 1rem;
-    }
-    
-    @media (max-width: 768px) {
-      font-size: 0.8rem;
-      padding: 0.4rem 0.6rem;
-      
-      i {
-        font-size: 0.9rem;
-      }
-    }
-  }
 }
 
 .section-title {
@@ -70,14 +43,8 @@
 }
 
 /* ===== SECTION SPACING ===== */
-.upload-section {
-  margin-bottom: 2rem;
-}
-
-.filters-section {
-  margin-bottom: 2rem;
-}
-
+.upload-section,
+.filters-section,
 .job-description-section {
   margin-bottom: 2rem;
 }
@@ -86,13 +53,12 @@
   margin-bottom: 1rem;
 }
 
-
-
 /* ===== DIALOG STYLING ===== */
 ::ng-deep .p-dialog {
   .p-dialog-header {
     background-color: var(--primary-dark) !important;
     color: white !important;
+    border-radius: 12px 12px 0 0;
     border-bottom: 1px solid var(--border-gray);
     
     .p-dialog-title {
@@ -115,6 +81,7 @@
     background: #f6f6f6 !important;
     color: var(--primary-dark) !important;
     padding: 1.5rem;
+    border-radius: 0 0 12px 12px;
     
     /* Custom scrollbar styling */
     &::-webkit-scrollbar {
@@ -141,7 +108,7 @@
   }
 }
 
-/* ===== FILTERS SECTION STYLING ===== */
+/* ===== FILTERS SECTION ===== */
 .filters-main-container {
   display: flex;
   flex-direction: column;
@@ -152,11 +119,11 @@
     gap: 1rem;
     
     &:first-child {
-      grid-template-columns: 1fr 1fr; // Make both containers equal width
+      grid-template-columns: 1fr 1fr;
     }
     
     &.weight-controls-row {
-      grid-template-columns: repeat(3, 1fr); // All 3 weight controls in one row
+      grid-template-columns: repeat(3, 1fr);
     }
     
     @media (max-width: 768px) {
@@ -171,10 +138,9 @@
     padding: 1.5rem;
     
     &.search-container {
-      // Special container for search operator and keywords
       .search-fields-row {
         display: grid;
-        grid-template-columns: 1fr 1.5fr; // Give keyword search slightly more space
+        grid-template-columns: 1fr 1.5fr;
         gap: 1rem;
         
         @media (max-width: 768px) {
@@ -185,7 +151,6 @@
       
       .search-operator-field,
       .keyword-search-field {
-        // Individual field styling within the search container
         .filter-label {
           color: var(--primary-dark) !important;
           font-weight: 600 !important;
@@ -197,27 +162,21 @@
         .radio-group {
           margin-top: 0.75rem;
         }
-        
-        .search-input {
-          margin-top: 0.75rem;
-        }
       }
     }
   }
 }
 
-.filter-field {
-  .filter-label {
-    display: block;
-    color: var(--primary-dark);
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
-  }
+.filter-field .filter-label {
+  display: block;
+  color: var(--primary-dark);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
 }
 
-/* ===== SELECTED FILTERS INFO (WITHIN FILTERS SECTION) ===== */
+/* ===== SELECTED FILTERS INFO ===== */
 .selected-filters-info {
   display: flex;
   flex-wrap: wrap;
@@ -313,32 +272,30 @@
       padding: 2rem;
     }
     
-    .formatted-content {
-      pre {
-        background: var(--background-gray);
-        padding: 1rem;
-        padding-bottom: 3rem; 
-        border-radius: var(--border-radius);
-        font-family: var(--font-family);
-        font-size: 0.875rem;
-        line-height: 1.5;
-        color: var(--primary-dark);
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        height: 200px;
-        overflow: hidden;
-        position: relative;
-        
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 50px; 
-          background: linear-gradient(transparent, var(--background-gray));
-          pointer-events: none;
-        }
+    .formatted-content pre {
+      background: var(--background-gray);
+      padding: 1rem;
+      padding-bottom: 3rem; 
+      border-radius: var(--border-radius);
+      font-family: var(--font-family);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: var(--primary-dark);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      height: 200px;
+      overflow: hidden;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50px; 
+        background: linear-gradient(transparent, var(--background-gray));
+        pointer-events: none;
       }
     }
   }
@@ -369,111 +326,7 @@
   }
 }
 
-/* ===== EMPLOYMENT HISTORY SECTION ===== */
-.employment-history-section {
-  .no-employment-message {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    text-align: center;
-    background: var(--background-gray);
-    border-radius: var(--border-radius);
-    
-    i {
-      font-size: 1.5rem;
-      color: var(--primary-blue);
-      margin-bottom: 1rem;
-    }
-    
-    p {
-      color: var(--medium-gray);
-      font-size: 0.875rem;
-      line-height: 1.5;
-    }
-  }
-  
-  .employment-accordion-container {
-    &.scrollable {
-      max-height: 500px;
-      overflow-y: auto;
-    }
-    
-    ::ng-deep .employment-accordion {
-      .p-accordion-header {
-        background: var(--white);
-        border: 1px solid var(--border-gray);
-        
-        .p-accordion-header-link {
-          color: var(--primary-dark);
-          font-weight: var(--font-weight-medium);
-        }
-      }
-      
-      .p-accordion-content {
-        background: var(--background-gray);
-        border: 1px solid var(--border-gray);
-        border-top: none;
-        
-        .employment-details {
-          pre {
-            font-family: var(--font-family);
-            font-size: 0.875rem;
-            line-height: 1.5;
-            color: var(--primary-dark);
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            margin: 0;
-          }
-        }
-      }
-    }
-  }
-}
-
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 768px) {
-  .shortlist-container {
-    padding: 1rem !important;
-  }
-  
-  .upload-card {
-    padding: 1.5rem !important;
-  }
-  
-  .upload-drop-zone {
-    padding: 2rem 1rem !important;
-  }
-  
-  .filter-container {
-    padding: 1rem !important;
-  }
-  
-
-}
-
-@media (max-width: 480px) {
-  .shortlist-container {
-    padding: 0.5rem !important;
-  }
-  
-  .upload-card {
-    padding: 1rem !important;
-  }
-  
-  .upload-drop-zone {
-    padding: 1.5rem 0.75rem !important;
-  }
-  
-  .filter-container {
-    padding: 0.75rem !important;
-  }
-  
-
-}
-
-/* Radio Group Styling with Primary Dark Borders */
+/* ===== RADIO GROUP STYLING ===== */
 .radio-group {
   display: flex;
   flex-direction: column;
@@ -531,7 +384,7 @@
   }
 }
 
-/* Keyword Input Field Styling */
+/* ===== INPUT STYLING ===== */
 .keyword-input {
   width: 100%;
   height: 44px;
@@ -561,7 +414,7 @@
   }
 }
 
-/* Weight Counter Styling - Figma Style */
+/* ===== WEIGHT COUNTER ===== */
 .weight-counter {
   display: flex;
   align-items: center;
@@ -610,24 +463,8 @@
   }
 }
 
-/* Validation Error Styling */
-.validation-error {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: rgba(248, 0, 0, 0.1);
-  border: 1px solid var(--error-red);
-  border-radius: var(--border-radius);
-  color: var(--error-red);
-  font-size: 0.875rem;
-  margin: 1rem 0;
-  justify-content: center;
-  align-content: center;
-  flex-wrap: nowrap;
-}
-
-/* File validation error styling */
+/* ===== ERROR STYLING ===== */
+.validation-error,
 .file-validation-error {
   display: flex;
   align-items: center;
@@ -638,10 +475,21 @@
   border-radius: var(--border-radius);
   color: var(--error-red);
   font-size: 0.875rem;
-  margin-top: 1rem;
+  margin: 1rem 0;
 }
 
-/* Progress Bar Section Styling */
+.file-validation-error {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.validation-error {
+  justify-content: center;
+  align-content: center;
+  flex-wrap: nowrap;
+}
+
+/* ===== PROGRESS SECTION ===== */
 .progress-section {
   margin-top: 1.5rem;
   padding: 1rem;
@@ -706,23 +554,21 @@
     }
   }
   
-  ::ng-deep .upload-progress-bar {
-    .p-progressbar {
-      height: 8px;
-      background: var(--lightest-gray);
+  ::ng-deep .upload-progress-bar .p-progressbar {
+    height: 8px;
+    background: var(--lightest-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    
+    .p-progressbar-value {
+      background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
       border-radius: 4px;
-      overflow: hidden;
-      
-      .p-progressbar-value {
-        background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-        border-radius: 4px;
-        transition: width 0.3s ease;
-      }
+      transition: width 0.3s ease;
     }
   }
 }
 
-/* Enhanced selected file display */
+/* ===== SELECTED FILE DISPLAY ===== */
 .selected-file {
   .file-info {
     display: flex;
@@ -750,20 +596,18 @@
     }
   }
   
-  .remove-file-btn {
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      
-      &:hover {
-        background: var(--error-red);
-        transform: none;
-      }
+  .remove-file-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      background: var(--error-red);
+      transform: none;
     }
   }
 }
 
-/* ===== EMPLOYMENT HISTORY DIALOG STYLING ===== */
+/* ===== DIALOG CONTENT ===== */
 .employment-dialog-content {
   h4 {
     color: var(--primary-dark);
@@ -772,49 +616,46 @@
     font-size: 1.1rem;
   }
   
-  .employment-details {
-    pre {
-      background: var(--white);
-      padding: 1rem;
-      border-radius: var(--border-radius);
-      border: 1px solid var(--border-gray);
-      margin: 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: var(--font-family);
-      font-size: 0.875rem;
-      line-height: 1.5;
-      color: var(--primary-dark);
-      max-height: 400px;
-      overflow-y: auto;
-      
-      /* Custom scrollbar styling */
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-      
-      &::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      
-      &::-webkit-scrollbar-thumb {
-        background-color: var(--primary-dark);
-        border-radius: 3px;
-        opacity: 0.7;
-        
-        &:hover {
-          opacity: 1;
-        }
-      }
-      
-      /* Firefox scrollbar */
-      scrollbar-width: thin;
-      scrollbar-color: var(--primary-dark) transparent;
+  .employment-details pre {
+    background: var(--white);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-gray);
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--primary-dark);
+    max-height: 400px;
+    overflow-y: auto;
+    
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 6px;
     }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--primary-dark);
+      border-radius: 3px;
+      opacity: 0.7;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+    
+    /* Firefox scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-dark) transparent;
   }
 }
 
-/* ===== JOB DESCRIPTION DIALOG STYLING ===== */
 .job-description-dialog-content {
   height: 100%;
   display: flex;
@@ -860,5 +701,26 @@
       line-height: 1.6;
       color: var(--primary-dark);
     }
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .shortlist-container {
+    padding: 1rem !important;
+  }
+  
+  .filter-container {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .shortlist-container {
+    padding: 0.5rem !important;
+  }
+  
+  .filter-container {
+    padding: 0.75rem !important;
   }
 }

@@ -1,4 +1,4 @@
-// Longlist Component Styles
+// Longlist Component Styles - Optimized for Production
 // Based on Figma design with matching colors and layout
 
 .longlist-container {
@@ -7,14 +7,16 @@
   padding: 1.5rem;
 }
 
-/* ===== HEADING STRUCTURE AND ALIGNMENT ===== */
-.page-header, .section-header {
+/* ===== SECTION HEADERS ===== */
+.page-header, 
+.section-header {
   margin-bottom: 1.5rem;
 }
 
-.main-title, .section-title {
+.main-title, 
+.section-title {
   color: var(--primary-dark);
-    font-family: var(--font-family);
+  font-family: var(--font-family);
   font-weight: 800;
   margin: 0;
   padding: 0;
@@ -63,19 +65,16 @@
 }
 
 /* ===== SECTION SPACING ===== */
-.upload-section {
-  margin-bottom: 2rem;
-}
-
+.upload-section,
 .filters-section {
   margin-bottom: 2rem;
 }
 
 .results-section {
   margin-bottom: 1rem;
-    }
+}
 
-/* ===== FILTERS SECTION STYLING ===== */
+/* ===== FILTERS SECTION ===== */
 .filters-main-container {
   display: flex;
   flex-direction: column;
@@ -96,19 +95,7 @@
     background: #f6f6f6;
     border-radius: 12px;
     padding: 1.5rem;
-    
-    &.qualification-container {
-      // Qualification container might need more width due to content
-    }
-    
-    &.experience-container {
-      // Experience container styling
-    }
-    
-    &.languages-container {
-      // Languages container styling
-    }
-}
+  }
 
   .reset-button-container {
     display: flex;
@@ -117,7 +104,7 @@
     margin-top: 1rem;
     margin-bottom: 0;
   }
-  }
+}
   
 .filter-field {
   .filter-label {
@@ -137,7 +124,7 @@
   }
 }
 
-/* Custom Dropdown Styling */
+/* ===== CUSTOM DROPDOWN STYLING ===== */
 .custom-dropdown {
   position: relative;
   width: 100%;
@@ -228,29 +215,27 @@
   }
 }
 
-/* Experience Fields */
-.experience-field {
-  .experience-row {
-    display: flex;
-    gap: 12px;
+/* ===== EXPERIENCE FIELDS ===== */
+.experience-field .experience-row {
+  display: flex;
+  gap: 12px;
+  
+  .experience-item {
+    flex: 1;
     
-    .experience-item {
-      flex: 1;
-      
-      .experience-label {
-        display: block;
-        color: var(--muted-gray);
-        font-weight: 500;
-        font-size: 0.75rem;
-        margin-bottom: 0.25rem;
-        text-transform: lowercase;
-        text-align: center;
-      }
+    .experience-label {
+      display: block;
+      color: var(--muted-gray);
+      font-weight: 500;
+      font-size: 0.75rem;
+      margin-bottom: 0.25rem;
+      text-transform: lowercase;
+      text-align: center;
     }
   }
 }
 
-/* Coming Soon and Disabled Filter Styles */
+/* ===== DISABLED AND COMING SOON STYLES ===== */
 .coming-soon {
   color: var(--muted-gray);
   font-size: 0.8rem;
@@ -276,8 +261,8 @@
   }
 }
 
-/* Age Slider */
-  .age-slider {
+/* ===== AGE SLIDER ===== */
+.age-slider {
   ::ng-deep .p-slider {
     background: var(--border-gray);
     
@@ -302,25 +287,21 @@
     }
   }
   
-  .age-values {
-    span {
-      color: var(--primary-dark);
-      font-weight: var(--font-weight-medium);
-    }
+  .age-values span {
+    color: var(--primary-dark);
+    font-weight: var(--font-weight-medium);
   }
 }
 
-/* Languages Section */
+/* ===== LANGUAGES SECTION ===== */
 .languages-section {
-    .language-tag {
-      background: var(--primary-blue-light);
+  .language-tag {
+    background: var(--primary-blue-light);
     color: var(--primary-dark);
-      
-      .tag-remove {
-        &:hover {
-          color: var(--error-red);
-        }
-      }
+    
+    .tag-remove:hover {
+      color: var(--error-red);
+    }
   }
   
   .add-language-btn {
@@ -334,12 +315,7 @@
       cursor: not-allowed;
     }
     
-    &:hover:not(:disabled) {
-      background-color: var(--primary-blue-light) !important;
-      color: var(--primary-blue) !important;
-    }
-    
-    // Override PrimeNG default hover styles
+    &:hover:not(:disabled),
     &:enabled:hover {
       background-color: var(--primary-blue-light) !important;
       color: var(--primary-blue) !important;
@@ -347,39 +323,33 @@
     }
   }
   
-  .custom-dropdown.disabled {
-    .dropdown-selected {
-      background: var(--lightest-gray);
-      color: var(--muted-gray);
-      cursor: not-allowed;
+  .custom-dropdown.disabled .dropdown-selected {
+    background: var(--lightest-gray);
+    color: var(--muted-gray);
+    cursor: not-allowed;
     
     &:hover {
-        border-color: var(--border-gray);
-      }
+      border-color: var(--border-gray);
     }
   }
 }
 
-/* Max Qualification Container */
+/* ===== MAX QUALIFICATION ===== */
 .max-qualification {
   margin-top: 1rem !important;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border-gray);
 }
 
-/* Add/Remove Buttons */
-.add-btn, .remove-max-btn {
+/* ===== ADD/REMOVE BUTTONS ===== */
+.add-btn, 
+.remove-max-btn {
   color: var(--primary-blue);
   font-size: 0.8rem;
   margin-top: 0.75rem !important;
   margin-bottom: 0.5rem !important;
   
-  &:hover {
-    background-color: var(--primary-blue-light) !important;
-    color: var(--primary-blue) !important;
-  }
-  
-  // Override PrimeNG default hover styles
+  &:hover,
   &:enabled:hover {
     background-color: var(--primary-blue-light) !important;
     color: var(--primary-blue) !important;
@@ -387,8 +357,31 @@
   }
 }
 
-/* ===== RESULTS SECTION STYLING ===== */
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  background: var(--background-gray);
+  border-radius: var(--border-radius);
+  
+  i {
+    font-size: 2rem;
+    color: var(--primary-blue);
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: var(--medium-gray);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    max-width: 400px;
+  }
+}
 
+/* ===== CV TABLE STYLING ===== */
 .cv-table {
   background: var(--white);
   margin-bottom: 1.5rem;
@@ -397,7 +390,7 @@
     .p-datatable-header {
       background: var(--primary-dark);
       color: var(--white);
-    border: none;
+      border: none;
     }
     
     .p-datatable-thead > tr > th {
@@ -412,15 +405,15 @@
       padding: 1rem;
       border-bottom: 1px solid var(--border-gray);
       color: var(--primary-dark);
-      }
+    }
       
     .p-datatable-tbody > tr:hover {
       background-color: var(--primary-blue-light);
-  }
+    }
   
-  .p-paginator {
+    .p-paginator {
       background: var(--white);
-    border: none;
+      border: none;
       border-top: 1px solid var(--border-gray);
       padding: 1rem;
     
@@ -439,82 +432,78 @@
           background: var(--primary-blue);
           color: var(--white);
           border-color: var(--primary-blue);
+        }
       }
-    }
     
-    .p-paginator-first,
-    .p-paginator-prev,
-    .p-paginator-next,
-    .p-paginator-last {
-      background: transparent;
-      border: 1px solid var(--border-gray);
-        color: var(--primary-dark);
-      margin: 0 0.25rem;
-      
-      &:hover {
-        background: var(--primary-blue-light);
-        border-color: var(--primary-blue);
-      }
-      
-      &:disabled {
+      .p-paginator-first,
+      .p-paginator-prev,
+      .p-paginator-next,
+      .p-paginator-last {
         background: transparent;
-        color: var(--muted-gray);
-        border-color: var(--muted-gray);
+        border: 1px solid var(--border-gray);
+        color: var(--primary-dark);
+        margin: 0 0.25rem;
+        
+        &:hover {
+          background: var(--primary-blue-light);
+          border-color: var(--primary-blue);
+        }
+        
+        &:disabled {
+          background: transparent;
+          color: var(--muted-gray);
+          border-color: var(--muted-gray);
+        }
       }
-    }
     }
   }
 }
 
-/* Action Buttons - Using Global Styles */
-
 /* ===== FILE DISPLAY ENHANCEMENTS ===== */
-.selected-file {
-  .file-info {
+.selected-file .file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  
+  .file-label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--primary-dark);
+    font-size: 0.9rem;
+  }
+  
+  .file-size {
+    color: var(--medium-gray);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-regular);
+  }
+  
+  .restored-indicator {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    flex: 1;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-blue);
+    font-size: 0.75rem;
+    font-style: italic;
+    margin-top: 0.25rem;
     
-    .file-label {
-      font-weight: var(--font-weight-semibold);
-      color: var(--primary-dark);
-      font-size: 0.9rem;
+    i {
+      font-size: 0.7rem;
     }
     
-    .file-size {
+    span {
+      font-weight: var(--font-weight-medium);
+    }
+  }
+  
+  .upload-progress {
+    margin-top: 0.5rem;
+    
+    .progress-text {
       color: var(--medium-gray);
       font-size: 0.75rem;
-      font-weight: var(--font-weight-regular);
-    }
-    
-    .restored-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--primary-blue);
-      font-size: 0.75rem;
-      font-style: italic;
       margin-top: 0.25rem;
-      
-      i {
-        font-size: 0.7rem;
-      }
-      
-      span {
-        font-weight: var(--font-weight-medium);
-      }
-    }
-    
-    .upload-progress {
-      margin-top: 0.5rem;
-      
-      .progress-text {
-        color: var(--medium-gray);
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
-        display: block;
-      }
+      display: block;
     }
   }
 }
@@ -522,15 +511,11 @@
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
   .longlist-container {
-    padding: 1rem !important;
-  }
-  
-  .upload-drop-zone {
-    padding: 2rem !important;
+    padding: 1rem;
   }
   
   .filters-container {
-    padding: 1.5rem !important;
+    padding: 1.5rem;
     
     .filters-row {
       gap: 1.5rem;
@@ -542,37 +527,27 @@
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
   }
-  
-
 }
 
 @media (max-width: 480px) {
   .longlist-container {
-    padding: 0.5rem !important;
-  }
-  
-  .upload-drop-zone {
-    padding: 1.5rem !important;
+    padding: 0.5rem;
   }
   
   .filters-container {
-    padding: 1rem !important;
+    padding: 1rem;
   }
   
   .main-title {
     font-size: 1.25rem;
   }
   
-
-  
-  .cv-table {
-    ::ng-deep .p-datatable {
+  .cv-table ::ng-deep .p-datatable {
     .p-datatable-thead > tr > th,
     .p-datatable-tbody > tr > td {
       padding: 0.5rem;
-        font-size: 0.8rem;
+      font-size: 0.8rem;
     }
-  }
   }
 }
 
