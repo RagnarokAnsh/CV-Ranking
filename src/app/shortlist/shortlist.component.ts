@@ -932,7 +932,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     console.error('===========================');
 
     let errorMessage = 'An error occurred during ranking';
-    if (error?.status === 500) {
+    if (error?.status === 400) {
       errorMessage = 'Please check your file or template';
     } else if (error?.error?.message) {
       errorMessage = error.error.message;
