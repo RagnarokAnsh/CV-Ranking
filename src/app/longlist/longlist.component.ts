@@ -614,22 +614,27 @@ export class LonglistComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  private parseNationalities(nationality: string): string[] {
+  private parseNationalities(nationality: any): string[] {
     if (!nationality) return [];
-    
-    // Handle array-like string format: "['India']" or "['India', 'Nepal']"
-    if (nationality.startsWith('[') && nationality.endsWith(']')) {
-      try {
-        const parsed = nationality.replace(/'/g, '"');
-        return JSON.parse(parsed);
-      } catch {
-        // If parsing fails, treat as single nationality
-        return [nationality.replace(/[\[\]']/g, '')];
-      }
+    if (Array.isArray(nationality)) {
+      return nationality.map(String);
     }
-    
-    // Handle comma-separated values
-    return nationality.split(',').map(nat => nat.trim());
+    if (typeof nationality === 'string') {
+      // Handle array-like string format: "['India']" or "['India', 'Nepal']"
+      if (nationality.startsWith('[') && nationality.endsWith(']')) {
+        try {
+          const parsed = nationality.replace(/'/g, '"');
+          const nationalityArray = JSON.parse(parsed);
+          return Array.isArray(nationalityArray) ? nationalityArray.map(String) : [String(nationalityArray)];
+        } catch {
+          // If parsing fails, clean up manually
+          return [nationality.replace(/[\[\]']/g, '')];
+        }
+      }
+      return [nationality];
+    }
+    // Fallback for any other type
+    return [String(nationality)];
   }
 
   resetFilters(): void {
@@ -743,115 +748,145 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   private handleUploadSuccess(response: ApiUploadResponse): void {
+    // Debug: Log the actual API response
+    console.log('API upload response:', response);
+    // Debug: Log the type of response.data
+    console.log('Type of response.data:', typeof response.data, response.data);
     // Complete progress bar
     this.setLoadingState(true, 100);
-    
+
+    // Guard: prevent double error handling
+    if ((this as any)._uploadHandled) {
+      console.warn('Upload already handled, skipping.');
+      return;
+    }
+
     // Check for wrong file format error
     if (response.message && response.message.toLowerCase().includes('wrong file uploaded')) {
+      console.warn('Wrong file uploaded detected in response.message');
+      (this as any)._uploadHandled = true;
       this.handleUploadError({ 
         message: 'Make sure the uploaded file is in P11 format',
         status: 400 
       });
       return;
     }
-    
+
+    // If response.data is a string, try to parse it
+    if (typeof response.data === 'string') {
+      try {
+        response.data = JSON.parse(response.data);
+      } catch (e) {
+        console.warn('Failed to parse response.data as JSON');
+        (this as any)._uploadHandled = true;
+        this.handleUploadError({ message: 'Upload failed. Please check your file and try again.' });
+        return;
+      }
+    }
+
     // Validate response data
-    if (!response.data || !Array.isArray(response.data)) {
-      this.handleUploadError({ message: 'Invalid response data from server' });
+    if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+      console.warn('Response data is missing, not an array, or empty:', response.data);
+      (this as any)._uploadHandled = true;
+      this.handleUploadError({ message: 'Upload failed. Please check your file and try again.' });
       return;
     }
-    
+
+    // Only wrap the code that can throw
     try {
       // Step 1: Clear existing data completely
       this.originalApiData = [];
       this.filteredApiData = [];
       this.changeDetectorRef.detectChanges();
-      
+
       // Step 2: Create deep copies with new references
       const originalDataCopy = response.data.map(item => ({ ...item }));
       const filteredDataCopy = response.data.map(item => ({ ...item }));
-      
+
       // Step 3: Set data with proper timing
       this.originalApiData = originalDataCopy;
       this.filteredApiData = filteredDataCopy;
       this.pdfId = response.pdf_id;
-      
+
       // Step 4: Force immediate change detection
       this.changeDetectorRef.markForCheck();
       this.changeDetectorRef.detectChanges();
-      
+
       // Step 5: Update filter options
       this.updateFilterOptionsFromResponseData(response.data);
-      
+
       // Step 6: Force change detection after filter options
       this.changeDetectorRef.markForCheck();
       this.changeDetectorRef.detectChanges();
-      
+
       // Step 7: Save state to service
       const dynamicOptions = {
         nationalities: this.dynamicNationalityOptions,
         qualifications: this.dynamicQualificationOptions,
         genders: this.dynamicGenderOptions
       };
-      
+
       const fileInfo = this.selectedFile ? {
         name: this.selectedFile.name,
         size: this.selectedFile.size
       } : undefined;
-      
+
       this.resumeService.setLonglistData(response.data, this.pdfId, dynamicOptions, fileInfo);
-      
+
       this.showSuccessMessage(
         'Upload Successful',
         `${response.rows} CVs processed successfully`
       );
-      
+
       // Step 8: Multiple change detection cycles with delays
       setTimeout(() => {
         this.changeDetectorRef.markForCheck();
         this.changeDetectorRef.detectChanges();
       }, 50);
-      
+
       setTimeout(() => {
         this.changeDetectorRef.markForCheck();
         this.changeDetectorRef.detectChanges();
       }, 150);
-      
+
       setTimeout(() => {
         this.changeDetectorRef.markForCheck();
         this.changeDetectorRef.detectChanges();
       }, 300);
-      
+
       // Step 9: Force table refresh after all changes
       setTimeout(() => {
         this.forceTableRefresh();
       }, 400);
-      
+
       // Step 10: Ensure table is properly initialized
       setTimeout(() => {
         this.ensureTableInitialization();
       }, 500);
-      
+
       // Step 12: Handle PrimeNG table issues
       setTimeout(() => {
         this.handlePrimeNGTableIssues();
       }, 700);
-      
+
       // Step 13: Ensure component state synchronization
       setTimeout(() => {
         this.ensureComponentStateSync();
       }, 800);
-      
+
       // Step 15: Handle zone.js issues
       setTimeout(() => {
         this.handleZoneIssues();
       }, 1000);
-      
+
     } catch (error) {
-      this.handleUploadError({ message: 'Error processing server response' });
+      console.error('Exception thrown in handleUploadSuccess try block:', error);
+      (this as any)._uploadHandled = true;
+      this.handleUploadError({ message: 'Upload failed. Please check your file and try again.' });
       return;
     }
-    
+
+    (this as any)._uploadHandled = true;
     // Hide progress bar after a short delay
     setTimeout(() => {
       this.setLoadingState(false, 0);
@@ -917,6 +952,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
       return;
     } else if (error?.error?.message) {
       errorMessage = error.error.message;
+    } else if (error?.error?.detail) {
+      errorMessage = error.error.detail;
     } else if (error?.message) {
       errorMessage = error.message;
     }

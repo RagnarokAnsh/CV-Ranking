@@ -679,22 +679,27 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   }
 
   // Helper method to format nationality for display
-  private formatNationalityDisplay(nationality: string): string {
-    if (!nationality) return '';
-    
-    // Handle array-like string format: "['India']" or "['India', 'Nepal']"
-    if (nationality.startsWith('[') && nationality.endsWith(']')) {
-      try {
-        const parsed = nationality.replace(/'/g, '"');
-        const nationalityArray = JSON.parse(parsed);
-        return nationalityArray.join(', ');
-      } catch {
-        // If parsing fails, clean up manually
-        return nationality.replace(/[\[\]']/g, '');
-      }
+  formatNationalityDisplay(nationality: any): string {
+    if (nationality == null) return '';
+    if (Array.isArray(nationality)) {
+      return nationality.join(', ');
     }
-    
-    return nationality;
+    if (typeof nationality === 'string') {
+      // Handle array-like string format: "['India']" or "['India', 'Nepal']"
+      if (nationality.startsWith('[') && nationality.endsWith(']')) {
+        try {
+          const parsed = nationality.replace(/'/g, '"');
+          const nationalityArray = JSON.parse(parsed);
+          return Array.isArray(nationalityArray) ? nationalityArray.join(', ') : String(nationalityArray);
+        } catch {
+          // If parsing fails, clean up manually
+          return nationality.replace(/[\[\]']/g, '');
+        }
+      }
+      return nationality;
+    }
+    // Fallback for any other type
+    return String(nationality);
   }
 
   // Helper method to format YOE for display
