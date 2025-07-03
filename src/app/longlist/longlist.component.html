@@ -46,7 +46,7 @@
             <span class="file-size">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</span>
             <div class="upload-progress" *ngIf="isUploading">
               <p-progressBar [value]="uploadProgress" [showValue]="false"></p-progressBar>
-              <span class="progress-text">Processing your file... (Click X to cancel)</span>
+              <span class="progress-text">{{ uploadProgressText || 'Processing your file...' }} (Click X to cancel)</span>
             </div>
             <div class="restored-indicator" *ngIf="isRestoredFile()">
               <i class="pi pi-history"></i>
@@ -355,10 +355,11 @@
         <button 
           pButton 
           type="button" 
-          label="Move to Short Listing" 
+          [label]="isMovingToShortlist ? 'Moving...' : 'Move to Short Listing'" 
           class="action-button-large"
           (click)="moveToShortListing()"
-          [disabled]="originalApiData.length === 0">
+          [disabled]="originalApiData.length === 0 || isMovingToShortlist">
+          <i class="pi pi-spin pi-spinner" *ngIf="isMovingToShortlist" style="margin-right: 0.5rem;"></i>
         </button>
       </div>
     </div>

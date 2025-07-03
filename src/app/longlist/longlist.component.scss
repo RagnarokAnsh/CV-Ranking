@@ -142,9 +142,11 @@
     color: var(--primary-dark);
     transition: all 0.2s ease;
     min-height: 48px;
+
+   
     
     &:hover {
-      border-color: var(--primary-blue);
+      border-color: var(--primary-blue-light);
     }
   }
   
@@ -161,6 +163,29 @@
     z-index: 1000;
     max-height: 200px;
     overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--primary-dark);
+      border-radius: 3px;
+      opacity: 0.7;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+    
+    /* Firefox scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-dark) transparent;
+  
     
     .dropdown-option {
       padding: 12px 16px;
@@ -174,10 +199,11 @@
       }
       
       &.selected {
-        background-color: var(--primary-blue);
-        color: var(--white);
+        background-color: var(--primary-blue-light);
+        color: var(--primary-dark);
         font-weight: 500;
       }
+
     }
   }
   
@@ -504,6 +530,56 @@
       font-size: 0.75rem;
       margin-top: 0.25rem;
       display: block;
+      animation: textPulse 1.5s ease-in-out infinite;
+    }
+    
+    // Enhanced progress bar styling
+    ::ng-deep .p-progressbar {
+      height: 8px;
+      background: var(--lightest-gray);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      
+      .p-progressbar-value {
+        background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        position: relative;
+        
+        // Add pulsing animation when progress is active
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+          animation: progressPulse 2s ease-in-out infinite;
+          border-radius: 4px;
+        }
+      }
+    }
+  }
+  
+  // Pulsing animation for progress bar
+  @keyframes progressPulse {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  // Text pulsing animation
+  @keyframes textPulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
     }
   }
 }

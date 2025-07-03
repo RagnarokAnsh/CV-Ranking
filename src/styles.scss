@@ -1458,3 +1458,32 @@ p-fileupload[mode="basic"] {
     font-size: 16px !important;
   }
 }
+.p-overlay-mask {
+  background: var(--dialog-background) !important;
+}
+
+/* ===== PRIMENG PROGRESS BAR GLOBAL OVERRIDES ===== */
+/* Global progress bar styling to ensure consistent blue theme */
+.p-progressbar,
+.p-progressbar.p-component,
+[class*="p-progressbar"] {
+  height: 8px !important;
+  background: var(--lightest-gray) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  
+  .p-progressbar-value,
+  .p-progressbar-value.p-progressbar-value {
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%) !important;
+    border-radius: 4px !important;
+    transition: width 0.3s ease !important;
+    position: relative !important;
+  }
+}
+
+/* Progress bar pulsing animation */
+@keyframes progressPulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

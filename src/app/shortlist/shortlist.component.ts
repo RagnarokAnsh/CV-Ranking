@@ -153,6 +153,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   // Destroy subject for cleanup
   private readonly destroy$ = new Subject<void>();
   private uploadSubscription: Subscription | null = null;
+  private progressSimulationInterval: any = null;
 
   // State management with BehaviorSubjects for better control
   private readonly uploadState$ = new BehaviorSubject<UploadState>({
@@ -399,6 +400,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.cancelUpload();
+    this.stopProgressSimulation();
   }
 
   // State management methods
@@ -695,6 +697,14 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     return nationality;
   }
 
+  // Helper method to format YOE for display
+  formatYOE(yoe: number | null | undefined): string {
+    if (yoe === null || yoe === undefined) {
+      return 'N/A';
+    }
+    return yoe.toString();
+  }
+
   // Show employment history dialog
   showEmploymentHistory(rowData: TableRowData): void {
     this.updateDialogState({
@@ -787,9 +797,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.updateComponentState({ isSubmitting: true });
     this.updateUploadState({ 
       isUploading: true, 
-      uploadProgress: 30, 
+      uploadProgress: 10, 
       canCancel: true, 
-      progressText: 'Uploading job description... (Click X to cancel)' 
+      progressText: 'Validating job description... (Click X to cancel)' 
     });
 
     // Detailed logging for debugging
@@ -805,6 +815,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     console.log('File:', this.formState.selectedFile?.name);
     console.log('====================================');
 
+    // Start animated progress simulation
+    this.startProgressSimulation();
+
     this.uploadSubscription = this.resumeService.submitShortlistWithFile(
       this.componentState.pdfId,
       this.formState.selectedFile,
@@ -818,6 +831,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     .pipe(
       finalize(() => {
         this.updateComponentState({ isSubmitting: false });
+        this.stopProgressSimulation();
         // Complete progress bar on both success and error
         this.updateUploadState({ 
           isUploading: true, 
@@ -839,8 +853,8 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     .subscribe({
       next: (response) => {
         this.updateUploadState({ 
-          uploadProgress: 80, 
-          progressText: 'Processing rankings...' 
+          uploadProgress: 95, 
+          progressText: 'Finalizing rankings...' 
         });
         this.handleRankingSuccess(response);
       },
@@ -852,16 +866,6 @@ export class ShortlistComponent implements OnInit, OnDestroy {
         this.handleRankingError(error);
       }
     });
-
-    // Simulate progress updates
-    setTimeout(() => {
-      if (this.uploadState.isUploading) {
-        this.updateUploadState({ 
-          uploadProgress: 85, 
-          progressText: 'Analyzing job description...' 
-        });
-      }
-    }, 1000);
   }
 
   private handleRankingSuccess(response: ShortlistResponse): void {
@@ -923,8 +927,12 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     console.error('===========================');
 
     let errorMessage = 'An error occurred during ranking';
-    if (error?.error?.message) {
+    if (error?.status === 500) {
+      errorMessage = 'Please check your file or template';
+    } else if (error?.error?.message) {
       errorMessage = error.error.message;
+    } else if (error?.error?.detail) {
+      errorMessage = error.error.detail;
     } else if (error?.message) {
       errorMessage = error.message;
     }
@@ -966,12 +974,60 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.showInfoMessage('Reset Complete', 'Ranking has been reset to initial state');
   }
 
+  // Progress simulation methods
+  private startProgressSimulation(): void {
+    let progress = 10;
+    let stage = 0;
+    const stages = [
+      { max: 25, text: 'Uploading job description...' },
+      { max: 45, text: 'Extracting job requirements...' },
+      { max: 65, text: 'Analyzing candidate profiles...' },
+      { max: 85, text: 'Calculating rankings...' },
+      { max: 95, text: 'Processing final results...' }
+    ];
+    
+    this.progressSimulationInterval = setInterval(() => {
+      // Move to next stage if current stage is complete
+      if (progress >= stages[stage].max && stage < stages.length - 1) {
+        stage++;
+      }
+      
+      // Add small random increment to show activity
+      const increment = Math.random() * 2 + 0.5;
+      progress = Math.min(progress + increment, 95); // Cap at 95% until real response
+      
+      // Update upload state with current stage text
+      this.updateUploadState({ 
+        uploadProgress: Math.round(progress),
+        progressText: stages[stage].text + ' (Click X to cancel)'
+      });
+      
+      // Stop if we've reached the final stage and 95%
+      if (progress >= 95) {
+        this.stopProgressSimulation();
+      }
+    }, 800); // Slower updates for more realistic feel
+    
+    // Auto-clear after 2 minutes to prevent infinite running
+    setTimeout(() => {
+      this.stopProgressSimulation();
+    }, 120000);
+  }
+
+  private stopProgressSimulation(): void {
+    if (this.progressSimulationInterval) {
+      clearInterval(this.progressSimulationInterval);
+      this.progressSimulationInterval = null;
+    }
+  }
+
   // Cancel upload functionality
   cancelUpload(): void {
     if (this.uploadSubscription && !this.uploadSubscription.closed) {
       console.log('Cancelling upload...');
       this.uploadSubscription.unsubscribe();
       this.uploadSubscription = null;
+      this.stopProgressSimulation();
       this.updateUploadState({ 
         isUploading: false, 
         uploadProgress: 0, 

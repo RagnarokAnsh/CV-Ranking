@@ -144,6 +144,7 @@ interface FilterState {
 interface LoadingState {
   isUploading: boolean;
   uploadProgress: number;
+  progressText: string;
 }
 
 @Component({
@@ -179,8 +180,12 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly loadingState$ = new BehaviorSubject<LoadingState>({
     isUploading: false,
-    uploadProgress: 0
+    uploadProgress: 0,
+    progressText: ''
   });
+
+  // Loading state for move to shortlist operation
+  private _isMovingToShortlist = false;
 
   // Public observables
   readonly loading$ = this.loadingState$.asObservable();
@@ -271,6 +276,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
   // Loading state getters
   get isUploading(): boolean { return this.loadingState$.value.isUploading; }
   get uploadProgress(): number { return this.loadingState$.value.uploadProgress; }
+  get uploadProgressText(): string { return this.loadingState$.value.progressText; }
+  get isMovingToShortlist(): boolean { return this._isMovingToShortlist; }
 
   ngOnInit(): void {
     this.initializeComponent();
@@ -457,17 +464,41 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   private simulateProgress(): number {
     let progress = 0;
+    let stage = 0;
+    const stages = [
+      { max: 20, text: 'Validating file...' },
+      { max: 40, text: 'Uploading to server...' },
+      { max: 60, text: 'Processing PDF content...' },
+      { max: 80, text: 'Extracting CV data...' },
+      { max: 95, text: 'Finalizing results...' }
+    ];
+    
     const interval = setInterval(() => {
-      progress += Math.random() * 20; // Random increment
-      if (progress >= 90) {
-        progress = 90; // Stop at 90% until real response
+      // Move to next stage if current stage is complete
+      if (progress >= stages[stage].max && stage < stages.length - 1) {
+        stage++;
+      }
+      
+      // Calculate progress within current stage
+      const stageStart = stage === 0 ? 0 : stages[stage - 1].max;
+      const stageEnd = stages[stage].max;
+      const stageProgress = Math.min(progress - stageStart, stageEnd - stageStart);
+      
+      // Add small random increment to show activity
+      const increment = Math.random() * 3 + 1;
+      progress = Math.min(progress + increment, 95); // Cap at 95% until real response
+      
+      // Update loading state with current stage text
+      this.setLoadingState(true, progress, stages[stage].text);
+      
+      // Stop if we've reached the final stage and 95%
+      if (progress >= 95) {
         clearInterval(interval);
       }
-      this.setLoadingState(true, progress);
-    }, 300);
+    }, 500); // Slower updates for more realistic feel
     
     // Store interval so we can clear it if component is destroyed
-    setTimeout(() => clearInterval(interval), 10000); // Clear after 10 seconds max
+    setTimeout(() => clearInterval(interval), 30000); // Clear after 30 seconds max
     
     return interval as any; // Return interval ID for manual clearing
   }
@@ -625,6 +656,9 @@ export class LonglistComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Set loading state
+    this._isMovingToShortlist = true;
+
     const request: SaveFilteredRequest = {
       pdf_id: this.pdfId,
       min_experience: parseInt(this.selectedMinExperience) || 0,
@@ -643,6 +677,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.showErrorMessage('Error', 'Failed to save filtered data');
+          // Reset loading state on error
+          this._isMovingToShortlist = false;
         }
       });
   }
@@ -702,13 +738,22 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.saveState();
   }
 
-  private setLoadingState(isUploading: boolean, progress: number = 0): void {
-    this.loadingState$.next({ isUploading, uploadProgress: progress });
+  private setLoadingState(isUploading: boolean, progress: number = 0, progressText: string = ''): void {
+    this.loadingState$.next({ isUploading, uploadProgress: progress, progressText });
   }
 
   private handleUploadSuccess(response: ApiUploadResponse): void {
     // Complete progress bar
     this.setLoadingState(true, 100);
+    
+    // Check for wrong file format error
+    if (response.message && response.message.toLowerCase().includes('wrong file uploaded')) {
+      this.handleUploadError({ 
+        message: 'Make sure the uploaded file is in P11 format',
+        status: 400 
+      });
+      return;
+    }
     
     // Validate response data
     if (!response.data || !Array.isArray(response.data)) {
@@ -814,14 +859,33 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
 
   private handleUploadError(error: any): void {
+    console.error('Upload error:', error); // DEBUG LOG
     // Complete progress bar to show it's finished (even though it failed)
     this.setLoadingState(true, 100);
     
     let errorMessage = 'An error occurred during upload';
     let errorSummary = 'Upload Failed';
-    
-    // Handle specific error cases
-    if (error?.status === 401) {
+
+    // Robustly check for P11 format error in all possible error fields
+    const errorText = [
+      error?.message,
+      error?.error,
+      error?.error?.message,
+      error?.error?.detail,
+      error?.statusText
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(' ')
+      .toLowerCase();
+
+    if (
+      error?.status === 400 &&
+      (errorText.includes('wrong file uploaded') || errorText.includes('p11') || errorText.includes('valid resume'))
+    ) {
+      errorSummary = 'Invalid File Format';
+      errorMessage = 'Make sure the uploaded file is in P11 format';
+    } else if (error?.status === 401) {
       errorSummary = 'Authentication Failed';
       errorMessage = 'Your session has expired. Please login again.';
       this.authService.logout();
@@ -845,7 +909,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
     } else if (error?.status === 502 || error?.status === 503) {
       errorSummary = 'Server Unavailable';
       errorMessage = 'The server is temporarily unavailable. Please try again later.';
-    } else if (error?.message?.includes('No authentication token')) {
+    } else if (errorText.includes('no authentication token')) {
       errorSummary = 'Authentication Required';
       errorMessage = 'Please login to upload files.';
       this.authService.logout();

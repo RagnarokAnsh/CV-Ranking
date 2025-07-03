@@ -509,10 +509,11 @@
       gap: 0.25rem;
       
       .progress-label {
-        color: var(--primary-dark);
-        font-weight: var(--font-weight-medium);
-        font-size: 0.875rem;
-        line-height: 1.3;
+        color: var(--medium-gray);
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: block;
+        animation: textPulse 1.5s ease-in-out infinite;
       }
       
       .progress-percentage {
@@ -554,16 +555,57 @@
     }
   }
   
-  ::ng-deep .upload-progress-bar .p-progressbar {
-    height: 8px;
-    background: var(--lightest-gray);
-    border-radius: 4px;
-    overflow: hidden;
+  // Enhanced progress bar styling - matching longlist component
+  ::ng-deep .upload-progress-bar .p-progressbar,
+  ::ng-deep .progress-section .p-progressbar,
+  ::ng-deep .shortlist-container .p-progressbar,
+  ::ng-deep .p-progressbar,
+  ::ng-deep .p-progressbar.p-component {
+    height: 8px !important;
+    background: var(--lightest-gray) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    position: relative !important;
     
-    .p-progressbar-value {
-      background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
-      border-radius: 4px;
-      transition: width 0.3s ease;
+    .p-progressbar-value,
+    .p-progressbar-value.p-progressbar-value {
+      background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%) !important;
+      border-radius: 4px !important;
+      transition: width 0.3s ease !important;
+      position: relative !important;
+      
+      // Add pulsing animation when progress is active
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+        animation: progressPulse 2s ease-in-out infinite;
+        border-radius: 4px;
+      }
+    }
+  }
+  
+  // Pulsing animation for progress bar
+  @keyframes progressPulse {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  // Text pulsing animation
+  @keyframes textPulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
     }
   }
 }
