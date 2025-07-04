@@ -51,6 +51,41 @@
 
 .results-section {
   margin-bottom: 1rem;
+  
+  .section-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .download-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+    
+    .download-csv-button {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: white;
+      font-weight: 500;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(91, 146, 229, 0.3);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+      
+      i {
+        margin-right: 0.5rem;
+      }
+    }
+  }
 }
 
 /* ===== DIALOG STYLING ===== */

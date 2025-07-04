@@ -4,6 +4,7 @@ import { AuthService } from './services/auth.service';
 import { SessionTimerService } from './services/session-timer.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ import { MessageService } from 'primeng/api';
 export class AppComponent implements OnInit, OnDestroy {
   title = 'CV-Ranking';
 
-
+  private destroy$ = new Subject<void>();
 
   constructor(
     private authService: AuthService,
@@ -30,7 +31,9 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     // Subscribe to user changes to start/stop session timer
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((user: any) => {
       if (user && this.authService.isAuthenticated()) {
         console.log('User logged in, starting session timer');
         this.sessionTimerService.startSessionTimer();
@@ -42,6 +45,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.sessionTimerService.stopSessionTimer();
   }
 }

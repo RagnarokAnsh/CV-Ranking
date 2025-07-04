@@ -354,6 +354,18 @@
         </h2>
       </div>
       
+      <!-- Download Button -->
+      <div class="download-section mb-4" *ngIf="tableData.length > 0">
+        <button 
+          pButton 
+          type="button" 
+          label="Download CSV" 
+          icon="pi pi-download"
+          class="download-csv-button"
+          (click)="downloadAsCSV()">
+        </button>
+      </div>
+      
       <!-- Loading Message -->
       <div *ngIf="filteredApiData.length === 0 && tableData.length === 0" class="no-data-message">
         <i class="pi pi-info-circle"></i>
@@ -391,7 +403,7 @@
             <td>{{ result.name || 'Unknown' }}</td>
             <td>{{ result.highestDegree || 'N/A' }}</td>
             <td>{{ formatYOE(result.yoe) }}</td>
-            <td>{{ result.finalScore || '--' }}</td>
+            <td>{{ formatFinalScore(result.finalScore) }}</td>
             <td>{{ result.gender || 'Unknown' }}</td>
             <td>{{ result.nationality || 'Unknown' }}</td>
             <td>

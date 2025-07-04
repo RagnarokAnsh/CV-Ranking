@@ -368,7 +368,15 @@ export class AuthService {
         return null;
       }
       
-      const payload = parts[1];
+      let payload = parts[1];
+      
+      // Add padding if needed for proper base64 decoding
+      while (payload.length % 4) {
+        payload += '=';
+      }
+      
+      // Replace URL-safe characters with standard base64 characters
+      payload = payload.replace(/-/g, '+').replace(/_/g, '/');
       const decoded = atob(payload);
       const parsed = JSON.parse(decoded);
       console.log('Decoded token payload:', { exp: parsed.exp, iat: parsed.iat, currentTime: Math.floor(Date.now() / 1000) });

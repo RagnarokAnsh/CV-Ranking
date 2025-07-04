@@ -90,16 +90,17 @@
               <label class="filter-label">Nationality</label>
               <div class="custom-dropdown" (click)="toggleDropdown('nationality'); $event.stopPropagation()">
                 <div class="dropdown-selected">
-                  {{ getSelectedLabel(dynamicNationalityOptions, selectedNationality) || 'All Nationalities' }}
-                  <i class="pi pi-times dropdown-clear" *ngIf="selectedNationality" (click)="clearSelection('nationality'); $event.stopPropagation()"></i>
-                  <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedNationality"></i>
+                  {{ selectedNationalityDisplay }}
+                  <i class="pi pi-times dropdown-clear" *ngIf="selectedNationality.length > 0" (click)="clearSelection('nationality'); $event.stopPropagation()"></i>
+                  <i class="pi pi-chevron-down dropdown-arrow" *ngIf="selectedNationality.length === 0"></i>
                 </div>
                 <div class="dropdown-options" *ngIf="openDropdown === 'nationality'">
                   <div 
                     *ngFor="let option of dynamicNationalityOptions" 
                     class="dropdown-option"
-                    [class.selected]="selectedNationality === option.value"
+                    [class.selected]="isNationalitySelected(option.value)"
                     (click)="selectOption('nationality', option.value); $event.stopPropagation()">
+                    <i class="pi" [class.pi-check-square]="isNationalitySelected(option.value)" [class.pi-square]="!isNationalitySelected(option.value)"></i>
                     {{ option.label }}
                   </div>
                 </div>
@@ -301,6 +302,18 @@
         <h2 class="section-title">
           <span class="title-first-word">Long</span> Listed CVs
         </h2>
+      </div>
+
+      <!-- Download Button -->
+      <div class="download-section mb-4" *ngIf="filteredApiData.length > 0">
+        <button 
+          pButton 
+          type="button" 
+          label="Download CSV" 
+          icon="pi pi-download"
+          class="download-csv-button"
+          (click)="downloadAsCSV()">
+        </button>
       </div>
 
       <!-- No Data Message -->

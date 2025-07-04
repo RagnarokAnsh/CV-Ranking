@@ -131,7 +131,7 @@ interface FilterOption {
 }
 
 interface FilterState {
-  nationality: string;
+  nationality: string[];
   minExperience: string;
   maxExperience: string;
   gender: string;
@@ -219,7 +219,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   // Filter State
   private filterState: FilterState = {
-    nationality: '',
+    nationality: [],
     minExperience: '',
     maxExperience: '',
     gender: '',
@@ -230,7 +230,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   };
 
   // Getters for template access
-  get selectedNationality(): string { return this.filterState.nationality; }
+  get selectedNationality(): string[] { return this.filterState.nationality; }
   get selectedMinExperience(): string { return this.filterState.minExperience; }
   get selectedMaxExperience(): string { return this.filterState.maxExperience; }
   get selectedGender(): string { return this.filterState.gender; }
@@ -239,12 +239,42 @@ export class LonglistComponent implements OnInit, OnDestroy {
   get showMaxQualification(): boolean { return this.filterState.showMaxQualification; }
   get openDropdown(): string | null { return this.filterState.openDropdown; }
 
-  // Setters for template access
-  set selectedNationality(value: string) { 
-    this.filterState.nationality = value; 
+  // Helper method to get display text for selected nationalities
+  get selectedNationalityDisplay(): string {
+    if (this.filterState.nationality.length === 0) {
+      return 'All Nationalities';
+    }
+    if (this.filterState.nationality.length === 1) {
+      return this.filterState.nationality[0];
+    }
+    return `${this.filterState.nationality.length} selected`;
+  }
+
+  // Helper method to check if a nationality is selected
+  isNationalitySelected(nationality: string): boolean {
+    return this.filterState.nationality.includes(nationality);
+  }
+
+  // Helper method to toggle nationality selection
+  toggleNationality(nationality: string): void {
+    const index = this.filterState.nationality.indexOf(nationality);
+    if (index > -1) {
+      this.filterState.nationality.splice(index, 1);
+    } else {
+      this.filterState.nationality.push(nationality);
+    }
     this.applyFilters();
     this.saveState();
   }
+
+  // Helper method to clear all nationalities
+  clearAllNationalities(): void {
+    this.filterState.nationality = [];
+    this.applyFilters();
+    this.saveState();
+  }
+
+  // Setters for template access
   set selectedMinExperience(value: string) { 
     this.filterState.minExperience = value; 
     this.applyFilters();
@@ -563,9 +593,14 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   private matchesFilters(cv: ApiResumeData): boolean {
     // Nationality filter
-    if (this.selectedNationality && cv.Nationality) {
+    if (this.selectedNationality.length > 0 && cv.Nationality) {
       const cvNationalities = this.parseNationalities(cv.Nationality);
-      if (!cvNationalities.some(nat => nat.toLowerCase().includes(this.selectedNationality.toLowerCase()))) {
+      const hasMatchingNationality = cvNationalities.some(cvNat => 
+        this.selectedNationality.some(selectedNat => 
+          cvNat.toLowerCase().includes(selectedNat.toLowerCase())
+        )
+      );
+      if (!hasMatchingNationality) {
         return false;
       }
     }
@@ -706,29 +741,41 @@ export class LonglistComponent implements OnInit, OnDestroy {
   selectOption(dropdownName: string, value: string): void {
     switch (dropdownName) {
       case 'nationality':
-        this.selectedNationality = value;
+        this.toggleNationality(value);
+        // Don't close dropdown for nationality to allow multi-select
         break;
       case 'minExperience':
         this.selectedMinExperience = value;
+        this.openDropdown = null;
         break;
       case 'maxExperience':
         this.selectedMaxExperience = value;
+        this.openDropdown = null;
         break;
       case 'gender':
         this.selectedGender = value;
+        this.openDropdown = null;
         break;
       case 'qualification':
         this.selectedQualification = value;
+        this.openDropdown = null;
         break;
       case 'maxQualification':
         this.selectedMaxQualification = value;
+        this.openDropdown = null;
         break;
     }
-    this.openDropdown = null;
   }
 
   clearSelection(dropdownName: string): void {
-    this.selectOption(dropdownName, '');
+    switch (dropdownName) {
+      case 'nationality':
+        this.clearAllNationalities();
+        break;
+      default:
+        this.selectOption(dropdownName, '');
+        break;
+    }
   }
 
   addMaximumQualification(): void {
@@ -984,7 +1031,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
       }
     });
     this.dynamicNationalityOptions = [
-      { label: 'All Nationalities', value: '' },
       ...Array.from(nationalities).sort().map(nat => ({ label: nat, value: nat }))
     ];
 
@@ -1030,7 +1076,6 @@ export class LonglistComponent implements OnInit, OnDestroy {
       }
     });
     this.dynamicNationalityOptions = [
-      { label: 'All Nationalities', value: '' },
       ...Array.from(nationalities).sort().map(nat => ({ label: nat, value: nat }))
     ];
 
@@ -1061,7 +1106,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   private resetFilterState(): void {
     this.filterState = {
-      nationality: '',
+      nationality: [],
       minExperience: '',
       maxExperience: '',
       gender: '',
@@ -1182,5 +1227,42 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.changeDetectorRef.markForCheck();
       this.changeDetectorRef.detectChanges();
     }, 0);
+  }
+
+  // Helper method to download data as CSV
+  downloadAsCSV(): void {
+    if (this.filteredApiData.length === 0) {
+      this.showWarningMessage('No Data', 'No data available to download');
+      return;
+    }
+
+    // Define CSV headers
+    const headers = ['CV ID', 'Name', 'Highest Degree', 'YOE', 'Gender', 'Nationality'];
+    
+    // Convert data to CSV format
+    const csvContent = [
+      headers.join(','),
+      ...this.filteredApiData.map(cv => [
+        `"${cv['CV ID']}"`,
+        `"${cv['Name']}"`,
+        `"${cv['Highest Degree']}"`,
+        cv['YOE'] || 0,
+        `"${cv['Gender']}"`,
+        `"${this.formatNationalityDisplay(cv['Nationality'])}"`
+      ].join(','))
+    ].join('\n');
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `cv_data_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.showSuccessMessage('Download Complete', `Downloaded ${this.filteredApiData.length} records as CSV`);
   }
 }

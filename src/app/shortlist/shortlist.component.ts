@@ -710,6 +710,31 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     return yoe.toString();
   }
 
+  // Helper method to format final score with up to 4 decimal places
+  formatFinalScore(score: number | string | null | undefined): string {
+    if (score === null || score === undefined || score === '--') {
+      return '--';
+    }
+    
+    const numScore = typeof score === 'string' ? parseFloat(score) : score;
+    if (isNaN(numScore)) {
+      return '--';
+    }
+    
+    // Convert to string and limit to 4 decimal places without rounding
+    const scoreStr = numScore.toString();
+    const decimalIndex = scoreStr.indexOf('.');
+    
+    if (decimalIndex === -1) {
+      // No decimal places, return as is
+      return scoreStr;
+    }
+    
+    // Truncate to 4 decimal places
+    const truncated = scoreStr.substring(0, decimalIndex + 5);
+    return truncated;
+  }
+
   // Show employment history dialog
   showEmploymentHistory(rowData: TableRowData): void {
     this.updateDialogState({
@@ -1154,5 +1179,44 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
   private showErrorMessage(summary: string, detail: string): void {
     this.messageService.add({ severity: 'error', summary, detail });
+  }
+
+  // Helper method to download data as CSV
+  downloadAsCSV(): void {
+    if (this.tableData.length === 0) {
+      this.showWarningMessage('No Data', 'No ranking data available to download');
+      return;
+    }
+
+    // Define CSV headers
+    const headers = ['Rank', 'CV ID', 'Name', 'Highest Degree', 'YOE', 'Final Score', 'Gender', 'Nationality'];
+    
+    // Convert data to CSV format
+    const csvContent = [
+      headers.join(','),
+      ...this.tableData.map(result => [
+        result.rank || '--',
+        `"${result.cvId || 'N/A'}"`,
+        `"${result.name || 'Unknown'}"`,
+        `"${result.highestDegree || 'N/A'}"`,
+        result.yoe || 0,
+        this.formatFinalScore(result.finalScore),
+        `"${result.gender || 'Unknown'}"`,
+        `"${this.formatNationalityDisplay(result.nationality) || 'Unknown'}"`
+      ].join(','))
+    ].join('\n');
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `shortlist_ranking_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.showSuccessMessage('Download Complete', `Downloaded ${this.tableData.length} ranking records as CSV`);
   }
 }
