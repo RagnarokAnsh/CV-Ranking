@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { MessageService } from 'primeng/api';
 import { interval, Subscription } from 'rxjs';
+import { ConsoleService } from './console.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,14 +17,15 @@ export class SessionTimerService implements OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private consoleService: ConsoleService
   ) {}
 
   startSessionTimer(): void {
     this.stopSessionTimer(); // Clear any existing timer
     this.warningShown = false; // Reset warning state
     
-    console.log('Starting session timer...');
+    this.consoleService.log('Starting session timer...');
     
     // Check immediately when starting
     this.checkTokenExpiration();
@@ -39,37 +41,37 @@ export class SessionTimerService implements OnDestroy {
       this.timerSubscription = undefined;
     }
     this.warningShown = false;
-    console.log('Session timer stopped');
+    this.consoleService.log('Session timer stopped');
   }
 
   private checkTokenExpiration(): void {
     if (!this.authService.isAuthenticated()) {
       // Token is already expired or invalid
-      console.log('Token not authenticated, stopping timer');
+      this.consoleService.log('Token not authenticated, stopping timer');
       this.handleSessionExpired();
       return;
     }
 
     const timeRemaining = this.authService.getTokenTimeRemaining();
-    console.log(`Session time remaining: ${timeRemaining} minutes`);
+    this.consoleService.log(`Session time remaining: ${timeRemaining} minutes`);
 
     if (timeRemaining <= 0) {
       // Token has expired
-      console.log('Token expired, handling session expiry');
+      this.consoleService.log('Token expired, handling session expiry');
       this.handleSessionExpired();
     } else if (timeRemaining <= this.WARNING_TIME && !this.warningShown) {
       // Show warning when 5 minutes or less remaining
-      console.log(`Showing expiration warning - ${timeRemaining} minutes remaining`);
+      this.consoleService.log(`Showing expiration warning - ${timeRemaining} minutes remaining`);
       this.showExpirationWarning(timeRemaining);
     } else if (timeRemaining > this.WARNING_TIME && this.warningShown) {
       // Reset warning if time increased (token refreshed)
-      console.log('Time increased, resetting warning state');
+      this.consoleService.log('Time increased, resetting warning state');
       this.warningShown = false;
     }
   }
 
   private handleSessionExpired(): void {
-    console.log('Session expired - redirecting to login');
+    this.consoleService.log('Session expired - redirecting to login');
     this.stopSessionTimer();
     
     // Only show toast if we're not already on the login page
@@ -98,18 +100,18 @@ export class SessionTimerService implements OnDestroy {
       sticky: true
     });
     
-    console.log(`Warning shown for ${timeRemaining} minutes remaining`);
+    this.consoleService.log(`Warning shown for ${timeRemaining} minutes remaining`);
   }
 
   // Method to refresh token expiration check manually
   checkNow(): void {
-    console.log('Manual session check triggered');
+    this.consoleService.log('Manual session check triggered');
     this.checkTokenExpiration();
   }
 
   // Method to reset warning state (can be called after token refresh)
   resetWarning(): void {
-    console.log('Warning state reset');
+    this.consoleService.log('Warning state reset');
     this.warningShown = false;
   }
 

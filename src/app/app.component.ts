@@ -4,7 +4,8 @@ import { AuthService } from './services/auth.service';
 import { SessionTimerService } from './services/session-timer.service';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',

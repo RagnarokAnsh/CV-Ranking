@@ -1,0 +1,1489 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Import Google Font - Manrope */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
+/* Import PrimeIcons for icons */
+@import 'primeicons/primeicons.css';
+
+/* CSS Custom Properties for Design System Colors */
+:root {
+  /* Primary Colors from Figma */
+  --primary-dark: #2D3748;      /* Main background, sidebar, buttons */
+  --primary-blue: #5B92E5;      /* Primary blue buttons */
+  --primary-blue-dark: #1E50A0; /* Darker blue variant */
+  --primary-blue-light: #D2DAE9; /* Light blue background */
+  
+  /* Neutral Colors */
+  --white: #FFFFFF;
+  --black: #000000;
+  --black-overlay: #000000CC;
+  --dark-gray: #111111;
+  --medium-gray: #818182;
+  --light-gray: #B1B1B1;
+  --lighter-gray: #B5B5B5;
+  --lightest-gray: #D9D9D9;
+  --input-gray: #E6E6E6;
+  --border-gray: #E1E1E1;
+  --background-gray: #F5F5F5;
+  --subtle-gray: #EBEBEB;
+  --muted-gray: #999999;
+  --divider-gray: #BABABA;
+
+  /* Dialog Colors */
+  --dialog-background: rgba(0, 0, 0, 0.8);
+  --dialog-text: #FFFFFF;
+  --dialog-border: #374151;
+  --dialog-header-background: #2D3748;
+  --dialog-header-text: #FFFFFF;
+  --dialog-header-border: #374151;
+  
+  /* Status Colors */
+  --success-green: #88D654;
+  --success-green-dark: #5C9E31;
+  --error-red: #F80000;
+  --error-red-alt: #B23950;
+  --warning-orange: #E27022;
+  
+  /* Gradient */
+  --gradient-gray: linear-gradient(90deg, #C7C6C6 0%, #D9D9D9 100%);
+  
+  /* Typography */
+  --font-family: 'Manrope', sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Spacing */
+  --border-radius: 8px;
+  --border-radius-small: 4px;
+  --border-radius-large: 12px;
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-dark: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+
+  /* Table Radius */
+  --border-radius-table: 75px;
+}
+
+/* Global Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-regular);
+  background-color: var(--primary-dark);
+  color: var(--white);
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* ===== GLOBAL AUTH STYLES ===== */
+/* Reusable styles for login, register, forgot password, reset password components */
+
+/* Auth Container - Common for all auth pages */
+.auth-container,
+.login-container,
+.register-container,
+.forgot-password-container,
+.reset-password-container {
+  background: url('assets/images/background.png') center/cover no-repeat, var(--primary-dark);
+  min-height: 100vh;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Auth Card - Common for all auth pages */
+.auth-card,
+.login-card,
+.register-card,
+.forgot-password-card,
+.reset-password-card {
+  background: var(--white);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  width: 100%;
+  padding: 2rem;
+  
+  /* Default max-width for single column forms */
+  max-width: 400px;
+  
+  /* Wider for register form */
+  &.register-card {
+    max-width: 600px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+
+/* Global Auth Header Styling */
+.auth-header,
+.login-header,
+.register-header,
+.forgot-password-header,
+.reset-password-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h1 {
+    color: var(--primary-dark);
+    font-family: var(--font-family);
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    text-align: center;
+  }
+  
+  .header-separator {
+    width: 100%;
+    height: 1px;
+    background-color: #D9D9D9;
+    margin: 0 0 1rem 0;
+  }
+  
+  p {
+    color: var(--muted-gray);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+/* Auth Form Common Styles */
+.auth-form,
+.login-form,
+.register-form,
+.forgot-password-form,
+.reset-password-form {
+  
+  /* Form Row for side-by-side fields */
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+  
+  /* Form Field Styling */
+  .form-field {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    
+    /* Half width for register form rows */
+    &.half-width {
+      width: calc(50% - 0.5rem);
+      flex: 1 1 calc(50% - 0.5rem);
+      
+      @media (max-width: 768px) {
+        width: 100%;
+        flex: 1 1 100%;
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    label {
+      color: var(--black);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    
+    /* Standard text input styling */
+    .form-input {
+      width: 100%;
+      height: 44px;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-gray);
+      border-radius: var(--border-radius);
+      background: var(--input-gray);
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      color: var(--black);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      
+      &:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
+      }
+      
+      &:hover {
+        border-color: var(--primary-blue);
+      }
+      
+      &::placeholder {
+        color: var(--muted-gray);
+        opacity: 1;
+      }
+      
+      &.ng-invalid.ng-touched {
+        border-color: var(--error-red);
+      }
+    }
+  }
+}
+
+/* Auth Button Styling */
+.auth-button,
+.login-button,
+.register-button,
+.continue-button,
+.reset-button,
+.back-button {
+  width: 100%;
+  background: var(--primary-dark);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.875rem 1rem;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  &:hover:not(:disabled) {
+    background: var(--medium-gray);
+    transform: translateY(-1px);
+  }
+  
+  &:disabled {
+    background: var(--light-gray);
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--white);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Auth Links */
+.auth-link,
+.forgot-link,
+.register-text,
+.login-text,
+.login-link {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    color: var(--primary-blue-dark);
+    text-decoration: underline;
+  }
+}
+
+/* Auth Link Containers */
+.forgot-password,
+.register-link,
+.login-link,
+.back-to-login {
+  text-align: center;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+  
+  span {
+    color: var(--muted-gray);
+  }
+}
+
+.forgot-password {
+  text-align: right;
+  margin-bottom: 1.5rem;
+}
+
+/* Success Message Styling */
+.success-message {
+  text-align: center;
+  
+  .success-content {
+    .success-icon {
+      font-size: 3rem;
+      color: var(--success-green);
+      margin-bottom: 1rem;
+    }
+    
+    h2 {
+      color: var(--black);
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      color: var(--muted-gray);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+  }
+}
+
+/* Error Message Styling */
+.error-message {
+  color: var(--error-red);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+  margin-top: 0.25rem;
+}
+
+/* Auth Responsive */
+@media (max-width: 768px) {
+  .auth-container,
+  .login-container,
+  .register-container,
+  .forgot-password-container,
+  .reset-password-container {
+    padding: 0.5rem;
+  }
+  
+  .auth-card,
+  .login-card,
+  .register-card,
+  .forgot-password-card,
+  .reset-password-card {
+    max-width: 100%;
+    margin: 0.5rem;
+    
+    h1 {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card,
+  .login-card,
+  .register-card,
+  .forgot-password-card,
+  .reset-password-card {
+    padding: 1.5rem;
+    
+    h1 {
+      font-size: 1.1rem;
+    }
+  }
+  
+  .form-field {
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* ===== ADMIN APPROVAL TABLE STYLES ===== */
+/* Admin Approval Table - Figma Design */
+.admin-approval-table {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  
+  .p-datatable-wrapper {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
+  
+  .p-datatable-table {
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    width: 100%;
+  }
+  
+  /* Header Row - Light Gray Background */
+  .p-datatable-thead > tr > th {
+    background-color: #D9D9D9 !important;
+    color: #2D3748 !important;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.9rem;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border: none;
+    
+    &:first-child {
+      border-top-left-radius: var(--border-radius-table);
+      border-bottom-left-radius: var(--border-radius-table);
+    }
+    
+    &:last-child {
+      border-top-right-radius: var(--border-radius-table);
+      border-bottom-right-radius: var(--border-radius-table);
+      text-align: center;
+    }
+  }
+  
+  /* Data Rows - Dark Background */
+  .p-datatable-tbody > tr {
+    background-color: #2D3748 !important;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    
+    
+    td {
+      background-color: #2D3748 !important;
+      color: #D9D9D9 !important;
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      border: none;
+      
+      &:first-child {
+        border-top-left-radius: var(--border-radius-table);
+        border-bottom-left-radius: var(--border-radius-table);
+      }
+      
+      &:last-child {
+        border-top-right-radius: var(--border-radius-table);
+        border-bottom-right-radius: var(--border-radius-table);
+        text-align: center;
+      }
+    }
+    
+    &:hover {
+      background-color: #2D3748 !important;
+      
+      td {
+        background-color: #2D3748 !important;
+      }
+    }
+  }
+}
+
+/* Admin Approval Status Icons */
+.admin-status-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.approved {
+    background-color: var(--success-green);
+    
+    i {
+      color: #000000 !important;
+      font-size: 0.75rem;
+    }
+  }
+  
+  &.rejected {
+    background-color: var(--error-red);
+    
+    i {
+      color: #000000 !important;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+/* Admin Approval Paginator Styling */
+.admin-approval-table {
+  .p-paginator {
+    background: transparent !important;
+    border: none !important;
+    padding: 1rem 0 !important;
+    
+    .p-paginator-pages {
+      .p-paginator-page {
+        background: transparent !important;
+        border: 1px solid #D9D9D9 !important;
+        color: #2D3748 !important;
+        margin: 0 0.25rem !important;
+        
+        &:hover {
+          background: #D9D9D9 !important;
+          color: #2D3748 !important;
+        }
+        
+        &.p-highlight {
+          background: #2D3748 !important;
+          color: #D9D9D9 !important;
+          border-color: #2D3748 !important;
+        }
+      }
+    }
+    
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      background: transparent !important;
+      border: 1px solid #D9D9D9 !important;
+      color: #2D3748 !important;
+      margin: 0 0.25rem !important;
+      
+      &:hover {
+        background: #D9D9D9 !important;
+        color: #2D3748 !important;
+      }
+      
+      &:disabled {
+        background: transparent !important;
+        color: #BABABA !important;
+        border-color: #BABABA !important;
+      }
+    }
+    
+    .p-dropdown {
+      background: #D9D9D9 !important;
+      border: 1px solid #2D3748 !important;
+      color: #2D3748 !important;
+      
+      .p-dropdown-label {
+        color: #2D3748 !important;
+      }
+      
+      &:hover {
+        border-color: #2D3748 !important;
+      }
+    }
+    
+    .p-paginator-current {
+      color: #2D3748 !important;
+      font-weight: var(--font-weight-medium) !important;
+    }
+  }
+}
+
+/* Admin Approval Table Responsive */
+@media (max-width: 1024px) {
+  .admin-approval-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-approval-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+    
+    .p-datatable-table {
+      border-spacing: 0 0.25rem;
+    }
+  }
+  
+  .admin-status-icon {
+    width: 20px;
+    height: 20px;
+    
+    i {
+      font-size: 0.7rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-approval-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.7rem;
+    }
+  }
+  
+  .admin-status-icon {
+    width: 18px;
+    height: 18px;
+    
+    i {
+      font-size: 0.6rem;
+    }
+  }
+}
+
+
+/* ===== UPLOAD SECTION STYLING - SHARED COMPONENTS ===== */
+.upload-card {
+  .upload-drop-zone {
+    background-color: #F6f6f6;
+    border-radius: var(--border-radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    
+    &:hover,
+    &.drag-over {
+      border-color: var(--primary-blue);
+      background-color: #F8FAFE;
+    }
+  }
+  
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .upload-icon-container {
+    width: 64px;
+    height: 64px;
+    background: var(--primary-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    
+    .upload-icon {
+      color: var(--white) !important;
+      font-size: 1.75rem;
+    }
+  }
+  
+  .upload-title {
+    color: var(--primary-dark);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1.125rem;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .upload-subtitle {
+    color: var(--medium-gray);
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-regular);
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .browse-button {
+    margin-top: 1rem;
+  }
+  
+  .upload-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  /* Selected File Display */
+  .selected-file {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(91, 146, 229, 0.1);
+    border: 2px solid var(--primary-blue);
+    border-radius: var(--border-radius);
+    margin-top: 1rem;
+    
+    .file-icon {
+      color: var(--primary-blue);
+      font-size: 1.25rem;
+      min-width: 20px;
+    }
+    
+    .file-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      
+      .file-label {
+        color: var(--primary-dark);
+        font-weight: var(--font-weight-semibold);
+        font-size: 0.9rem;
+        word-break: break-word;
+      }
+    }
+    
+    .remove-file-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--error-red);
+      color: var(--white);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      
+      &:hover:not(:disabled) {
+        background: #d32f2f;
+        transform: scale(1.05);
+      }
+      
+      &:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      i {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}
+
+/* ===== UPLOAD SECTION RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 2.5rem 1.5rem;
+    }
+    
+    .upload-icon-container {
+      width: 56px;
+      height: 56px;
+      
+      .upload-icon {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .upload-title {
+      font-size: 1rem;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 2rem 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-content {
+      gap: 0.5rem;
+    }
+    
+    .upload-icon-container {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 0.25rem;
+      
+      .upload-icon {
+        font-size: 1.25rem;
+      }
+    }
+    
+    .upload-title {
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    
+    .browse-button {
+      margin-top: 0.75rem;
+    }
+    
+    .upload-actions {
+      justify-content: center;
+      margin-top: 0.75rem;
+    }
+    
+    .selected-file {
+      padding: 0.75rem;
+      gap: 0.5rem;
+      
+      .file-info .file-label {
+        font-size: 0.8rem;
+      }
+      
+      .remove-file-btn {
+        width: 24px;
+        height: 24px;
+        
+        i {
+          font-size: 0.7rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-card {
+    .upload-drop-zone {
+      padding: 1.5rem 0.75rem;
+      border-radius: 6px;
+    }
+    
+    .upload-content {
+      gap: 0.4rem;
+    }
+    
+    .upload-icon-container {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 0.25rem;
+      
+      .upload-icon {
+        font-size: 1rem;
+      }
+    }
+    
+    .upload-title {
+      font-size: 0.8rem;
+      line-height: 1.2;
+    }
+    
+    .upload-subtitle {
+      font-size: 0.7rem;
+      line-height: 1.2;
+    }
+    
+    .browse-button {
+      margin-top: 0.5rem;
+    }
+    
+    .upload-actions {
+      margin-top: 0.5rem;
+    }
+    
+    .selected-file {
+      padding: 0.5rem;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      
+      .file-icon {
+        font-size: 1rem;
+        min-width: 16px;
+      }
+      
+      .file-info .file-label {
+        font-size: 0.7rem;
+        line-height: 1.2;
+      }
+      
+      .remove-file-btn {
+        width: 20px;
+        height: 20px;
+        
+        i {
+          font-size: 0.6rem;
+        }
+      }
+    }
+  }
+}
+
+/* ===== CV TABLE STYLES - SHARED COMPONENTS ===== */
+.cv-table {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  
+  .p-datatable-wrapper {
+    border-radius: var(--border-radius);
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  
+  .p-datatable-table {
+    border-collapse: separate;
+    border-spacing: 0 0.75rem;
+    width: 100%;
+    background: transparent !important;
+  }
+  
+  /* Header Row */
+  .p-datatable-thead > tr > th {
+    background-color: var(--primary-dark) !important;
+    color: var(--white) !important;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.9rem;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border: none;
+    
+    &:first-child {
+      border-top-left-radius: var(--border-radius-table);
+      border-bottom-left-radius: var(--border-radius-table);
+    }
+    
+    &:last-child {
+      border-top-right-radius: var(--border-radius-table);
+      border-bottom-right-radius: var(--border-radius-table);
+    }
+  }
+  
+  /* Data Rows */
+  .p-datatable-tbody > tr {
+    background-color: #f6f6f6 !important;
+    border-radius: var(--border-radius-table);
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    
+    td {
+      background-color: #f6f6f6 !important;
+      color: var(--primary-dark) !important;
+      font-family: var(--font-family);
+      font-weight: var(--font-weight-medium);
+      font-size: 0.9rem;
+      padding: 1rem 1.5rem;
+      border: none;
+      
+      &:first-child {
+        border-top-left-radius: var(--border-radius-table);
+        border-bottom-left-radius: var(--border-radius-table);
+      }
+      
+      &:last-child {
+        border-top-right-radius: var(--border-radius-table);
+        border-bottom-right-radius: var(--border-radius-table);
+      }
+    }
+    
+    /* Hover Effect */
+    &:hover {
+      background-color: var(--primary-blue-light) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      
+      td {
+        background-color: var(--primary-blue-light) !important;
+        color: var(--primary-dark) !important;
+      }
+    }
+  }
+}
+
+/* CV Table Paginator Styling */
+.cv-table .p-paginator {
+  background: transparent !important;
+  border: none !important;
+  padding: 2rem 0 1rem 0 !important;
+  margin-top: 1rem !important;
+  justify-content: center !important;
+  
+  /* Page Numbers */
+  .p-paginator-pages {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    
+    .p-paginator-page {
+      background: transparent !important;
+      border: none !important;
+      color: var(--medium-gray) !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: var(--border-radius-small) !important;
+      font-family: var(--font-family) !important;
+      font-weight: var(--font-weight-medium) !important;
+      font-size: 0.85rem !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.2s ease !important;
+      
+      &:hover {
+        background: var(--primary-blue-light) !important;
+        color: var(--primary-dark) !important;
+      }
+      
+      &.p-highlight {
+        background: var(--primary-dark) !important;
+        color: var(--white) !important;
+        font-weight: var(--font-weight-semibold) !important;
+      }
+    }
+  }
+  
+  /* Navigation Buttons */
+  .p-paginator-prev,
+  .p-paginator-next {
+    background: transparent !important;
+    border: none !important;
+    color: var(--medium-gray) !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: var(--border-radius-small) !important;
+    margin: 0 0.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover:not(:disabled) {
+      background: var(--primary-blue-light) !important;
+      color: var(--primary-dark) !important;
+    }
+    
+    &:disabled {
+      background: transparent !important;
+      color: var(--lightest-gray) !important;
+      cursor: not-allowed !important;
+    }
+    
+    .p-paginator-icon {
+      font-size: 0.75rem !important;
+    }
+  }
+  
+  /* Current page report */
+  .p-paginator-current {
+    color: var(--medium-gray) !important;
+    font-family: var(--font-family) !important;
+    font-weight: var(--font-weight-regular) !important;
+    font-size: 0.85rem !important;
+    margin: 0 1rem !important;
+    order: -1;
+  }
+  
+  /* Hide unnecessary elements */
+  .p-dropdown,
+  .p-paginator-first,
+  .p-paginator-last,
+  .p-paginator-left,
+  .p-paginator-right {
+    display: none !important;
+  }
+}
+
+/* CV Table Responsive Design */
+@media (max-width: 1024px) {
+  .cv-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+    }
+    
+    .p-datatable-table {
+      border-spacing: 0 0.5rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .cv-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+    
+    .p-datatable-table {
+      border-spacing: 0 0.25rem;
+    }
+    
+    .p-paginator {
+      .p-paginator-pages .p-paginator-page,
+      .p-paginator-prev,
+      .p-paginator-next {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .cv-table {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.4rem 0.5rem;
+      font-size: 0.7rem;
+    }
+    
+    .p-paginator {
+      .p-paginator-pages .p-paginator-page,
+      .p-paginator-prev,
+      .p-paginator-next {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.75rem !important;
+        margin: 0 0.25rem !important;
+      }
+    }
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.bg-primary { background-color: var(--primary-dark) !important; }
+.bg-primary-blue { background-color: var(--primary-blue) !important; }
+.bg-white { background-color: var(--white) !important; }
+.bg-input { background-color: var(--input-gray) !important; }
+.bg-success { background-color: var(--success-green) !important; }
+.bg-error { background-color: var(--error-red) !important; }
+
+.text-primary { color: var(--primary-dark) !important; }
+.text-white { color: var(--white) !important; }
+.text-muted { color: var(--muted-gray) !important; }
+.text-success { color: var(--success-green) !important; }
+.text-error { color: var(--error-red) !important; }
+
+.font-light { font-weight: var(--font-weight-light) !important; }
+.font-regular { font-weight: var(--font-weight-regular) !important; }
+.font-medium { font-weight: var(--font-weight-medium) !important; }
+.font-semibold { font-weight: var(--font-weight-semibold) !important; }
+.font-bold { font-weight: var(--font-weight-bold) !important; }
+
+.rounded { border-radius: var(--border-radius) !important; }
+.rounded-lg { border-radius: var(--border-radius-large) !important; }
+.shadow-light { box-shadow: var(--shadow-light) !important; }
+.shadow-medium { box-shadow: var(--shadow-medium) !important; }
+
+/* ===== GLOBAL ACTION BUTTONS ===== */
+.action-button {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  color: var(--white) !important;
+  font-family: var(--font-family) !important;
+  font-weight: var(--font-weight-medium) !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.3s ease !important;
+  min-width: 150px;
+  
+  &:hover:not(:disabled),
+  &:enabled:hover {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+    color: var(--white) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+  }
+}
+
+.action-button-large {
+  @extend .action-button;
+  padding: 0.875rem 2rem !important;
+  min-width: 200px;
+  font-size: 1rem !important;
+}
+
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+    
+    .action-button,
+    .action-button-large {
+      width: 100% !important;
+      max-width: 300px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .action-button,
+    .action-button-large {
+      width: 100% !important;
+      min-width: auto !important;
+    }
+  }
+}
+
+/* ===== ANIMATION CLASSES ===== */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* ===== PRIMENG CALENDAR GLOBAL OVERRIDES ===== */
+/* Global calendar overrides - less aggressive to avoid conflicts with component-specific styles */
+.p-calendar {
+  .p-inputtext {
+    font-family: 'Manrope', sans-serif !important;
+    
+    &::placeholder {
+      color: #999999 !important;
+      opacity: 1 !important;
+    }
+  }
+  
+  .p-datepicker-trigger {
+    .pi {
+      color: #818182 !important;
+    }
+  }
+}
+
+/* ===== PRIMENG FILE UPLOAD BUTTON OVERRIDES ===== */
+/* Base button styling - covering all possible selectors */
+.p-fileupload-choose,
+.p-fileupload-choose.p-button,
+.p-fileupload-choose.p-component,
+.p-fileupload-choose.p-button.p-component,
+.p-fileupload-choose.p-button.p-component.p-button-success,
+.p-fileupload-choose.p-button.p-component.p-button-primary,
+.p-fileupload-choose.p-button.p-component.p-button-secondary,
+.p-fileupload-choose.p-button.p-component.p-button-info,
+.p-fileupload-choose.p-button.p-component.p-button-warning,
+.p-fileupload-choose.p-button.p-component.p-button-help,
+.p-fileupload-choose.p-button.p-component.p-button-danger,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component,
+p-fileupload .p-fileupload-choose,
+p-fileupload .p-fileupload-choose.p-button,
+p-fileupload .p-fileupload-choose.p-component,
+p-fileupload .p-fileupload-choose.p-button.p-component,
+button.p-fileupload-choose,
+[class*="p-fileupload-choose"] {
+  background: #5B92E5 !important;
+  background-color: #5B92E5 !important;
+  border: 1px solid #5B92E5 !important;
+  border-color: #5B92E5 !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  height: 48px !important;
+  min-width: 130px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Text color for all possible button label selectors */
+.p-fileupload-choose .p-button-label,
+.p-fileupload-choose.p-button .p-button-label,
+.p-fileupload-choose.p-component .p-button-label,
+.p-fileupload-choose.p-button.p-component .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-success .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-primary .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-secondary .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component .p-button-label,
+p-fileupload .p-fileupload-choose .p-button-label,
+p-fileupload .p-fileupload-choose.p-button .p-button-label,
+p-fileupload .p-fileupload-choose.p-component .p-button-label,
+p-fileupload .p-fileupload-choose.p-button.p-component .p-button-label,
+button.p-fileupload-choose .p-button-label,
+[class*="p-fileupload-choose"] .p-button-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* Hover states - covering all possible selectors */
+.p-fileupload-choose:hover,
+.p-fileupload-choose.p-button:hover,
+.p-fileupload-choose.p-component:hover,
+.p-fileupload-choose.p-button.p-component:hover,
+.p-fileupload-choose.p-button.p-component.p-button-success:hover,
+.p-fileupload-choose.p-button.p-component.p-button-primary:hover,
+.p-fileupload-choose.p-button.p-component.p-button-secondary:hover,
+.p-fileupload-choose.p-button.p-component.p-button-info:hover,
+.p-fileupload-choose.p-button.p-component.p-button-warning:hover,
+.p-fileupload-choose.p-button.p-component.p-button-help:hover,
+.p-fileupload-choose.p-button.p-component.p-button-danger:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component:hover,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component:hover,
+p-fileupload .p-fileupload-choose:hover,
+p-fileupload .p-fileupload-choose.p-button:hover,
+p-fileupload .p-fileupload-choose.p-component:hover,
+p-fileupload .p-fileupload-choose.p-button.p-component:hover,
+button.p-fileupload-choose:hover,
+[class*="p-fileupload-choose"]:hover {
+  background: #4A7BC8 !important;
+  background-color: #4A7BC8 !important;
+  border-color: #4A7BC8 !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(74, 123, 200, 0.35) !important;
+}
+
+/* Text color for hover states */
+.p-fileupload-choose:hover .p-button-label,
+.p-fileupload-choose.p-button:hover .p-button-label,
+.p-fileupload-choose.p-component:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-success:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-primary:hover .p-button-label,
+.p-fileupload-choose.p-button.p-component.p-button-secondary:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-component:hover .p-button-label,
+.p-fileupload.p-fileupload-basic .p-fileupload-choose.p-button.p-component:hover .p-button-label,
+p-fileupload .p-fileupload-choose:hover .p-button-label,
+p-fileupload .p-fileupload-choose.p-button:hover .p-button-label,
+p-fileupload .p-fileupload-choose.p-component:hover .p-button-label,
+p-fileupload .p-fileupload-choose.p-button.p-component:hover .p-button-label,
+button.p-fileupload-choose:hover .p-button-label,
+[class*="p-fileupload-choose"]:hover .p-button-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* Focus and active states */
+.p-fileupload-choose:focus,
+.p-fileupload-choose:active,
+.p-fileupload-choose.p-button:focus,
+.p-fileupload-choose.p-button:active,
+.p-fileupload-choose.p-component:focus,
+.p-fileupload-choose.p-component:active,
+.p-fileupload-choose.p-button.p-component:focus,
+.p-fileupload-choose.p-button.p-component:active {
+  background: #4A7BC8 !important;
+  background-color: #4A7BC8 !important;
+  border-color: #4A7BC8 !important;
+  color: white !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(91, 146, 229, 0.2), 0 2px 8px rgba(91, 146, 229, 0.25) !important;
+}
+
+.p-fileupload-choose:focus .p-button-label,
+.p-fileupload-choose:active .p-button-label,
+.p-fileupload-choose.p-button:focus .p-button-label,
+.p-fileupload-choose.p-button:active .p-button-label,
+.p-fileupload-choose.p-component:focus .p-button-label,
+.p-fileupload-choose.p-component:active .p-button-label,
+.p-fileupload-choose.p-button.p-component:focus .p-button-label,
+.p-fileupload-choose.p-button.p-component:active .p-button-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+/* ===== HIDE FILE UPLOAD LABELS ===== */
+.p-fileupload-basic .p-fileupload-filename,
+.p-fileupload-basic .p-fileupload-file-details,
+.p-fileupload-basic .p-fileupload-file-info,
+.p-fileupload-basic .p-fileupload-file-name,
+.p-fileupload.p-fileupload-basic .p-fileupload-filename,
+p-fileupload .p-fileupload-filename,
+p-fileupload[mode="basic"] .p-fileupload-filename {
+  display: none !important;
+}
+
+.p-fileupload-basic span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
+.p-fileupload.p-fileupload-basic span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
+p-fileupload span:not(.p-button-label):not(.p-button-icon):not(.pi):not([class*="p-button"]),
+.p-fileupload-basic .p-button ~ span,
+.p-fileupload-basic .p-fileupload-choose ~ span,
+p-fileupload .p-button ~ span,
+p-fileupload .p-fileupload-choose ~ span,
+.p-fileupload-basic input[type="file"] ~ span:not(.p-button):not([class*="p-button"]),
+p-fileupload input[type="file"] ~ span:not(.p-button):not([class*="p-button"]) {
+  display: none !important;
+}
+
+.p-fileupload-basic,
+.p-fileupload.p-fileupload-basic,
+p-fileupload,
+p-fileupload[mode="basic"] {
+  font-size: 0 !important;
+  
+  .p-button,
+  .p-fileupload-choose,
+  .p-button-label {
+    font-size: 16px !important;
+  }
+}
+.p-overlay-mask {
+  background: var(--dialog-background) !important;
+}
+
+/* ===== PRIMENG PROGRESS BAR GLOBAL OVERRIDES ===== */
+/* Global progress bar styling to ensure consistent blue theme */
+.p-progressbar,
+.p-progressbar.p-component,
+[class*="p-progressbar"] {
+  height: 8px !important;
+  background: var(--lightest-gray) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  
+  .p-progressbar-value,
+  .p-progressbar-value.p-progressbar-value {
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%) !important;
+    border-radius: 4px !important;
+    transition: width 0.3s ease !important;
+    position: relative !important;
+  }
+}
+
+/* Progress bar pulsing animation */
+@keyframes progressPulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
