@@ -781,3 +781,11 @@
   }
 }
 
+::ng-deep .p-select {
+  background: var(--primary-dark) !important;
+  color: var(--white) !important;
+}
+::ng-deep .p-select-list{
+  background: var(--primary-dark) !important;
+  color: var(--white) !important;
+}

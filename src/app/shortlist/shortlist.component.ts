@@ -116,6 +116,8 @@ interface ComponentState {
   filteredApiData: ApiResumeData[];
   tableData: TableRowData[];
   pdfId: number | null;
+  searchFilteredData: TableRowData[];
+  isSearchActive: boolean;
 }
 
 @Component({
@@ -171,7 +173,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     jobDescriptionContent: 'Upload a job description file and select a template to see the extracted content here.',
     filteredApiData: [],
     tableData: [],
-    pdfId: null
+    pdfId: null,
+    searchFilteredData: [],
+    isSearchActive: false
   });
 
   private readonly filterState$ = new BehaviorSubject<FilterState>({
@@ -237,9 +241,13 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
   // Template access properties
   get isSubmitting(): boolean { return this.componentState.isSubmitting; }
-  get tableData(): TableRowData[] { return this.componentState.tableData; }
+  get tableData(): TableRowData[] { 
+    // Return search filtered data if search is active, otherwise return original table data
+    return this.componentState.isSearchActive ? this.componentState.searchFilteredData : this.componentState.tableData; 
+  }
   get filteredApiData(): ApiResumeData[] { return this.componentState.filteredApiData; }
   get jobDescriptionContent(): string { return this.componentState.jobDescriptionContent; }
+  get isSearchActive(): boolean { return this.componentState.isSearchActive; }
 
   get selectedJobTemplate(): string { return this.formState.selectedJobTemplate; }
   set selectedJobTemplate(value: string) { 
@@ -251,6 +259,11 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   set searchQuery(value: string) { 
     this.updateFormState({ searchQuery: value });
     this.saveShortlistState();
+    
+    // Clear search if query is empty
+    if (!value.trim() && this.componentState.isSearchActive) {
+      this.clearSearch();
+    }
   }
 
   get searchOperator(): string { return this.formState.searchOperator; }
@@ -497,7 +510,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
         this.componentState$.next({
           ...savedState.componentState,
           isLoading: false,
-          isSubmitting: false
+          isSubmitting: false,
+          searchFilteredData: savedState.componentState.searchFilteredData || [],
+          isSearchActive: savedState.componentState.isSearchActive || false
         });
       }
 
@@ -674,7 +689,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
     this.updateComponentState({ 
       tableData,
-      hasRankings: false
+      hasRankings: false,
+      searchFilteredData: [],
+      isSearchActive: false
     });
   }
 
@@ -700,6 +717,63 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     }
     // Fallback for any other type
     return String(nationality);
+  }
+
+  // Search functionality
+  performSearch(): void {
+    const query = this.searchQuery.trim();
+    if (!query) {
+      this.clearSearch();
+      return;
+    }
+
+    const keywords = query.toLowerCase().split(/\s+/).filter(keyword => keyword.length > 0);
+    if (keywords.length === 0) {
+      this.clearSearch();
+      return;
+    }
+
+    const originalData = this.componentState.tableData;
+    const filteredData = originalData.filter(row => {
+      const employmentHistory = (row.employmentHistory || '').toLowerCase();
+      
+      if (this.searchOperator === 'and') {
+        // All keywords must be present in employment history
+        return keywords.every(keyword => this.exactKeywordMatch(employmentHistory, keyword));
+      } else {
+        // At least one keyword must be present in employment history (OR)
+        return keywords.some(keyword => this.exactKeywordMatch(employmentHistory, keyword));
+      }
+    });
+
+    this.updateComponentState({
+      searchFilteredData: filteredData,
+      isSearchActive: true
+    });
+
+    this.showInfoMessage(
+      'Search Complete', 
+      `Found ${filteredData.length} results for "${query}" in employment history (${this.searchOperator.toUpperCase()} search)`
+    );
+  }
+
+  clearSearch(): void {
+    this.updateComponentState({
+      searchFilteredData: [],
+      isSearchActive: false
+    });
+  }
+
+  private exactKeywordMatch(text: string, keyword: string): boolean {
+    // Use word boundaries to match exact keywords
+    // This prevents partial matches like "rust" matching "trust"
+    const wordBoundaryRegex = new RegExp(`\\b${this.escapeRegex(keyword)}\\b`, 'i');
+    return wordBoundaryRegex.test(text);
+  }
+
+  private escapeRegex(string: string): string {
+    // Escape special regex characters to prevent regex injection
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // Helper method to format YOE for display
@@ -991,7 +1065,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     // Reset component state
     this.updateComponentState({
       jobDescriptionContent: this.defaultJobDescriptionText,
-      hasRankings: false
+      hasRankings: false,
+      searchFilteredData: [],
+      isSearchActive: false
     });
 
     // Reset table data without rankings
@@ -1122,7 +1198,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.initializeTableData();
     this.updateComponentState({ 
       jobDescriptionContent: this.defaultJobDescriptionText,
-      hasRankings: false
+      hasRankings: false,
+      searchFilteredData: [],
+      isSearchActive: false
     });
     // Save state when file is removed
     this.saveShortlistState();

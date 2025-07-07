@@ -144,13 +144,33 @@
               </div>
               
               <div class="keyword-search-field">
-                <label class="filter-label">Keyword Search</label>
+                <label class="filter-label">Employment History Search</label>
                 <input 
                   type="text" 
                   pInputText 
                   [(ngModel)]="searchQuery" 
-                  placeholder="Enter search query"
+                  placeholder="Search employment history"
                   class="keyword-input">
+                <div class="search-buttons">
+                  <button 
+                    pButton 
+                    type="button" 
+                    label="Search" 
+                    icon="pi pi-search"
+                    class="search-button"
+                    [disabled]="!searchQuery.trim()"
+                    (click)="performSearch()">
+                  </button>
+                  <button 
+                    pButton 
+                    type="button" 
+                    label="Clear" 
+                    icon="pi pi-times"
+                    class="clear-search-button"
+                    [disabled]="!isSearchActive"
+                    (click)="clearSearch()">
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -351,6 +371,10 @@
       <div class="section-header mb-4">
         <h2 class="section-title">
           <span class="title-first-word">Ranking</span> Results
+          <span class="search-indicator" *ngIf="isSearchActive">
+            <i class="pi pi-search"></i>
+            Employment History Search ({{ tableData.length }} results)
+          </span>
         </h2>
       </div>
       
