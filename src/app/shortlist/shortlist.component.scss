@@ -503,6 +503,9 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(91, 146, 229, 0.3);
     }
+    &:hover {
+      background-color: var(--primary-blue-light);
+    }
     
     &:active:not(:disabled) {
       transform: translateY(0);

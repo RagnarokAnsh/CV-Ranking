@@ -52,6 +52,12 @@
           <h1>{{ getPageTitle() }}</h1>
         </div>
 
+        <!-- CV Access Warning (if user doesn't have access) -->
+        <div class="cv-access-warning" *ngIf="authService.shouldShowCvAccessWarning()">
+          <i class="pi pi-exclamation-triangle warning-icon"></i>
+          <span class="warning-text">Contact Admin for CV Access</span>
+        </div>
+
         <!-- User Profile Section -->
         <div class="user-profile">
           <button 

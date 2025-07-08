@@ -28,6 +28,16 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.authService.isAuthenticated()) {
       console.log('User already logged in, starting session timer');
       this.sessionTimerService.startSessionTimer();
+      
+      // Fetch current user profile to get accurate CV access status
+      this.authService.getCurrentUserProfile().subscribe({
+        next: (profileResponse) => {
+          console.log('App: User profile fetched on startup:', profileResponse);
+        },
+        error: (error) => {
+          console.error('App: Error fetching user profile on startup:', error);
+        }
+      });
     }
 
     // Subscribe to user changes to start/stop session timer

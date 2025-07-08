@@ -149,7 +149,7 @@
                   type="text" 
                   pInputText 
                   [(ngModel)]="searchQuery" 
-                  placeholder="Search employment history"
+                  placeholder="Enter keywords separated by commas"
                   class="keyword-input">
                 <div class="search-buttons">
                   <button 
@@ -373,7 +373,7 @@
           <span class="title-first-word">Ranking</span> Results
           <span class="search-indicator" *ngIf="isSearchActive">
             <i class="pi pi-search"></i>
-            Employment History Search ({{ tableData.length }} results)
+            Search ({{ tableData.length }} results)
           </span>
         </h2>
       </div>
@@ -413,9 +413,11 @@
             <th>Name</th>
             <th>Highest Degree</th>
             <th>YOE</th>
+            <th>Age</th>
             <th>Final Score</th>
             <th>Gender</th>
             <th>Nationality</th>
+            <th>Languages</th>
             <th>Actions</th>
           </tr>
         </ng-template>
@@ -427,9 +429,11 @@
             <td>{{ result.name || 'Unknown' }}</td>
             <td>{{ result.highestDegree || 'N/A' }}</td>
             <td>{{ formatYOE(result.yoe) }}</td>
+            <td>{{ result.age || 'N/A' }}</td>
             <td>{{ formatFinalScore(result.finalScore) }}</td>
             <td>{{ result.gender || 'Unknown' }}</td>
             <td>{{ result.nationality || 'Unknown' }}</td>
+            <td>{{ result.languages || 'N/A' }}</td>
             <td>
               <button 
                 pButton 

@@ -8,7 +8,7 @@ import { Subject, BehaviorSubject } from 'rxjs';
 // Services
 import { SessionTimerService } from '../services/session-timer.service';
 import { AuthService } from '../services/auth.service';
-import { ResumeService } from '../services/resume.service';
+import { ResumeService, ApiResumeData } from '../services/resume.service';
 
 // PrimeNG Imports
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +22,7 @@ import { TagModule } from 'primeng/tag';
 
 import { ProgressBarModule } from 'primeng/progressbar';
 import { MessageService } from 'primeng/api';
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
 
 // Navbar Component Import
 import { NavbarComponent } from '../shared/navbar/navbar.component';
@@ -100,16 +101,7 @@ function getQualificationLevel(qualification: string): number {
   return QUALIFICATION_HIERARCHY[normalized] || 0;
 }
 
-// New interfaces for the updated API structure
-interface ApiResumeData {
-  "CV ID": string;
-  "Name": string;
-  "Highest Degree": string;
-  "YOE": number;
-  "Gender": string;
-  "Nationality": string;
-  "Employment History": string;
-}
+
 
 interface ApiUploadResponse {
   message: string;
@@ -139,6 +131,9 @@ interface FilterState {
   maxQualification: string;
   showMaxQualification: boolean;
   openDropdown: string | null;
+  minAge: number;
+  maxAge: number;
+  languages: string[];
 }
 
 interface LoadingState {
@@ -162,7 +157,8 @@ interface LoadingState {
     CheckboxModule,
     TagModule,
     ProgressBarModule,
-    NavbarComponent
+    NavbarComponent,
+    NgxSliderModule
   ],
   templateUrl: './longlist.component.html',
   styleUrls: ['./longlist.component.scss']
@@ -201,6 +197,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
   dynamicNationalityOptions: FilterOption[] = [];
   dynamicQualificationOptions: FilterOption[] = [];
   dynamicGenderOptions: FilterOption[] = [];
+  dynamicLanguageOptions: FilterOption[] = [];
 
   // Experience options for dropdowns
   readonly experienceYearOptions: readonly FilterOption[] = Object.freeze([
@@ -226,7 +223,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
     qualification: '',
     maxQualification: '',
     showMaxQualification: false,
-    openDropdown: null
+    openDropdown: null,
+    minAge: 18,
+    maxAge: 65,
+    languages: []
   };
 
   // Getters for template access
@@ -238,41 +238,9 @@ export class LonglistComponent implements OnInit, OnDestroy {
   get selectedMaxQualification(): string { return this.filterState.maxQualification; }
   get showMaxQualification(): boolean { return this.filterState.showMaxQualification; }
   get openDropdown(): string | null { return this.filterState.openDropdown; }
-
-  // Helper method to get display text for selected nationalities
-  get selectedNationalityDisplay(): string {
-    if (this.filterState.nationality.length === 0) {
-      return 'All Nationalities';
-    }
-    if (this.filterState.nationality.length === 1) {
-      return this.filterState.nationality[0];
-    }
-    return `${this.filterState.nationality.length} selected`;
-  }
-
-  // Helper method to check if a nationality is selected
-  isNationalitySelected(nationality: string): boolean {
-    return this.filterState.nationality.includes(nationality);
-  }
-
-  // Helper method to toggle nationality selection
-  toggleNationality(nationality: string): void {
-    const index = this.filterState.nationality.indexOf(nationality);
-    if (index > -1) {
-      this.filterState.nationality.splice(index, 1);
-    } else {
-      this.filterState.nationality.push(nationality);
-    }
-    this.applyFilters();
-    this.saveState();
-  }
-
-  // Helper method to clear all nationalities
-  clearAllNationalities(): void {
-    this.filterState.nationality = [];
-    this.applyFilters();
-    this.saveState();
-  }
+  get selectedMinAge(): number { return this.filterState.minAge; }
+  get selectedMaxAge(): number { return this.filterState.maxAge; }
+  get selectedLanguages(): string[] { return this.filterState.languages; }
 
   // Setters for template access
   set selectedMinExperience(value: string) { 
@@ -302,12 +270,83 @@ export class LonglistComponent implements OnInit, OnDestroy {
   }
   set showMaxQualification(value: boolean) { this.filterState.showMaxQualification = value; }
   set openDropdown(value: string | null) { this.filterState.openDropdown = value; }
+  set selectedMinAge(value: number) { 
+    this.filterState.minAge = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+  set selectedMaxAge(value: number) { 
+    this.filterState.maxAge = value; 
+    this.applyFilters();
+    this.saveState();
+  }
+
+  // Nationality helpers
+  toggleNationality(nat: string): void {
+    const idx = this.filterState.nationality.indexOf(nat);
+    if (idx > -1) {
+      this.filterState.nationality.splice(idx, 1);
+    } else {
+      this.filterState.nationality.push(nat);
+    }
+    this.applyFilters();
+    this.saveState();
+  }
+  isNationalitySelected(nat: string): boolean {
+    return this.filterState.nationality.includes(nat);
+  }
+  clearAllNationalities(): void {
+    this.filterState.nationality = [];
+    this.applyFilters();
+    this.saveState();
+  }
+  get selectedNationalityDisplay(): string {
+    if (this.filterState.nationality.length === 0) return 'All Nationalities';
+    if (this.filterState.nationality.length === 1) return this.filterState.nationality[0];
+    return `${this.filterState.nationality.length} selected`;
+  }
+  // Language helpers
+  toggleLanguage(lang: string): void {
+    const idx = this.filterState.languages.indexOf(lang);
+    if (idx > -1) {
+      this.filterState.languages.splice(idx, 1);
+    } else {
+      this.filterState.languages.push(lang);
+    }
+    this.applyFilters();
+    this.saveState();
+  }
+  isLanguageSelected(lang: string): boolean {
+    return this.filterState.languages.includes(lang);
+  }
+  clearAllLanguages(): void {
+    this.filterState.languages = [];
+    this.applyFilters();
+    this.saveState();
+  }
+  get selectedLanguagesDisplay(): string {
+    if (this.filterState.languages.length === 0) return 'All Languages';
+    if (this.filterState.languages.length === 1) return this.filterState.languages[0];
+    return `${this.filterState.languages.length} selected`;
+  }
 
   // Loading state getters
   get isUploading(): boolean { return this.loadingState$.value.isUploading; }
   get uploadProgress(): number { return this.loadingState$.value.uploadProgress; }
   get uploadProgressText(): string { return this.loadingState$.value.progressText; }
   get isMovingToShortlist(): boolean { return this._isMovingToShortlist; }
+
+  ageSliderOptions = {
+    floor: 18,
+    ceil: 65,
+    step: 1,
+    translate: (value: number): string => `${value}`,
+    getSelectionBarColor: () => 'var(--primary-blue)',
+    getPointerColor: () => 'var(--primary-dark)',
+    getTickColor: () => 'var(--primary-dark)',
+    showTicks: false,
+    showTicksValues: false
+  };
 
   ngOnInit(): void {
     this.initializeComponent();
@@ -333,12 +372,41 @@ export class LonglistComponent implements OnInit, OnDestroy {
   private initializeComponent(): void {
     this.sessionTimerService.startSessionTimer();
     
+    // Check CV access and show warning if needed
+    this.checkCvAccess();
+    
     // Check if we have saved state to restore
     if (this.resumeService.hasLonglistData()) {
       this.restoreState();
     } else {
       this.initializeEmptyState();
     }
+  }
+
+  private checkCvAccess(): void {
+    // Fetch current user profile to get accurate CV access status
+    this.authService.getCurrentUserProfile().subscribe({
+      next: (profileResponse) => {
+        console.log('User profile response in longlist:', profileResponse);
+        
+        if (!profileResponse.cv_access) {
+          this.showWarningMessage(
+            'CV Access Restricted', 
+            'You do not have access to CV features. Contact admin for access. You can still view the page but functionality will be limited.'
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching user profile in longlist:', error);
+        // Fallback to local check if API fails
+        if (!this.authService.hasCvAccess()) {
+          this.showWarningMessage(
+            'CV Access Restricted', 
+            'You do not have access to CV features. Contact admin for access. You can still view the page but functionality will be limited.'
+          );
+        }
+      }
+    });
   }
 
   private restoreState(): void {
@@ -353,6 +421,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicNationalityOptions = dynamicOptions.nationalities || [];
       this.dynamicQualificationOptions = dynamicOptions.qualifications || [];
       this.dynamicGenderOptions = dynamicOptions.genders || [];
+      this.dynamicLanguageOptions = dynamicOptions.languages || [];
       
       // Restore file information
       const fileInfo = this.resumeService.getCurrentSelectedFileInfo();
@@ -646,6 +715,29 @@ export class LonglistComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Age filter
+    if (cv.Age !== undefined && cv.Age !== null) {
+      if (cv.Age < this.selectedMinAge) {
+        return false;
+      }
+      if (cv.Age > this.selectedMaxAge) {
+        return false;
+      }
+    }
+
+    // Language filter
+    if (this.selectedLanguages.length > 0 && cv.Languages) {
+      const cvLanguages = this.parseLanguages(cv.Languages);
+      const hasMatchingLanguage = cvLanguages.some(cvLang => 
+        this.selectedLanguages.some(selectedLang => 
+          cvLang.toLowerCase().includes(selectedLang.toLowerCase())
+        )
+      );
+      if (!hasMatchingLanguage) {
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -670,6 +762,29 @@ export class LonglistComponent implements OnInit, OnDestroy {
     }
     // Fallback for any other type
     return [String(nationality)];
+  }
+
+  private parseLanguages(languages: any): string[] {
+    if (!languages) return [];
+    if (Array.isArray(languages)) {
+      return languages.map(String);
+    }
+    if (typeof languages === 'string') {
+      // Handle array-like string format: "['English']" or "['English', 'Hindi']"
+      if (languages.startsWith('[') && languages.endsWith(']')) {
+        try {
+          const parsed = languages.replace(/'/g, '"');
+          const languageArray = JSON.parse(parsed);
+          return Array.isArray(languageArray) ? languageArray.map(String) : [String(languageArray)];
+        } catch {
+          // If parsing fails, clean up manually
+          return [languages.replace(/[\[\]']/g, '')];
+        }
+      }
+      return [languages];
+    }
+    // Fallback for any other type
+    return [String(languages)];
   }
 
   resetFilters(): void {
@@ -764,6 +879,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
         this.selectedMaxQualification = value;
         this.openDropdown = null;
         break;
+      case 'languages':
+        this.toggleLanguage(value);
+        // Don't close dropdown for languages to allow multi-select
+        break;
     }
   }
 
@@ -771,6 +890,9 @@ export class LonglistComponent implements OnInit, OnDestroy {
     switch (dropdownName) {
       case 'nationality':
         this.clearAllNationalities();
+        break;
+      case 'languages':
+        this.clearAllLanguages();
         break;
       default:
         this.selectOption(dropdownName, '');
@@ -788,6 +910,37 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.selectedMaxQualification = '';
     this.applyFilters();
     this.saveState();
+  }
+
+  // Custom Age Slider Handlers
+  onMinAgeChange(event: any): void {
+    let value = Number(event.target.value);
+    if (value >= this.selectedMaxAge) {
+      value = this.selectedMaxAge - 1;
+    }
+    this.selectedMinAge = value;
+    if (this.selectedMinAge < 18) this.selectedMinAge = 18;
+    this.applyFilters();
+    this.saveState();
+  }
+
+  onMaxAgeChange(event: any): void {
+    let value = Number(event.target.value);
+    if (value <= this.selectedMinAge) {
+      value = this.selectedMinAge + 1;
+    }
+    this.selectedMaxAge = value;
+    if (this.selectedMaxAge > 65) this.selectedMaxAge = 65;
+    this.applyFilters();
+    this.saveState();
+  }
+
+  getRangeStyle(): { left: string; right: string } {
+    const min = 18;
+    const max = 65;
+    const left = ((this.selectedMinAge - min) / (max - min)) * 100;
+    const right = 100 - ((this.selectedMaxAge - min) / (max - min)) * 100;
+    return { left: left + '%', right: right + '%' };
   }
 
   private setLoadingState(isUploading: boolean, progress: number = 0, progressText: string = ''): void {
@@ -870,7 +1023,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
       const dynamicOptions = {
         nationalities: this.dynamicNationalityOptions,
         qualifications: this.dynamicQualificationOptions,
-        genders: this.dynamicGenderOptions
+        genders: this.dynamicGenderOptions,
+        languages: this.dynamicLanguageOptions
       };
 
       const fileInfo = this.selectedFile ? {
@@ -1019,6 +1173,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicNationalityOptions = [];
       this.dynamicQualificationOptions = [];
       this.dynamicGenderOptions = [];
+      this.dynamicLanguageOptions = [];
       return;
     }
 
@@ -1056,6 +1211,18 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.dynamicGenderOptions = [
       { label: 'Select Gender', value: '' },
       ...Array.from(genders).sort().map(gender => ({ label: gender, value: gender }))
+    ];
+
+    // Extract unique languages
+    const languages = new Set<string>();
+    this.originalApiData.forEach(cv => {
+      if (cv.Languages) {
+        const parsedLangs = this.parseLanguages(cv.Languages);
+        parsedLangs.forEach(lang => languages.add(lang));
+      }
+    });
+    this.dynamicLanguageOptions = [
+      ...Array.from(languages).sort().map(lang => ({ label: lang, value: lang }))
     ];
   }
 
@@ -1064,6 +1231,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicNationalityOptions = [];
       this.dynamicQualificationOptions = [];
       this.dynamicGenderOptions = [];
+      this.dynamicLanguageOptions = [];
       return;
     }
 
@@ -1101,6 +1269,18 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.dynamicGenderOptions = [
       { label: 'Select Gender', value: '' },
       ...Array.from(genders).sort().map(gender => ({ label: gender, value: gender }))
+    ];
+
+    // Extract unique languages
+    const languages = new Set<string>();
+    data.forEach(cv => {
+      if (cv.Languages) {
+        const parsedLangs = this.parseLanguages(cv.Languages);
+        parsedLangs.forEach(lang => languages.add(lang));
+      }
+    });
+    this.dynamicLanguageOptions = [
+      ...Array.from(languages).sort().map(lang => ({ label: lang, value: lang }))
     ];
   }
 
@@ -1113,7 +1293,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
       qualification: '',
       maxQualification: '',
       showMaxQualification: false,
-      openDropdown: null
+      openDropdown: null,
+      minAge: 18,
+      maxAge: 65,
+      languages: []
     };
   }
 
@@ -1163,6 +1346,30 @@ export class LonglistComponent implements OnInit, OnDestroy {
       return 'N/A';
     }
     return yoe.toString();
+  }
+
+  // Helper method to format languages for display
+  formatLanguagesDisplay(languages: any): string {
+    if (languages == null) return '';
+    if (Array.isArray(languages)) {
+      return languages.join(', ');
+    }
+    if (typeof languages === 'string') {
+      // Handle array-like string format: "['English']" or "['English', 'Hindi']"
+      if (languages.startsWith('[') && languages.endsWith(']')) {
+        try {
+          const parsed = languages.replace(/'/g, '"');
+          const languageArray = JSON.parse(parsed);
+          return Array.isArray(languageArray) ? languageArray.join(', ') : String(languageArray);
+        } catch {
+          // If parsing fails, clean up manually
+          return languages.replace(/[\[\]']/g, '');
+        }
+      }
+      return languages;
+    }
+    // Fallback for any other type
+    return String(languages);
   }
 
   // Helper method to force table refresh
@@ -1237,7 +1444,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
     }
 
     // Define CSV headers
-    const headers = ['CV ID', 'Name', 'Highest Degree', 'YOE', 'Gender', 'Nationality'];
+    const headers = ['CV ID', 'Name', 'Highest Degree', 'YOE', 'Age', 'Gender', 'Nationality', 'Languages'];
     
     // Convert data to CSV format
     const csvContent = [
@@ -1247,8 +1454,10 @@ export class LonglistComponent implements OnInit, OnDestroy {
         `"${cv['Name']}"`,
         `"${cv['Highest Degree']}"`,
         cv['YOE'] || 0,
+        cv['Age'] || 'N/A',
         `"${cv['Gender']}"`,
-        `"${this.formatNationalityDisplay(cv['Nationality'])}"`
+        `"${this.formatNationalityDisplay(cv['Nationality'])}"`,
+        `"${this.formatLanguagesDisplay(cv['Languages'])}"`
       ].join(','))
     ].join('\n');
 

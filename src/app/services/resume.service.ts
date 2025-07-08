@@ -25,6 +25,8 @@ export interface ApiResumeData {
   "Gender": string;
   "Nationality": string;
   "Employment History": string;
+  "Age": number;
+  "Languages": string;
 }
 
 export interface UploadResumeResponse {
@@ -47,7 +49,7 @@ export interface SaveFilteredResponse {
   [key: string]: any;
 }
 
-// Shortlist/Ranking interfaces based on API swagger
+// Shortlist
 export interface ShortlistRequest {
   pdf_id: number;
   jd_file?: File;

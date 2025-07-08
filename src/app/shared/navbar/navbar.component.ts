@@ -37,7 +37,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    public authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -50,6 +50,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.isMobile) {
       this.sidebarCollapsed = true;
     }
+    
+    // Fetch current user profile to get accurate CV access status
+    this.fetchCurrentUserProfile();
     
     // Subscribe to user changes to update sidebar items
     this.authService.currentUser$.subscribe(user => {
@@ -67,6 +70,20 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sidebarCollapsed = true;
         }
     });
+  }
+
+  private fetchCurrentUserProfile(): void {
+    if (this.authService.isAuthenticated()) {
+      this.authService.getCurrentUserProfile().subscribe({
+        next: (profileResponse) => {
+          console.log('Navbar: User profile fetched:', profileResponse);
+          // The auth service will automatically update the current user
+        },
+        error: (error) => {
+          console.error('Navbar: Error fetching user profile:', error);
+        }
+      });
+    }
   }
 
   ngOnDestroy() {

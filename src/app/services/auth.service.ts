@@ -354,6 +354,65 @@ export class AuthService {
     return user?.is_admin === true;
   }
 
+  // Check if current user has CV access
+  hasCvAccess(): boolean {
+    const user = this.getCurrentUser();
+    return user && user.cv_access === true;
+  }
+
+  // Check if current user should see CV access warning
+  shouldShowCvAccessWarning(): boolean {
+    const user = this.getCurrentUser();
+    return user && user.cv_access === false;
+  }
+
+  // Get current user profile from API
+  getCurrentUserProfile(): Observable<any> {
+    const token = this.getToken();
+    
+    if (!token || token === 'verified') {
+      console.error('No valid token available for profile fetch');
+      return new Observable(observer => {
+        observer.error('No valid authentication token');
+      });
+    }
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.get<any>(`${this.baseUrl}/me`, { headers }).pipe(
+      tap(response => {
+        // Update the current user with fresh data from API
+        if (response) {
+          const user = {
+            id: response.id,
+            fname: response.fname,
+            lname: response.lname,
+            email: response.email,
+            phone: response.phone,
+            is_admin: response.is_admin || false,
+            cv_access: response.cv_access || false,
+            name: response.fname && response.lname 
+              ? `${response.fname} ${response.lname}`
+              : response.fname || response.lname || '',
+            ...response
+          };
+          localStorage.setItem('current_user', JSON.stringify(user));
+          this.currentUserSubject.next(user);
+          console.log('User profile updated with CV access:', response.cv_access);
+        }
+      })
+    );
+  }
+
+  // Refresh user profile and update local storage
+  refreshUserProfile(): Observable<any> {
+    return this.getCurrentUserProfile();
+  }
+
   // Decode JWT token to get expiration
   private decodeToken(token: string): any {
     try {

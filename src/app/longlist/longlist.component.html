@@ -132,18 +132,15 @@
 
           <div class="filter-container">
             <div class="filter-field age-filter">
-              <label class="filter-label">Age <span class="coming-soon">- Coming Soon</span></label>
-              <div class="age-slider disabled-filter">
-                <p-slider 
-                  [range]="true" 
-                  [min]="18" 
-                  [max]="65"
-                  [disabled]="true"
-                  class="age-range-slider">
-                </p-slider>
-                <div class="age-values text-center mt-2">
-                  <span class="text-sm font-medium">18-65</span>
-                </div>
+              <label class="filter-label">Age</label>
+              <div class="age-slider-custom">
+                <div class="age-range-text">{{ selectedMinAge }}–{{ selectedMaxAge }}</div>
+                <ngx-slider
+                  [(value)]="selectedMinAge"
+                  [(highValue)]="selectedMaxAge"
+                  [options]="ageSliderOptions"
+                  class="ngx-age-slider">
+                </ngx-slider>
               </div>
             </div>
           </div>
@@ -259,23 +256,24 @@
 
           <div class="filter-container languages-container">
             <div class="filter-field languages-field">
-              <label class="filter-label">Languages <span class="coming-soon">- Coming Soon</span></label>
-              <div class="languages-section disabled-filter">
-                <div class="flex align-items-center gap-2">
-                  <div class="custom-dropdown flex-1 disabled" (click)="$event.stopPropagation()">
+              <label class="filter-label">Languages</label>
+              <div class="languages-section">
+                <div class="custom-dropdown" (click)="toggleDropdown('languages'); $event.stopPropagation()">
                     <div class="dropdown-selected">
-                      Select language (Coming Soon)
-                      <i class="pi pi-chevron-down dropdown-arrow"></i>
+                    {{ selectedLanguagesDisplay }}
+                    <i class="pi pi-times dropdown-clear" *ngIf="selectedLanguages.length > 0" (click)="clearSelection('languages'); $event.stopPropagation()"></i>
+                    <i class="pi pi-chevron-down dropdown-arrow" *ngIf="selectedLanguages.length === 0"></i>
+                  </div>
+                  <div class="dropdown-options" *ngIf="openDropdown === 'languages'">
+                    <div 
+                      *ngFor="let option of dynamicLanguageOptions" 
+                      class="dropdown-option"
+                      [class.selected]="isLanguageSelected(option.value)"
+                      (click)="selectOption('languages', option.value); $event.stopPropagation()">
+                      <i class="pi" [class.pi-check-square]="isLanguageSelected(option.value)" [class.pi-square]="!isLanguageSelected(option.value)"></i>
+                      {{ option.label }}
                     </div>
                   </div>
-                  <button 
-                    pButton 
-                    type="button" 
-                    icon="pi pi-plus"
-                    class="p-button-text add-language-btn"
-                    [disabled]="true">
-                    Add
-                  </button>
                 </div>
               </div>
             </div>
@@ -346,8 +344,10 @@
             <th>Name</th>
             <th>Highest Degree</th>
             <th>YOE</th>
+            <th>Age</th>
             <th>Gender</th>
             <th>Nationality</th>
+            <th>Languages</th>
           </tr>
         </ng-template>
         
@@ -357,8 +357,10 @@
             <td>{{ cv["Name"] }}</td>
             <td>{{ cv["Highest Degree"] }}</td>
             <td>{{ formatYOE(cv["YOE"]) }}</td>
+            <td>{{ cv["Age"] || 'N/A' }}</td>
             <td>{{ cv["Gender"] }}</td>
             <td>{{ formatNationalityDisplay(cv["Nationality"]) }}</td>
+            <td>{{ formatLanguagesDisplay(cv["Languages"]) }}</td>
           </tr>
         </ng-template>
       </p-table>

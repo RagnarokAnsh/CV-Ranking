@@ -49,6 +49,8 @@ interface ShortlistedCandidate {
   "Employment History": string;
   Gender: string;
   Nationality: string;
+  Age: number;
+  Languages: string;
 }
 
 // Interface for table display
@@ -59,6 +61,8 @@ interface TableRowData {
   yoe: number;
   gender: string;
   nationality: string;
+  age?: number;
+  languages?: string;
   rank?: number;
   finalScore?: number | string;
   employmentHistory?: string;
@@ -269,6 +273,19 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   get searchOperator(): string { return this.formState.searchOperator; }
   set searchOperator(value: string) { 
     this.updateFormState({ searchOperator: value });
+    
+    // Auto-format search query with commas when operator changes
+    if (this.searchQuery.trim()) {
+      const currentQuery = this.searchQuery.trim();
+      // Check if the query already contains commas
+      if (!currentQuery.includes(',')) {
+        // Split by spaces and join with commas
+        const keywords = currentQuery.split(/\s+/).filter(keyword => keyword.length > 0);
+        const formattedQuery = keywords.join(', ');
+        this.updateFormState({ searchQuery: formattedQuery });
+      }
+    }
+    
     this.saveShortlistState();
   }
 
@@ -401,8 +418,38 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     this.setupStateSubscriptions();
   }
 
+  private checkCvAccess(): void {
+    // Fetch current user profile to get accurate CV access status
+    this.authService.getCurrentUserProfile().subscribe({
+      next: (profileResponse) => {
+        console.log('User profile response in shortlist:', profileResponse);
+        
+        if (!profileResponse.cv_access) {
+          this.showWarningMessage(
+            'CV Access Restricted', 
+            'You do not have access to CV features. Contact admin for access. You can still view the page but functionality will be limited.'
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching user profile in shortlist:', error);
+        // Fallback to local check if API fails
+        if (!this.authService.hasCvAccess()) {
+          this.showWarningMessage(
+            'CV Access Restricted', 
+            'You do not have access to CV features. Contact admin for access. You can still view the page but functionality will be limited.'
+          );
+        }
+      }
+    });
+  }
+
   ngOnInit(): void {
     console.log('ShortlistComponent ngOnInit called');
+    
+    // Check CV access and show warning if needed
+    this.checkCvAccess();
+    
     this.restoreShortlistState();
     this.loadDataFromLonglist();
     this.validateWeights();
@@ -684,6 +731,8 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       yoe: cv["YOE"],
       gender: cv["Gender"],
       nationality: this.formatNationalityDisplay(cv["Nationality"]),
+      age: cv["Age"],
+      languages: this.formatLanguagesDisplay(cv["Languages"]),
       employmentHistory: cv["Employment History"]
     }));
 
@@ -719,6 +768,30 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     return String(nationality);
   }
 
+  // Helper method to format languages for display
+  formatLanguagesDisplay(languages: any): string {
+    if (languages == null) return '';
+    if (Array.isArray(languages)) {
+      return languages.join(', ');
+    }
+    if (typeof languages === 'string') {
+      // Handle array-like string format: "['English']" or "['English', 'Hindi']"
+      if (languages.startsWith('[') && languages.endsWith(']')) {
+        try {
+          const parsed = languages.replace(/'/g, '"');
+          const languageArray = JSON.parse(parsed);
+          return Array.isArray(languageArray) ? languageArray.join(', ') : String(languageArray);
+        } catch {
+          // If parsing fails, clean up manually
+          return languages.replace(/[\[\]']/g, '');
+        }
+      }
+      return languages;
+    }
+    // Fallback for any other type
+    return String(languages);
+  }
+
   // Search functionality
   performSearch(): void {
     const query = this.searchQuery.trim();
@@ -727,7 +800,12 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const keywords = query.toLowerCase().split(/\s+/).filter(keyword => keyword.length > 0);
+    // Split by commas first, then by spaces, and clean up each keyword
+    const keywords = query.toLowerCase()
+      .split(/[,\s]+/) // Split by commas and/or spaces
+      .map(keyword => keyword.trim()) // Trim whitespace from each keyword
+      .filter(keyword => keyword.length > 0); // Remove empty keywords
+    
     if (keywords.length === 0) {
       this.clearSearch();
       return;
@@ -753,7 +831,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
 
     this.showInfoMessage(
       'Search Complete', 
-      `Found ${filteredData.length} results for "${query}" in employment history (${this.searchOperator.toUpperCase()} search)`
+      `Found ${filteredData.length} results for "${keywords.join(', ')}" in employment history (${this.searchOperator.toUpperCase()} search)`
     );
   }
 
@@ -992,8 +1070,10 @@ export class ShortlistComponent implements OnInit, OnDestroy {
         name: candidate["Applicant Name"],
         highestDegree: candidate["Highest Degree"],
         yoe: candidate.YOE,
+        age: candidate.Age,
         gender: candidate.Gender,
         nationality: this.formatNationalityDisplay(candidate.Nationality),
+        languages: this.formatLanguagesDisplay(candidate.Languages),
         rank: candidate.Rank,
         finalScore: candidate["Final Score"],
         employmentHistory: candidate["Employment History"]
@@ -1267,7 +1347,7 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     }
 
     // Define CSV headers
-    const headers = ['Rank', 'CV ID', 'Name', 'Highest Degree', 'YOE', 'Final Score', 'Gender', 'Nationality'];
+    const headers = ['Rank', 'CV ID', 'Name', 'Highest Degree', 'YOE', 'Age', 'Final Score', 'Gender', 'Nationality', 'Languages'];
     
     // Convert data to CSV format
     const csvContent = [
@@ -1278,9 +1358,11 @@ export class ShortlistComponent implements OnInit, OnDestroy {
         `"${result.name || 'Unknown'}"`,
         `"${result.highestDegree || 'N/A'}"`,
         result.yoe || 0,
+        result.age || 'N/A',
         this.formatFinalScore(result.finalScore),
         `"${result.gender || 'Unknown'}"`,
-        `"${this.formatNationalityDisplay(result.nationality) || 'Unknown'}"`
+        `"${this.formatNationalityDisplay(result.nationality) || 'Unknown'}"`,
+        `"${result.languages || 'N/A'}"`
       ].join(','))
     ].join('\n');
 

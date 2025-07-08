@@ -158,22 +158,57 @@ export class LoginComponent implements OnInit, OnDestroy {
           console.log('OTP verification response:', response);
           
           try {
-            // Show success message
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Login Successful',
-              detail: 'Welcome back! Redirecting...'
-            });
-            
-            console.log('Login successful with OTP:', response);
-            
-            // Navigate after a short delay to allow user to see the success message
-            setTimeout(() => {
-              this.router.navigate(['/longlist']);
-            }, 500);
+            // Fetch current user profile to get accurate CV access status
+            this.authService.getCurrentUserProfile().subscribe({
+              next: (profileResponse) => {
+                console.log('User profile response:', profileResponse);
+                
+                // Check CV access from the API response
+                if (!profileResponse.cv_access) {
+                  // Show warning message about CV access
+                  this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Access Restricted',
+                    detail: 'Contact admin for access to CV features. You can still view the pages but functionality will be limited.',
+                    life: 8000 // Show for 8 seconds
+                  });
+                } else {
+                  // Show success message for users with CV access
+                  this.messageService.add({
+                    severity: 'success',
+                    summary: 'Login Successful',
+                    detail: 'Welcome back! Redirecting...'
+                  });
+                }
+                
+                console.log('Login successful with OTP:', response);
+                
+                // Navigate after a short delay to allow user to see the success message
+                setTimeout(() => {
+                  this.router.navigate(['/longlist']);
+                }, 500);
 
-            // Start session timer
-            this.sessionTimerService.startSessionTimer();
+                // Start session timer
+                this.sessionTimerService.startSessionTimer();
+              },
+              error: (profileError) => {
+                console.error('Error fetching user profile:', profileError);
+                // Fallback to success message if profile fetch fails
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Login Successful',
+                  detail: 'Welcome back! Redirecting...'
+                });
+                
+                // Navigate after a short delay
+                setTimeout(() => {
+                  this.router.navigate(['/longlist']);
+                }, 500);
+
+                // Start session timer
+                this.sessionTimerService.startSessionTimer();
+              }
+            });
           } catch (error) {
             console.error('Error during navigation:', error);
             this.messageService.add({
