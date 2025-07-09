@@ -1484,9 +1484,24 @@ p-fileupload[mode="basic"] {
     position: relative !important;
   }
 }
-
+:ng-deep .p-inputtext:enabled:focus {
+  border-color: var(--primary-blue) !important;
+}
 /* Progress bar pulsing animation */
 @keyframes progressPulse {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+
+/* Custom phone input styling is handled in component-specific CSS */
+
+// Ensure PrimeNG calendar popup is always on top and blocks pointer events
+:root {
+  --calendar-popup-z: 11000;
+}
+
+::ng-deep .p-datepicker {
+  z-index: var(--calendar-popup-z) !important;
+  pointer-events: auto !important;
 }

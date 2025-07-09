@@ -216,13 +216,13 @@
                   <label class="experience-label">min</label>
                   <div class="custom-dropdown" (click)="toggleDropdown('minExperience'); $event.stopPropagation()">
                     <div class="dropdown-selected">
-                      {{ getSelectedLabel(experienceYearOptions, selectedMinExperience) || '0' }}
+                      {{ getSelectedLabel(dynamicExperienceOptions, selectedMinExperience) || '0' }}
                       <i class="pi pi-times dropdown-clear" *ngIf="selectedMinExperience" (click)="clearSelection('minExperience'); $event.stopPropagation()"></i>
                       <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedMinExperience"></i>
                     </div>
                     <div class="dropdown-options" *ngIf="openDropdown === 'minExperience'">
                       <div 
-                        *ngFor="let option of experienceYearOptions" 
+                        *ngFor="let option of dynamicExperienceOptions" 
                         class="dropdown-option"
                         [class.selected]="selectedMinExperience === option.value"
                         (click)="selectOption('minExperience', option.value); $event.stopPropagation()">
@@ -235,13 +235,13 @@
                   <label class="experience-label">max</label>
                   <div class="custom-dropdown" (click)="toggleDropdown('maxExperience'); $event.stopPropagation()">
                     <div class="dropdown-selected">
-                      {{ getSelectedLabel(experienceYearOptions, selectedMaxExperience) || '10+' }}
+                      {{ getSelectedLabel(dynamicExperienceOptions, selectedMaxExperience) || 'all' }}
                       <i class="pi pi-times dropdown-clear" *ngIf="selectedMaxExperience" (click)="clearSelection('maxExperience'); $event.stopPropagation()"></i>
                       <i class="pi pi-chevron-down dropdown-arrow" *ngIf="!selectedMaxExperience"></i>
                     </div>
                     <div class="dropdown-options" *ngIf="openDropdown === 'maxExperience'">
                       <div 
-                        *ngFor="let option of experienceYearOptions" 
+                        *ngFor="let option of dynamicExperienceOptions" 
                         class="dropdown-option"
                         [class.selected]="selectedMaxExperience === option.value"
                         (click)="selectOption('maxExperience', option.value); $event.stopPropagation()">

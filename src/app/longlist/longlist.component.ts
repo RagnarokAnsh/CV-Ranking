@@ -198,21 +198,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
   dynamicQualificationOptions: FilterOption[] = [];
   dynamicGenderOptions: FilterOption[] = [];
   dynamicLanguageOptions: FilterOption[] = [];
-
-  // Experience options for dropdowns
-  readonly experienceYearOptions: readonly FilterOption[] = Object.freeze([
-    { label: '0', value: '0' },
-    { label: '1', value: '1' },
-    { label: '2', value: '2' },
-    { label: '3', value: '3' },
-    { label: '4', value: '4' },
-    { label: '5', value: '5' },
-    { label: '6', value: '6' },
-    { label: '7', value: '7' },
-    { label: '8', value: '8' },
-    { label: '9', value: '9' },
-    { label: '10+', value: '10' }
-  ]);
+  // Dynamic experience options for dropdowns
+  dynamicExperienceOptions: FilterOption[] = [];
 
   // Filter State
   private filterState: FilterState = {
@@ -225,7 +212,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
     showMaxQualification: false,
     openDropdown: null,
     minAge: 18,
-    maxAge: 65,
+    maxAge: 70,
     languages: []
   };
 
@@ -338,7 +325,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
   ageSliderOptions = {
     floor: 18,
-    ceil: 65,
+    ceil: 70,
     step: 1,
     translate: (value: number): string => `${value}`,
     getSelectionBarColor: () => 'var(--primary-blue)',
@@ -422,6 +409,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicQualificationOptions = dynamicOptions.qualifications || [];
       this.dynamicGenderOptions = dynamicOptions.genders || [];
       this.dynamicLanguageOptions = dynamicOptions.languages || [];
+      this.dynamicExperienceOptions = dynamicOptions.experienceYears || []; // Assuming experienceYears is part of dynamicOptions
       
       // Restore file information
       const fileInfo = this.resumeService.getCurrentSelectedFileInfo();
@@ -529,6 +517,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.resetFilterState();
     this.updateFilterOptions();
     this.resumeService.clearLonglistData();
+    // Reset upload handled flag
+    (this as any)._uploadHandled = false;
   }
 
   private uploadFile(file: File): void {
@@ -641,6 +631,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
     
     // Remove selected file
     this.selectedFile = null;
+    // Reset upload handled flag
+    (this as any)._uploadHandled = false;
   }
 
   applyFilters(): void {
@@ -685,7 +677,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
 
     if (this.selectedMaxExperience) {
       const maxExp = parseInt(this.selectedMaxExperience);
-      if (maxExp < 10 && cvExperience > maxExp) { // 10+ means no upper limit
+      if (maxExp < 10 && cvExperience > maxExp) { // 10 means no upper limit
         return false;
       }
     }
@@ -798,6 +790,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.clearExistingData();
     this.selectedFile = null;
     this.showInfoMessage('Reset Complete', 'All CV data and saved state have been cleared');
+    // Reset upload handled flag
+    (this as any)._uploadHandled = false;
   }
 
   moveToShortListing(): void {
@@ -930,14 +924,14 @@ export class LonglistComponent implements OnInit, OnDestroy {
       value = this.selectedMinAge + 1;
     }
     this.selectedMaxAge = value;
-    if (this.selectedMaxAge > 65) this.selectedMaxAge = 65;
+    if (this.selectedMaxAge > 70) this.selectedMaxAge = 70;
     this.applyFilters();
     this.saveState();
   }
 
   getRangeStyle(): { left: string; right: string } {
     const min = 18;
-    const max = 65;
+    const max = 70;
     const left = ((this.selectedMinAge - min) / (max - min)) * 100;
     const right = 100 - ((this.selectedMaxAge - min) / (max - min)) * 100;
     return { left: left + '%', right: right + '%' };
@@ -1024,7 +1018,8 @@ export class LonglistComponent implements OnInit, OnDestroy {
         nationalities: this.dynamicNationalityOptions,
         qualifications: this.dynamicQualificationOptions,
         genders: this.dynamicGenderOptions,
-        languages: this.dynamicLanguageOptions
+        languages: this.dynamicLanguageOptions,
+        experienceYears: this.dynamicExperienceOptions // Add experience years to dynamic options
       };
 
       const fileInfo = this.selectedFile ? {
@@ -1116,8 +1111,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       .toLowerCase();
 
     if (
-      error?.status === 400 &&
-      (errorText.includes('wrong file uploaded') || errorText.includes('p11') || errorText.includes('valid resume'))
+      error?.status === 400
     ) {
       errorSummary = 'Invalid File Format';
       errorMessage = 'Make sure the uploaded file is in P11 format';
@@ -1174,6 +1168,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicQualificationOptions = [];
       this.dynamicGenderOptions = [];
       this.dynamicLanguageOptions = [];
+      this.dynamicExperienceOptions = []; // Clear experience options
       return;
     }
 
@@ -1198,7 +1193,9 @@ export class LonglistComponent implements OnInit, OnDestroy {
     });
     this.dynamicQualificationOptions = [
       { label: 'All Qualifications', value: '' },
-      ...Array.from(qualifications).sort().map(qual => ({ label: qual, value: qual }))
+      ...Array.from(qualifications)
+        .sort((a, b) => getQualificationLevel(a) - getQualificationLevel(b) || a.localeCompare(b))
+        .map(qual => ({ label: qual, value: qual }))
     ];
 
     // Extract unique genders
@@ -1224,6 +1221,22 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.dynamicLanguageOptions = [
       ...Array.from(languages).sort().map(lang => ({ label: lang, value: lang }))
     ];
+
+    // Extract unique experience years
+    const yoeSet = new Set<number>();
+    this.originalApiData.forEach(cv => {
+      if (typeof cv.YOE === 'number' && !isNaN(cv.YOE)) {
+        yoeSet.add(cv.YOE);
+      }
+    });
+    // Always include 0 and 10 for flexibility
+    yoeSet.add(0);
+    yoeSet.add(10);
+    const yoeArray = Array.from(yoeSet).sort((a, b) => a - b);
+    this.dynamicExperienceOptions = yoeArray.map(year => ({
+      label: year === 10 ? '10' : year.toString(),
+      value: year.toString()
+    }));
   }
 
   private updateFilterOptionsFromResponseData(data: ApiResumeData[]): void {
@@ -1232,6 +1245,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       this.dynamicQualificationOptions = [];
       this.dynamicGenderOptions = [];
       this.dynamicLanguageOptions = [];
+      this.dynamicExperienceOptions = []; // Clear experience options
       return;
     }
 
@@ -1256,7 +1270,9 @@ export class LonglistComponent implements OnInit, OnDestroy {
     });
     this.dynamicQualificationOptions = [
       { label: 'All Qualifications', value: '' },
-      ...Array.from(qualifications).sort().map(qual => ({ label: qual, value: qual }))
+      ...Array.from(qualifications)
+        .sort((a, b) => getQualificationLevel(a) - getQualificationLevel(b) || a.localeCompare(b))
+        .map(qual => ({ label: qual, value: qual }))
     ];
 
     // Extract unique genders
@@ -1282,6 +1298,22 @@ export class LonglistComponent implements OnInit, OnDestroy {
     this.dynamicLanguageOptions = [
       ...Array.from(languages).sort().map(lang => ({ label: lang, value: lang }))
     ];
+
+    // Extract unique experience years
+    const yoeSet = new Set<number>();
+    data.forEach(cv => {
+      if (typeof cv.YOE === 'number' && !isNaN(cv.YOE)) {
+        yoeSet.add(cv.YOE);
+      }
+    });
+    // Always include 0 and 10 for flexibility
+    yoeSet.add(0);
+    yoeSet.add(10);
+    const yoeArray = Array.from(yoeSet).sort((a, b) => a - b);
+    this.dynamicExperienceOptions = yoeArray.map(year => ({
+      label: year === 10 ? '10' : year.toString(),
+      value: year.toString()
+    }));
   }
 
   private resetFilterState(): void {
@@ -1295,7 +1327,7 @@ export class LonglistComponent implements OnInit, OnDestroy {
       showMaxQualification: false,
       openDropdown: null,
       minAge: 18,
-      maxAge: 65,
+      maxAge: 70,
       languages: []
     };
   }

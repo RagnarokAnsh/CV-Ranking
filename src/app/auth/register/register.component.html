@@ -63,12 +63,16 @@
         </div>
         <div class="form-field half-width">
           <label for="phone">Phone/Mobile *</label>
-          <div class="phone-input-container">
-            <div class="custom-dropdown country-dropdown" [class.open]="showCountryDropdown" (click)="toggleCountryDropdown(); $event.stopPropagation()">
+          <div class="phone-input-container" 
+               [class.error]="registerForm.get('phone')?.touched && registerForm.get('phone')?.errors">
+            <!-- Country Code Dropdown -->
+            <div class="country-code-dropdown" 
+                 [class.open]="showCountryDropdown" 
+                 (click)="toggleCountryDropdown(); $event.stopPropagation()">
               <div class="dropdown-selected">
-                <div class="country-item" *ngIf="getSelectedCountryCode()">
-                  <img [src]="getSelectedCountryCode().flag" alt="flag" class="flag-icon">
-                  <span class="country-code">{{ getSelectedCountryCode().value }}</span>
+                <div class="country-item">
+                  <img [src]="getSelectedCountryCode().flag" [alt]="getSelectedCountryCode().label" class="flag-icon">
+                  <span class="country-code">{{ getSelectedCountryCode().label }}</span>
                 </div>
               </div>
               <div class="dropdown-icon">
@@ -81,22 +85,25 @@
                   (click)="selectCountryCode(country); $event.stopPropagation()"
                   [class.selected]="country.value === registerForm.get('countryCode')?.value">
                   <div class="country-item">
-                    <img [src]="country.flag" alt="flag" class="flag-icon">
-                    <span>{{ country.display }}</span>
+                    <img [src]="country.flag" [alt]="country.label" class="flag-icon">
+                    <span>{{ country.name }}</span>
+                    <span class="country-code">{{ country.label }}</span>
                   </div>
                 </div>
               </div>
             </div>
+            
+            <!-- Phone Number Input -->
             <input 
-              id="phone" 
-              type="tel"
+              type="tel" 
+              id="phone"
               formControlName="phone"
-              placeholder=""
-              class="form-input phone-number"
-              [class.error]="registerForm.get('phone')?.touched && registerForm.get('phone')?.errors"
-              (input)="onPhoneInput($event)"
+              placeholder="Enter phone number"
+              class="phone-number-input"
               (keypress)="onPhoneKeyPress($event)"
+              (input)="onPhoneInput($event)"
               (paste)="onPhonePaste($event)"
+              [class.error]="registerForm.get('phone')?.touched && registerForm.get('phone')?.errors"
             />
           </div>
           <div class="error-message" *ngIf="getFieldErrorMessage('phone')">
@@ -162,9 +169,20 @@
               <i class="pi pi-chevron-down"></i>
             </div>
             <div class="dropdown-panel" *ngIf="showCountryFieldDropdown" (click)="$event.stopPropagation()">
+              <!-- Search Box for Country -->
+              <div class="dropdown-search">
+                <input 
+                  type="text" 
+                  placeholder="Search country..."
+                  [(ngModel)]="countrySearchText"
+                  [ngModelOptions]="{standalone: true}"
+                  (input)="filterCountries()"
+                  class="search-input"
+                />
+              </div>
               <div 
                 class="dropdown-item" 
-                *ngFor="let option of countries"
+                *ngFor="let option of filteredCountries"
                 (click)="selectCountryField(option); $event.stopPropagation()"
                 [class.selected]="option.value === registerForm.get('country')?.value">
                 <span>{{ option.label }}</span>
@@ -185,9 +203,20 @@
               <i class="pi pi-chevron-down"></i>
             </div>
             <div class="dropdown-panel" *ngIf="showNationalityDropdown" (click)="$event.stopPropagation()">
+              <!-- Search Box for Nationality -->
+              <div class="dropdown-search">
+                <input 
+                  type="text" 
+                  placeholder="Search nationality..."
+                  [(ngModel)]="nationalitySearchText"
+                  [ngModelOptions]="{standalone: true}"
+                  (input)="filterNationalities()"
+                  class="search-input"
+                />
+              </div>
               <div 
                 class="dropdown-item" 
-                *ngFor="let option of nationalities"
+                *ngFor="let option of filteredNationalities"
                 (click)="selectNationality(option); $event.stopPropagation()"
                 [class.selected]="option.value === registerForm.get('nationality')?.value">
                 <span>{{ option.label }}</span>
@@ -269,3 +298,4 @@
 
 <!-- Toast Messages -->
 <p-toast></p-toast>
+<div class="dropdown-overlay" *ngIf="anyDropdownOpen()" (click)="closeAllDropdowns()"></div>

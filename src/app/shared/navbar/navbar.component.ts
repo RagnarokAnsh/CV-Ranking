@@ -147,12 +147,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     // Add common items
     baseItems.push(
-      {
-        label: 'Help',
-        icon: 'pi pi-info-circle',
-        routerLink: '/help',
-        command: () => this.showHelp()
-      },
+      // {
+      //   label: 'Help',
+      //   icon: 'pi pi-info-circle',
+      //   routerLink: '/help',
+      //   command: () => this.showHelp()
+      // },
       {
         label: 'Logout',
         icon: 'pi pi-sign-out',

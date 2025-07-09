@@ -70,7 +70,7 @@ export class AdminApprovalComponent implements OnInit {
         this.hrCandidates = users.map(user => ({
           ...user,
           name: user.name || `${user.fname || ''} ${user.lname || ''}`.trim() || 'Unknown User',
-          status: user.cv_access ? 'approved' : 'rejected'
+          status: user.cv_access ? 'approved' : 'pending'
         }));
         
         // Update paginator settings

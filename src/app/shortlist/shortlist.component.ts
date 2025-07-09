@@ -304,6 +304,26 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   get selectedMaxYearsExperience(): number | null { return this.filterState.maxYearsExperience; }
   get selectedMaxQualification(): string { return this.filterState.maxQualification; }
 
+  // New: Getters for selected age and language filters for display
+  get selectedAgeFilter(): string {
+    // If you have min/max age in filterState, use them; otherwise, return 'Any'
+    const minAge = (this.filterState as any).minAge;
+    const maxAge = (this.filterState as any).maxAge;
+    if (typeof minAge === 'number' && typeof maxAge === 'number') {
+      return `${minAge} - ${maxAge}`;
+    }
+    return 'Any';
+  }
+
+  get selectedLanguageFilter(): string {
+    // If you have a language filter in filterState, use it; otherwise, return 'Any'
+    const lang = (this.filterState as any).language;
+    if (lang && lang !== 'Any') {
+      return lang;
+    }
+    return 'Any';
+  }
+
   get displayEmploymentDialog(): boolean { return this.dialogState.employment.visible; }
   set displayEmploymentDialog(value: boolean) { 
     this.updateDialogState({ 
