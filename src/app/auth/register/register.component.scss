@@ -57,7 +57,7 @@
     
     /* Create stacking context for dropdown */
     &.open {
-      z-index: 10001; /* Increase significantly */
+      z-index: 1100; /* Increase significantly */
     }
     
     &:hover {
@@ -123,20 +123,17 @@
     
     .dropdown-panel {
       position: absolute;
-      width: 300px;
-      left: 0;
       top: 100%;
-      margin-top: 2px;
-      background: white !important;
-      border: 2px solid #E1E1E1 !important;
-      border-radius: 8px !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-      z-index: 10002 !important; /* Highest z-index */
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #E1E1E1;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1100 !important;
       max-height: 250px;
       overflow-y: auto;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
+      margin-top: 2px;
       
       /* Remove interfering pseudo-elements */
       &::before,
@@ -230,6 +227,110 @@
   }
 }
 
+/* --- Cleaned up SCSS for Register Component --- */
+
+.form-field, .form-row, .register-form {
+  overflow: visible;
+  position: relative;
+  z-index: auto;
+}
+
+.phone-input-container {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  position: relative;
+  border: 1px solid #E1E1E1;
+  border-radius: 8px;
+  background: #E6E6E6;
+  transition: all 0.3s ease;
+  overflow: visible;
+  z-index: 1;
+}
+
+.country-code-dropdown {
+  width: 80px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 8px 0 0 8px;
+  border-right: 1px solid #D1D5DB;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.country-code-dropdown.open {
+  z-index: 1100;
+}
+
+.country-code-dropdown .dropdown-panel {
+  position: absolute;
+  width: 300px;
+  left: 0;
+  top: 100%;
+  margin-top: 2px;
+  background: white;
+  border: 2px solid #E1E1E1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  max-height: 250px;
+  overflow-y: auto;
+  display: block;
+}
+
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  height: 44px;
+  background: #E6E6E6;
+  border: 1px solid #E1E1E1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.custom-dropdown.open {
+  z-index: 1100;
+  border-color: #5B92E5;
+  box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
+}
+
+.custom-dropdown .dropdown-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #E1E1E1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+
+/* Calendar Panel (PrimeNG) */
+::ng-deep .p-datepicker-panel {
+  z-index: 1200 !important;
+  position: absolute !important;
+}
+
+/* Overlay for closing dropdowns */
+.dropdown-overlay {
+  position: fixed;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  background: transparent;
+  pointer-events: auto;
+}
+
 /* Custom Dropdown Styles */
 .custom-dropdown {
   position: relative;
@@ -253,7 +354,7 @@
   }
   
   &.open {
-    z-index: 10001; /* Increase when open */
+    z-index: 1100; /* Increase when open */
     border-color: #5B92E5;
     box-shadow: 0 0 0 2px rgba(91, 146, 229, 0.2);
   }
@@ -264,7 +365,7 @@
     height: 100%;
     padding: 0 2.5rem 0 1rem;
     position: relative;
-    z-index: 1;
+    z-index: -20;
     
     .dropdown-text {
       color: #000000;
@@ -328,7 +429,7 @@
     border: 1px solid #E1E1E1;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 10002 !important; /* Highest z-index */
+    z-index: 1100 !important; /* Highest z-index */
     max-height: 250px;
     overflow-y: auto;
     margin-top: 2px;
@@ -419,16 +520,15 @@
 /* Country Dropdown - Centered Content */
 .country-dropdown {
   .dropdown-selected {
-    justify-content: center;
-    padding: 0 2.5rem 0 0.5rem;
+   
   }
   
   &.open {
-    z-index: 10001 !important;
+    z-index: 1100 !important;
   }
   
   .dropdown-panel {
-    z-index: 10002 !important;
+    z-index: 1100 !important;
   }
 }
 
@@ -771,11 +871,133 @@ body {
 
 .dropdown-overlay {
   position: fixed;
-  top: 0;
+  // top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 10000; // just below dropdown-panel (which is 10001/10002)
+  z-index: 1000; // just below dropdown-panel (which is 10001/10002)
   background: transparent;
   pointer-events: auto;
+}
+
+/* Overlay panel for country code dropdown */
+.country-code-overlay-panel {
+  background: #fff;
+  border: 1px solid #E1E1E1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 80px;
+  width: 100% !important;
+  max-width: 300px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0;
+  z-index: 1200 !important;
+  box-sizing: border-box;
+}
+
+.country-code-overlay-panel .dropdown-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #F5F5F5;
+  background: #fff;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.country-code-overlay-panel .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.country-code-overlay-panel .dropdown-item:hover {
+  background: #F8F9FA;
+}
+
+.country-code-overlay-panel .dropdown-item.selected {
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+.country-code-overlay-panel .country-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.country-code-overlay-panel .flag-icon {
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.country-code-overlay-panel .country-code {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #666;
+  margin-left: auto;
+}
+
+// === Country Code Overlay Panel Fixes ===
+.cdk-overlay-pane.country-code-overlay-panel {
+  z-index: 1200 !important;
+  min-width: 80px;
+  width: auto !important;
+  max-width: 300px;
+  box-sizing: border-box;
+}
+
+.cdk-overlay-connected-position-bounding-box {
+  z-index: 1200 !important;
+}
+
+// === Overlay Dropdown Panel Fix for View Encapsulation ===
+.dropdown-panel[_ngcontent-ng-c4045527150] {
+  width: auto !important;
+  min-width: 80px;
+  max-width: 250px;
+  max-height: 250px;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 8px;
+  overflow-y: auto;
+  z-index: 1201 !important;
+  position: relative;
+  border: 1px solid #E1E1E1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: #000000;
+}
+
+.dropdown-panel[_ngcontent-ng-c4045527150] .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #F5F5F5;
+  transition: background 0.2s;
+  background: #fff;
+  margin: 0;
+}
+
+.dropdown-panel[_ngcontent-ng-c4045527150] .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-panel[_ngcontent-ng-c4045527150] .dropdown-item:hover {
+  background: #F8F9FA;
+}
+
+.dropdown-panel[_ngcontent-ng-c4045527150] .dropdown-item.selected {
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+.dropdown-panel[_ngcontent-ng-c4045527150] .dropdown-item .country-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }

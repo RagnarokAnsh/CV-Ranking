@@ -844,10 +844,23 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Update both search filtered data and the main filtered API data
     this.updateComponentState({
       searchFilteredData: filteredData,
-      isSearchActive: true
+      isSearchActive: true,
+      // Also update the filteredApiData to reflect the search results
+      filteredApiData: this.componentState.filteredApiData.filter(cv => {
+        const employmentHistory = (cv["Employment History"] || '').toLowerCase();
+        
+        if (this.searchOperator === 'and') {
+          return keywords.every(keyword => this.exactKeywordMatch(employmentHistory, keyword));
+        } else {
+          return keywords.some(keyword => this.exactKeywordMatch(employmentHistory, keyword));
+        }
+      })
     });
+
+    this.onSearchStateChange();
 
     this.showInfoMessage(
       'Search Complete', 
@@ -856,9 +869,14 @@ export class ShortlistComponent implements OnInit, OnDestroy {
   }
 
   clearSearch(): void {
+    // Restore the original filtered API data when clearing search
+    const originalFilteredData = this.resumeService.getCurrentFilteredApiData();
+    
     this.updateComponentState({
       searchFilteredData: [],
-      isSearchActive: false
+      isSearchActive: false,
+      // Restore the original filtered data
+      filteredApiData: originalFilteredData.length > 0 ? originalFilteredData : this.componentState.filteredApiData
     });
   }
 
@@ -996,6 +1014,12 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Clear search state before ranking to ensure backend gets all data
+    if (this.componentState.isSearchActive) {
+      console.log('Clearing search state before ranking to ensure backend receives all data');
+      this.clearSearch();
+    }
+
     this.updateComponentState({ isSubmitting: true });
     this.updateUploadState({ 
       isUploading: true, 
@@ -1009,6 +1033,9 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     console.log('PDF ID:', this.componentState.pdfId);
     console.log('Job Template:', this.formState.selectedJobTemplate);
     console.log('Search Query:', this.formState.searchQuery);
+    console.log('Search Operator:', this.formState.searchOperator);
+    console.log('Is Search Active:', this.componentState.isSearchActive);
+    console.log('Filtered Data Length:', this.componentState.filteredApiData.length);
     console.log('Weights:', {
       experience: this.weightState.experience,
       qualifications: this.weightState.qualifications,
@@ -1020,6 +1047,123 @@ export class ShortlistComponent implements OnInit, OnDestroy {
     // Start animated progress simulation
     this.startProgressSimulation();
 
+    // Always send empty search query to backend to ensure all data is processed
+    const searchQueryForBackend = '';
+    const searchOperatorForBackend = 'and';
+
+    this.uploadSubscription = this.resumeService.submitShortlistWithFile(
+      this.componentState.pdfId,
+      this.formState.selectedFile,
+      this.formState.selectedJobTemplate,
+      searchQueryForBackend, // Always send empty search query
+      searchOperatorForBackend, // Always send 'and' operator
+      this.weightState.experience,
+      this.weightState.qualifications,
+      this.weightState.skills
+    )
+    .pipe(
+      finalize(() => {
+        this.updateComponentState({ isSubmitting: false });
+        this.stopProgressSimulation();
+        // Complete progress bar on both success and error
+        this.updateUploadState({ 
+          isUploading: true, 
+          uploadProgress: 100, 
+          canCancel: false, 
+          progressText: 'Processing complete!' 
+        });
+        setTimeout(() => {
+          this.updateUploadState({ 
+            isUploading: false, 
+            uploadProgress: 0, 
+            canCancel: false, 
+            progressText: '' 
+          });
+        }, 1500);
+      }),
+      takeUntil(this.destroy$)
+    )
+    .subscribe({
+      next: (response) => {
+        this.updateUploadState({ 
+          uploadProgress: 95, 
+          progressText: 'Finalizing rankings...' 
+        });
+        this.handleRankingSuccess(response);
+      },
+      error: (error) => {
+        this.updateUploadState({ 
+          uploadProgress: 100, 
+          progressText: 'Processing failed' 
+        });
+        this.handleRankingError(error);
+      }
+    });
+  }
+
+  // Method to handle search state changes
+  onSearchStateChange(): void {
+    // Save state when search changes
+    this.saveShortlistState();
+    
+    // Show appropriate message based on search state
+    if (this.componentState.isSearchActive) {
+      this.showInfoMessage(
+        'Search Active', 
+        `Search filter applied. Click "Submit (Clear Search)" to rank all candidates or "Clear" to remove the filter.`
+      );
+    }
+  }
+
+  // Method to get submit button text based on current state
+  getSubmitButtonText(): string {
+    if (this.isSubmitting) {
+      return 'Processing...';
+    }
+    
+    if (this.componentState.isSearchActive) {
+      return 'Submit (Clear Search)';
+    }
+    
+    return 'Submit';
+  }
+
+  // Method to submit ranking with search filters (for future use)
+  submitRankingWithSearch(): void {
+    if (this.weightState.validationError) {
+      this.showErrorMessage('Validation Error', this.weightState.validationError);
+      return;
+    }
+
+    if (!this.componentState.pdfId) {
+      this.showErrorMessage('Error', 'No PDF ID available. Please upload CVs first.');
+      return;
+    }
+
+    if (!this.formState.selectedFile) {
+      this.showErrorMessage('Error', 'Please upload a job description file.');
+      return;
+    }
+
+    if (!this.componentState.isSearchActive) {
+      this.showErrorMessage('Error', 'No search filter active. Please perform a search first.');
+      return;
+    }
+
+    // Re-validate file before submission
+    if (!this.validateFile(this.formState.selectedFile)) {
+      return;
+    }
+
+    this.updateComponentState({ isSubmitting: true });
+    this.updateUploadState({ 
+      isUploading: true, 
+      uploadProgress: 10, 
+      canCancel: true, 
+      progressText: 'Validating job description... (Click X to cancel)' 
+    });
+
+    // Use the actual search query and operator for backend
     this.uploadSubscription = this.resumeService.submitShortlistWithFile(
       this.componentState.pdfId,
       this.formState.selectedFile,
@@ -1034,7 +1178,6 @@ export class ShortlistComponent implements OnInit, OnDestroy {
       finalize(() => {
         this.updateComponentState({ isSubmitting: false });
         this.stopProgressSimulation();
-        // Complete progress bar on both success and error
         this.updateUploadState({ 
           isUploading: true, 
           uploadProgress: 100, 
@@ -1099,18 +1242,24 @@ export class ShortlistComponent implements OnInit, OnDestroy {
         employmentHistory: candidate["Employment History"]
       }));
 
+      // Clear search state after successful ranking
       this.updateComponentState({ 
         tableData,
-        hasRankings: true
+        hasRankings: true,
+        searchFilteredData: [],
+        isSearchActive: false
       });
 
       // Save state after successful ranking
       this.saveShortlistState();
 
-      this.showSuccessMessage(
-        'Ranking Complete',
-        `Successfully ranked ${shortlistedData.length} candidates`
-      );
+      // Show success message with search context if search was active
+      let successMessage = `Successfully ranked ${shortlistedData.length} candidates`;
+      if (this.formState.searchQuery.trim()) {
+        successMessage += ` (search filter was cleared before ranking to ensure all data was processed)`;
+      }
+
+      this.showSuccessMessage('Ranking Complete', successMessage);
     } else {
       this.showWarningMessage(
         'No Results',

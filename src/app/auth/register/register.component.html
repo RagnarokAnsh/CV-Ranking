@@ -66,9 +66,7 @@
           <div class="phone-input-container" 
                [class.error]="registerForm.get('phone')?.touched && registerForm.get('phone')?.errors">
             <!-- Country Code Dropdown -->
-            <div class="country-code-dropdown" 
-                 [class.open]="showCountryDropdown" 
-                 (click)="toggleCountryDropdown(); $event.stopPropagation()">
+            <div class="country-code-dropdown" (click)="openCountryCodeDropdown($event.currentTarget)">
               <div class="dropdown-selected">
                 <div class="country-item">
                   <img [src]="getSelectedCountryCode().flag" [alt]="getSelectedCountryCode().label" class="flag-icon">
@@ -78,11 +76,13 @@
               <div class="dropdown-icon">
                 <i class="pi pi-chevron-down"></i>
               </div>
-              <div class="dropdown-panel" *ngIf="showCountryDropdown" (click)="$event.stopPropagation()">
+            </div>
+            <ng-template #countryCodeDropdownPanel>
+              <div class="dropdown-panel">
                 <div 
                   class="dropdown-item" 
                   *ngFor="let country of countryCodes"
-                  (click)="selectCountryCode(country); $event.stopPropagation()"
+                  (click)="selectCountryCode(country); closeCountryCodeDropdown(); $event.stopPropagation()"
                   [class.selected]="country.value === registerForm.get('countryCode')?.value">
                   <div class="country-item">
                     <img [src]="country.flag" [alt]="country.label" class="flag-icon">
@@ -91,7 +91,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </ng-template>
             
             <!-- Phone Number Input -->
             <input 
@@ -125,7 +125,8 @@
               placeholder="Select Date"
               dateFormat="dd/mm/yy"
               inputStyleClass="custom-calendar-input"
-              styleClass="custom-calendar">
+              styleClass="custom-calendar"
+              [appendTo]="'body'">
             </p-calendar>
           </div>
           <div class="error-message" *ngIf="getFieldErrorMessage('dateOfBirth')">

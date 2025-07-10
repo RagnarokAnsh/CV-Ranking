@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild, ViewContainerRef, TemplateRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -13,6 +13,8 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import * as countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
+import { Overlay, OverlayRef, OverlayPositionBuilder } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 
 interface CountryCode {
   label: string;
@@ -47,12 +49,14 @@ interface DropdownOption {
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   loading = false;
-  showCountryDropdown = false;
   showGenderDropdown = false;
   showCountryFieldDropdown = false;
   showNationalityDropdown = false;
   showPassword = false;
   showConfirmPassword = false;
+
+  @ViewChild('countryCodeDropdownPanel') countryCodeDropdownPanel!: TemplateRef<any>;
+  private countryCodeOverlayRef: OverlayRef | null = null;
 
   countryCodes: CountryCode[] = [
     { label: '+1', value: '+1', flag: 'https://flagcdn.com/w20/us.png', name: 'United States', code: 'US' },
@@ -281,7 +285,10 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private overlay: Overlay,
+    private vcr: ViewContainerRef,
+    private positionBuilder: OverlayPositionBuilder
   ) {}
 
   ngOnInit() {
@@ -294,6 +301,40 @@ export class RegisterComponent implements OnInit {
   }
 
   // Custom Validators based on backend validation
+  static nameValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    
+    const errors: ValidationErrors = {};
+    const value = control.value.trim();
+    
+    // Must contain only letters, spaces, hyphens, and apostrophes
+    if (!/^[A-Za-z\s\-']+$/.test(value)) {
+      errors['invalidCharacters'] = true;
+    }
+    
+    // Must not start or end with spaces, hyphens, or apostrophes
+    if (/^[\s\-']|[\s\-']$/.test(value)) {
+      errors['invalidStartEnd'] = true;
+    }
+    
+    // Must not contain consecutive spaces, hyphens, or apostrophes
+    if (/[\s\-']{2,}/.test(value)) {
+      errors['consecutiveSpecialChars'] = true;
+    }
+    
+    // Must be at least 2 characters long
+    if (value.length < 2) {
+      errors['tooShort'] = true;
+    }
+    
+    // Must not exceed 50 characters
+    if (value.length > 50) {
+      errors['tooLong'] = true;
+    }
+    
+    return Object.keys(errors).length > 0 ? errors : null;
+  }
+
   static phoneValidator(control: AbstractControl): ValidationErrors | null {
     if (!control.value) return null;
     
@@ -345,8 +386,8 @@ export class RegisterComponent implements OnInit {
 
   initializeForm() {
     this.registerForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(1)]],
-      lastName: ['', [Validators.required, Validators.minLength(1)]],
+      firstName: ['', [Validators.required, RegisterComponent.nameValidator]],
+      lastName: ['', [Validators.required, RegisterComponent.nameValidator]],
       email: ['', [Validators.required, Validators.email]],
       countryCode: ['+91', [Validators.required]], // Default to India
       phone: ['', [Validators.required]],
@@ -395,6 +436,11 @@ export class RegisterComponent implements OnInit {
       case 'firstName':
       case 'lastName':
         if (errors['required']) return `${fieldName === 'firstName' ? 'First' : 'Last'} name is required`;
+        if (errors['invalidCharacters']) return `${fieldName === 'firstName' ? 'First' : 'Last'} name can only contain letters, spaces, hyphens, and apostrophes`;
+        if (errors['invalidStartEnd']) return `${fieldName === 'firstName' ? 'First' : 'Last'} name cannot start or end with spaces, hyphens, or apostrophes`;
+        if (errors['consecutiveSpecialChars']) return `${fieldName === 'firstName' ? 'First' : 'Last'} name cannot contain consecutive spaces, hyphens, or apostrophes`;
+        if (errors['tooShort']) return `${fieldName === 'firstName' ? 'First' : 'Last'} name must be at least 2 characters long`;
+        if (errors['tooLong']) return `${fieldName === 'firstName' ? 'First' : 'Last'} name cannot exceed 50 characters`;
         break;
       case 'email':
         if (errors['required']) return 'Email is required';
@@ -446,23 +492,53 @@ export class RegisterComponent implements OnInit {
     return country || this.countryCodes[0];
   }
 
-  toggleCountryDropdown() {
-    this.showCountryDropdown = !this.showCountryDropdown;
-    // Close other dropdowns
-    this.showGenderDropdown = false;
-    this.showCountryFieldDropdown = false;
-    this.showNationalityDropdown = false;
+  openCountryCodeDropdown(trigger: EventTarget | null) {
+    const triggerEl = trigger as HTMLElement;
+    if (!triggerEl) return;
+    if (this.countryCodeOverlayRef) {
+      this.closeCountryCodeDropdown();
+      return;
+    }
+    const positionStrategy = this.positionBuilder
+      .flexibleConnectedTo(triggerEl)
+      .withPositions([
+        {
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top',
+        },
+        {
+          originX: 'end',
+          originY: 'bottom',
+          overlayX: 'end',
+          overlayY: 'top',
+        },
+      ]);
+    this.countryCodeOverlayRef = this.overlay.create({
+      positionStrategy,
+      hasBackdrop: true,
+      backdropClass: 'cdk-overlay-transparent-backdrop',
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
+      panelClass: 'country-code-overlay-panel'
+    });
+    this.countryCodeOverlayRef.attach(new TemplatePortal(this.countryCodeDropdownPanel, this.vcr));
+    this.countryCodeOverlayRef.backdropClick().subscribe(() => this.closeCountryCodeDropdown());
+  }
+  closeCountryCodeDropdown() {
+    if (this.countryCodeOverlayRef) {
+      this.countryCodeOverlayRef.dispose();
+      this.countryCodeOverlayRef = null;
+    }
   }
 
   selectCountryCode(country: CountryCode) {
     this.registerForm.patchValue({ countryCode: country.value });
-    this.showCountryDropdown = false;
   }
 
   toggleGenderDropdown() {
     this.showGenderDropdown = !this.showGenderDropdown;
     // Close other dropdowns
-    this.showCountryDropdown = false;
     this.showCountryFieldDropdown = false;
     this.showNationalityDropdown = false;
   }
@@ -479,7 +555,6 @@ export class RegisterComponent implements OnInit {
       this.filterCountries();
     }
     // Close other dropdowns
-    this.showCountryDropdown = false;
     this.showGenderDropdown = false;
     this.showNationalityDropdown = false;
   }
@@ -496,7 +571,6 @@ export class RegisterComponent implements OnInit {
       this.filterNationalities();
     }
     // Close other dropdowns
-    this.showCountryDropdown = false;
     this.showGenderDropdown = false;
     this.showCountryFieldDropdown = false;
   }
@@ -604,7 +678,6 @@ export class RegisterComponent implements OnInit {
     
     // Only close dropdowns if click is outside both the dropdown and its panel
     if (!isInsideDropdown && !isInsideDropdownPanel && !isInsideSearchInput) {
-      this.showCountryDropdown = false;
       this.showGenderDropdown = false;
       this.showCountryFieldDropdown = false;
       this.showNationalityDropdown = false;
@@ -727,11 +800,10 @@ export class RegisterComponent implements OnInit {
   }
 
   anyDropdownOpen(): boolean {
-    return this.showCountryDropdown || this.showGenderDropdown || this.showCountryFieldDropdown || this.showNationalityDropdown;
+    return this.showGenderDropdown || this.showCountryFieldDropdown || this.showNationalityDropdown;
   }
 
   closeAllDropdowns() {
-    this.showCountryDropdown = false;
     this.showGenderDropdown = false;
     this.showCountryFieldDropdown = false;
     this.showNationalityDropdown = false;

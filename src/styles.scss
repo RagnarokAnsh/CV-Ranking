@@ -306,7 +306,7 @@ html, body {
   
   &:hover {
     color: var(--primary-blue-dark);
-    text-decoration: underline;
+    
   }
 }
 
@@ -1496,12 +1496,14 @@ p-fileupload[mode="basic"] {
 
 /* Custom phone input styling is handled in component-specific CSS */
 
-// Ensure PrimeNG calendar popup is always on top and blocks pointer events
+/* Ensure PrimeNG calendar popup is always on top and blocks pointer events */
 :root {
-  --calendar-popup-z: 11000;
+  --calendar-popup-z: 1200;
 }
 
-::ng-deep .p-datepicker {
+::ng-deep .p-datepicker,
+::ng-deep .p-datepicker-panel {
   z-index: var(--calendar-popup-z) !important;
   pointer-events: auto !important;
+  position: absolute !important;
 }
