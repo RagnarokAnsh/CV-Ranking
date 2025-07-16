@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { AuthService } from './auth.service';
+import { LoggerService } from './logger.service';
+import { environment } from '../../environments/environment';
 
 export interface ResumeData {
   id?: string;
@@ -98,7 +100,7 @@ export interface ShortlistResponse {
   providedIn: 'root'
 })
 export class ResumeService {
-  private apiUrl = 'http://3.6.143.181:8504/api/resume';
+  private apiUrl = 'https://gosl.equilearn.in/api/resume';
   
   // State management for persisting data across navigation
   private resumeDataSubject = new BehaviorSubject<ResumeData[]>([]);
@@ -135,7 +137,8 @@ export class ResumeService {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private logger: LoggerService
   ) { 
     // Listen for logout events and clear data
     this.authService.logout$.subscribe(isLogout => {
@@ -310,10 +313,12 @@ export class ResumeService {
     const token = this.authService.getToken();
     
     if (!token) {
+      this.logger.error('No authentication token available. Please login again.');
       throw new Error('No authentication token available. Please login again.');
     }
     
     if (token === 'verified') {
+      this.logger.error('Invalid authentication token. Please login again.');
       throw new Error('Invalid authentication token. Please login again.');
     }
     
@@ -375,7 +380,7 @@ export class ResumeService {
     const headers = this.getAuthHeaders();
 
     return this.http.post<ShortlistResponse>(
-      `http://3.6.143.181:8504/api/shortlisting/shortlist`,
+      `https://gosl.equilearn.in/api/shortlisting/shortlist`,
       formData,
       { headers }
     );
@@ -406,7 +411,7 @@ export class ResumeService {
     const headers = this.getAuthHeaders().set('Content-Type', 'application/json');
 
     return this.http.post<ShortlistResponse>(
-      `http://3.6.143.181:8504/api/shortlisting/shortlist`,
+      `https://gosl.equilearn.in/api/shortlisting/shortlist`,
       request,
       { headers }
     );

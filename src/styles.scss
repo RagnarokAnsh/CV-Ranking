@@ -1507,3 +1507,9 @@ p-fileupload[mode="basic"] {
   pointer-events: auto !important;
   position: absolute !important;
 }
+
+/* Ensure Angular Material calendar icon color matches design */
+::ng-deep .mat-mdc-icon-button img,
+::ng-deep .mat-mdc-icon-button svg {
+  color: #818182 !important;
+}

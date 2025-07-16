@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoggerService } from './logger.service';
+import { environment } from '../../environments/environment';
 
 export interface RegisterRequest {
   fname: string;
@@ -126,7 +128,7 @@ export interface UpdateCvAccessResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://3.6.143.181:8504/api/auth';
+  private baseUrl = 'https://gosl.equilearn.in/api/auth';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
   
@@ -141,7 +143,10 @@ export class AuthService {
     })
   };
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) {
     // Check if user is already logged in
     const token = localStorage.getItem('auth_token');
     const user = localStorage.getItem('current_user');
@@ -173,7 +178,7 @@ export class AuthService {
       this.httpOptions
     ).pipe(
       tap(response => {
-        console.log('Tap operator - OTP verification response:', response);
+        this.logger.log('Tap operator - OTP verification response:', response);
         
         // Extract token - prioritize access_token from login-verify response
         const token = response['access_token'] || response.token || response['authToken'];
@@ -201,7 +206,7 @@ export class AuthService {
         }
         
         if (token) {
-          console.log('Storing token and user data:', { 
+          this.logger.log('Storing token and user data:', { 
             tokenLength: token.length, 
             tokenStart: token.substring(0, 20) + '...', 
             user 
@@ -211,25 +216,25 @@ export class AuthService {
           if (user) {
             localStorage.setItem('current_user', JSON.stringify(user));
             this.currentUserSubject.next(user);
-            console.log('User stored with is_admin:', user.is_admin);
+            this.logger.log('User stored with is_admin:', user.is_admin);
           }
           
           // Verify token was stored correctly
           const storedToken = localStorage.getItem('auth_token');
-          console.log('Token verification - stored correctly:', storedToken === token);
+          this.logger.log('Token verification - stored correctly:', storedToken === token);
         } else {
-          console.error('No access_token found in login-verify response!');
-          console.log('Available response keys:', Object.keys(response));
+          this.logger.error('No access_token found in login-verify response!');
+          this.logger.log('Available response keys:', Object.keys(response));
           
           // If we have user data but no token, still store the user
           if (user) {
             localStorage.setItem('current_user', JSON.stringify(user));
             this.currentUserSubject.next(user);
-            console.log('User stored (no token) with is_admin:', user.is_admin);
+            this.logger.log('User stored (no token) with is_admin:', user.is_admin);
           }
           
           // Don't store placeholder token - this will prevent API calls
-          console.error('Cannot proceed without valid JWT token');
+          this.logger.error('Cannot proceed without valid JWT token');
         }
       })
     );
@@ -309,12 +314,12 @@ export class AuthService {
   // Get all users (admin only)
   getUsers(): Observable<UsersResponse> {
     const token = this.getToken();
-    console.log('getUsers: Retrieved token:', token);
-    console.log('getUsers: Token type:', typeof token);
-    console.log('getUsers: Token length:', token?.length);
+    this.logger.log('getUsers: Retrieved token:', token);
+    this.logger.log('getUsers: Token type:', typeof token);
+    this.logger.log('getUsers: Token length:', token?.length);
     
     if (!token || token === 'verified') {
-      console.error('getUsers: Invalid or missing token');
+      this.logger.error('getUsers: Invalid or missing token');
       throw new Error('No valid authentication token found');
     }
     
@@ -324,7 +329,7 @@ export class AuthService {
       'Authorization': `Bearer ${token}`
     });
     
-    console.log('getUsers: Authorization header:', headers.get('Authorization'));
+    this.logger.log('getUsers: Authorization header:', headers.get('Authorization'));
     
     return this.http.get<UsersResponse>(
       `${this.baseUrl.replace('/auth', '')}/users/`,
@@ -417,13 +422,13 @@ export class AuthService {
   private decodeToken(token: string): any {
     try {
       if (!token || token === 'verified') {
-        console.warn('Invalid token for decoding:', token);
+        this.logger.warn('Invalid token for decoding:', token);
         return null;
       }
       
       const parts = token.split('.');
       if (parts.length !== 3) {
-        console.error('Invalid JWT token format - expected 3 parts, got:', parts.length);
+        this.logger.error('Invalid JWT token format - expected 3 parts, got:', parts.length);
         return null;
       }
       
@@ -438,10 +443,10 @@ export class AuthService {
       payload = payload.replace(/-/g, '+').replace(/_/g, '/');
       const decoded = atob(payload);
       const parsed = JSON.parse(decoded);
-      console.log('Decoded token payload:', { exp: parsed.exp, iat: parsed.iat, currentTime: Math.floor(Date.now() / 1000) });
+      this.logger.log('Decoded token payload:', { exp: parsed.exp, iat: parsed.iat, currentTime: Math.floor(Date.now() / 1000) });
       return parsed;
     } catch (error) {
-      console.error('Error decoding JWT token:', error);
+      this.logger.error('Error decoding JWT token:', error);
       return null;
     }
   }

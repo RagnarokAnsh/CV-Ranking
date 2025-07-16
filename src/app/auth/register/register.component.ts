@@ -4,13 +4,20 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService, RegisterRequest } from '../../services/auth.service';
 
-// PrimeNG Imports - Only keeping Calendar for date picker
+// PrimeNG Imports - Only keeping Button, InputText, Card, Toast for other components
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
-import { CalendarModule } from 'primeng/calendar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+
+// Angular Material Date Picker Imports
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+
 import * as countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 import { Overlay, OverlayRef, OverlayPositionBuilder } from '@angular/cdk/overlay';
@@ -39,8 +46,12 @@ interface DropdownOption {
     ButtonModule,
     InputTextModule,
     CardModule,
-    CalendarModule,
-    ToastModule
+    ToastModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule
   ],
   providers: [MessageService],
   templateUrl: './register.component.html',
@@ -280,6 +291,17 @@ export class RegisterComponent implements OnInit {
   filteredNationalities: DropdownOption[] = [];
   countrySearchText = '';
   nationalitySearchText = '';
+  countryCodeSearchText = '';
+
+  get filteredCountryCodes(): CountryCode[] {
+    const search = this.countryCodeSearchText.trim().toLowerCase();
+    if (!search) return this.countryCodes;
+    return this.countryCodes.filter(c =>
+      c.name.toLowerCase().includes(search) ||
+      c.code.toLowerCase().includes(search) ||
+      c.label.toLowerCase().includes(search)
+    );
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -293,7 +315,7 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit() {
     countries.registerLocale(enLocale);
-    this.countries = Object.entries(countries.getNames('en', { select: 'official' })).map(([code, name]) => ({ label: name, value: code.toLowerCase() }));
+    this.countries = Object.entries(countries.getNames('en', { select: 'official' })).map(([code, name]) => ({ label: name, value: name }));
     this.nationalities = this.countries.map(c => ({ label: c.label, value: c.label.toLowerCase() }));
     this.filteredCountries = [...this.countries];
     this.filteredNationalities = [...this.nationalities];

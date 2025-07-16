@@ -1,59 +1,288 @@
-# CVRanking
+# CV-Ranking Application
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.5.
+A modern Angular application for CV ranking and management with production-ready optimizations.
 
-## Development server
+## 🚀 Quick Start
 
-To start a local development server, run:
+### Prerequisites
+- Node.js 18+ 
+- npm 9+
+- Angular CLI 19+
 
+### Installation
 ```bash
-ng serve
+# Clone the repository
+git clone <repository-url>
+cd CV-Ranking
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 📦 Build Commands
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+### Development Build
 ```bash
-ng generate component component-name
+npm run build:dev
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+### Production Build
 ```bash
-ng generate --help
+npm run build:prod
 ```
 
-## Building
-
-To build the project run:
-
+### Bundle Analysis
 ```bash
-ng build
+npm run analyze
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🌍 Environment Configuration
 
-## Running unit tests
+### Development Environment
+- Console logging enabled
+- Debug mode enabled
+- Source maps enabled
+- Detailed error messages
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Production Environment
+- Console logging disabled
+- Debug mode disabled
+- Source maps disabled
+- Optimized for performance
+- Error tracking enabled
 
+## 🚀 Production Deployment
+
+### Automated Deployment
 ```bash
-ng test
+# Build and deploy to AWS S3
+.\deploy.ps1 -Deploy true -BucketName your-bucket-name
+
+# With CloudFront cache invalidation
+.\deploy.ps1 -Deploy true -BucketName your-bucket-name -CloudFrontId your-distribution-id
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
+### Manual Deployment
 ```bash
-ng e2e
+# Build for production
+npm run build:prod
+
+# Deploy to your hosting provider
+# Copy dist/cv-ranking/* to your web server
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 🛡️ Security Features
 
-## Additional Resources
+### Authentication
+- JWT-based authentication
+- Session timeout management
+- Role-based access control
+- Secure token storage
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Input Validation
+- File type validation
+- File size limits
+- Form validation
+- XSS prevention
+
+### Security Headers
+- Content Security Policy (CSP)
+- X-Content-Type-Options
+- X-Frame-Options
+- HTTPS enforcement
+
+## 📊 Performance Optimizations
+
+### Bundle Optimization
+- Tree shaking enabled
+- Code minification
+- Gzip compression
+- CDN integration ready
+
+### Runtime Performance
+- OnPush change detection
+- Lazy loading ready
+- Memory leak prevention
+- Optimized API calls
+
+### Caching Strategy
+- Browser caching headers
+- Service worker ready
+- Static asset optimization
+- CDN caching
+
+## 🔍 Monitoring & Analytics
+
+### Error Tracking
+- Environment-aware logging
+- Error reporting service integration
+- Performance monitoring
+- User action tracking
+
+### Performance Metrics
+- Bundle size monitoring
+- Load time tracking
+- Error rate monitoring
+- User experience metrics
+
+## 🏗️ Architecture
+
+### Components
+- **LonglistComponent**: CV listing and filtering
+- **ShortlistComponent**: CV ranking and shortlisting
+- **AdminApprovalComponent**: User management
+- **AuthComponents**: Login, register, password management
+
+### Services
+- **AuthService**: Authentication and authorization
+- **ResumeService**: CV data management
+- **SessionTimerService**: Session management
+- **LoggerService**: Environment-aware logging
+
+### Guards
+- **AuthGuard**: Route protection
+- **AdminGuard**: Admin route protection
+- **GuestGuard**: Guest route protection
+
+## 🔧 Development
+
+### Code Quality
+```bash
+# Run linting
+npm run lint
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### TypeScript Configuration
+- Strict mode enabled
+- No implicit any
+- Strict null checks
+- Strict function types
+
+## 📱 Features
+
+### User Management
+- User registration and login
+- Password reset functionality
+- Profile management
+- Role-based access control
+
+### CV Management
+- CV upload and processing
+- Advanced filtering options
+- CV ranking and shortlisting
+- Export functionality
+
+### Admin Features
+- User approval system
+- Access control management
+- System monitoring
+- User analytics
+
+## 🚨 Production Checklist
+
+### Before Deployment
+- [x] Environment variables configured
+- [x] Console logs disabled in production
+- [x] Error tracking enabled
+- [x] Performance monitoring active
+- [ ] Security headers configured
+- [ ] SSL certificate installed
+- [ ] CDN configured
+- [ ] Backup strategy in place
+- [ ] Monitoring alerts configured
+- [ ] Rollback plan ready
+
+### Post-Deployment
+- [ ] Performance metrics monitored
+- [ ] Error rates tracked
+- [ ] User feedback collected
+- [ ] Security scans performed
+- [ ] Backup verification
+- [ ] Load testing completed
+- [ ] Accessibility audit
+- [ ] SEO optimization verified
+
+## 🔄 Maintenance
+
+### Regular Updates
+```bash
+# Security updates
+npm audit fix
+
+# Dependency updates
+npm update
+
+# Angular updates
+ng update @angular/core @angular/cli
+```
+
+### Performance Monitoring
+```bash
+# Bundle analysis
+npm run analyze
+
+# Performance testing
+npm run lighthouse
+```
+
+## 📚 Documentation
+
+### API Documentation
+- RESTful API integration
+- JWT authentication
+- File upload endpoints
+- Data filtering endpoints
+
+### User Guide
+- Getting started guide
+- Feature documentation
+- Troubleshooting guide
+- FAQ section
+
+## 🤝 Contributing
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+### Code Standards
+- Follow Angular style guide
+- Use TypeScript strict mode
+- Write unit tests
+- Document new features
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+### Getting Help
+- Check the documentation
+- Review the troubleshooting guide
+- Contact the development team
+- Submit an issue on GitHub
+
+### Reporting Issues
+- Use the issue template
+- Provide detailed information
+- Include error logs
+- Describe reproduction steps
+
+---
+
+**Version**: 1.0.0  
+**Last Updated**: December 2024  
+**Maintainer**: Development Team

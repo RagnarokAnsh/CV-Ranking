@@ -11,7 +11,7 @@ import { AuthService, User, UpdateCvAccessRequest } from '../services/auth.servi
 // Interface for display data
 interface UserDisplay extends User {
   name: string;
-  status: 'approved' | 'rejected';
+  status: 'approved' | 'rejected' | 'pending';
 }
 
 @Component({
@@ -70,7 +70,7 @@ export class AdminApprovalComponent implements OnInit {
         this.hrCandidates = users.map(user => ({
           ...user,
           name: user.name || `${user.fname || ''} ${user.lname || ''}`.trim() || 'Unknown User',
-          status: user.cv_access ? 'approved' : 'pending'
+          status: user.cv_access === true ? 'approved' : user.cv_access === false ? 'rejected' : 'pending'
         }));
         
         // Update paginator settings

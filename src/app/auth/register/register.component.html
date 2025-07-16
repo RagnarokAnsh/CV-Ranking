@@ -2,7 +2,7 @@
   <div class="register-card">
     <!-- Header -->
     <div class="register-header">
-      <h1>CV Ranking Application</h1>
+      <h1>Go Shortlist</h1>
       <div class="header-separator"></div>
       <p style="color: #2D3748;">Create Account</p>
     </div>
@@ -79,9 +79,18 @@
             </div>
             <ng-template #countryCodeDropdownPanel>
               <div class="dropdown-panel">
+                <div class="dropdown-search">
+                  <input
+                    type="text"
+                    placeholder="Search country code..."
+                    [(ngModel)]="countryCodeSearchText"
+                    [ngModelOptions]="{standalone: true}"
+                    class="search-input"
+                  />
+                </div>
                 <div 
                   class="dropdown-item" 
-                  *ngFor="let country of countryCodes"
+                  *ngFor="let country of filteredCountryCodes"
                   (click)="selectCountryCode(country); closeCountryCodeDropdown(); $event.stopPropagation()"
                   [class.selected]="country.value === registerForm.get('countryCode')?.value">
                   <div class="country-item">
@@ -116,18 +125,22 @@
       <div class="form-row">
         <div class="form-field half-width">
           <label for="dateOfBirth">Date of Birth *</label>
-          <div class="calendar-wrapper">
-            <p-calendar 
-              formControlName="dateOfBirth"
-              inputId="dateOfBirth"
-              [showIcon]="true"
-              iconDisplay="input"
+          <div class="calendar-wrapper" style="position: relative;">
+            <input
+              matInput
+              [matDatepicker]="picker"
               placeholder="Select Date"
-              dateFormat="dd/mm/yy"
-              inputStyleClass="custom-calendar-input"
-              styleClass="custom-calendar"
-              [appendTo]="'body'">
-            </p-calendar>
+              formControlName="dateOfBirth"
+              id="dateOfBirth"
+              class="form-input custom-mat-input"
+              [class.error]="registerForm.get('dateOfBirth')?.touched && registerForm.get('dateOfBirth')?.errors"
+              autocomplete="off"
+            />
+            <mat-datepicker-toggle matSuffix [for]="picker" style="position: absolute; top: 0; right: 0; height: 44px; display: flex; align-items: center;"></mat-datepicker-toggle>
+            <i class="pi pi-calendar custom-calendar-icon"
+               style="position: absolute; top: 0; right: 0; height: 44px; width: 44px; display: flex; align-items: center; justify-content: center; color: #818182; font-size: 1.2rem; cursor: pointer;"
+               (click)="picker.open()"></i>
+            <mat-datepicker #picker startView="multi-year"></mat-datepicker>
           </div>
           <div class="error-message" *ngIf="getFieldErrorMessage('dateOfBirth')">
             {{ getFieldErrorMessage('dateOfBirth') }}
