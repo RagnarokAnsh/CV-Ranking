@@ -769,6 +769,12 @@ html, body {
     }
   }
 }
+.title-first-word {
+    text-decoration: underline;
+    text-decoration-color: var(--primary-blue);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.5rem;
+  }
 
 /* ===== UPLOAD SECTION RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {

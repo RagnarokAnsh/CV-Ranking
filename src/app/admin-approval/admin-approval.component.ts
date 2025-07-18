@@ -71,8 +71,14 @@ export class AdminApprovalComponent implements OnInit {
           ...user,
           name: user.name || `${user.fname || ''} ${user.lname || ''}`.trim() || 'Unknown User',
           status: user.cv_access === true ? 'approved' : user.cv_access === false ? 'rejected' : 'pending'
-        }));
-        
+        }))
+        // Sort by created_at descending (recent first)
+        .sort((a, b) => {
+          if (a.created_at && b.created_at) {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          }
+          return 0;
+        });
         // Update paginator settings
         this.updatePaginatorSettings();
         

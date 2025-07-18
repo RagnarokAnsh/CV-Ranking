@@ -10,6 +10,7 @@ import { MenuModule } from 'primeng/menu';
 import { AvatarModule } from 'primeng/avatar';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { MenuItem } from 'primeng/api';
+import { DialogModule } from 'primeng/dialog';
 
 // Services
 import { AuthService } from '../../services/auth.service';
@@ -22,7 +23,8 @@ import { AuthService } from '../../services/auth.service';
     ButtonModule,
     MenuModule,
     AvatarModule,
-    OverlayPanelModule
+    OverlayPanelModule,
+    DialogModule // Add DialogModule for confirmation dialog
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
@@ -33,6 +35,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   currentRoute: string = '';
   sidebarCollapsed: boolean = false;
   isMobile: boolean = false;
+  showLogoutDialog: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -157,7 +160,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         label: 'Logout',
         icon: 'pi pi-sign-out',
         routerLink: '/logout',
-        command: () => this.logout()
+        command: () => this.confirmLogout()
       }
     );
 
@@ -173,11 +176,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
         routerLink: '/change-password',
         command: () => this.navigateTo('/change-password')
       },
-      
       {
         label: 'Logout',
         icon: 'pi pi-sign-out',
-        command: () => this.logout()
+        command: () => this.confirmLogout() // Use confirmLogout instead of logout
       }
     ];
   }
@@ -264,5 +266,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
   getCurrentUserEmail(): string {
     const user = this.authService.getCurrentUser();
     return user?.email || 'user@example.com';
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog = true;
+  }
+
+  onLogoutConfirm() {
+    this.showLogoutDialog = false;
+    this.logout();
+  }
+
+  onLogoutCancel() {
+    this.showLogoutDialog = false;
   }
 }

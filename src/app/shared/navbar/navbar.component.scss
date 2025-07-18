@@ -46,16 +46,17 @@
 }
 
 .sidebar-header {
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.5rem;
+  padding-bottom: 0;
   text-align: center;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 //   border-bottom: 1px solid var(--medium-gray);
   
   .logo {
-    width: 60px;
-    height: 50px;
+    width: 120px;
+    height: 80px;
     object-fit: contain;
-    margin-bottom: 1rem;
+    // margin-bottom: 1rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 1;
     transform: scale(1);
@@ -867,4 +868,8 @@
       }
     }
   }
+}
+
+.dialog-content p {
+  color: var(--primary-dark);
 }

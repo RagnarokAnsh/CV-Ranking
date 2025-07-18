@@ -3,10 +3,8 @@
   <div class="sidebar" [class.collapsed]="sidebarCollapsed">
     <!-- Logo/Brand Section -->
     <div class="sidebar-header">
-      <img src='assets/images/logo.png' alt="Logo" class="logo" *ngIf="!sidebarCollapsed">
-      <img src='assets/images/logo.png' alt="Logo" class="logo-collapsed" *ngIf="sidebarCollapsed">
-      <h2 *ngIf="!sidebarCollapsed">Go<br>Shortlist</h2>
-      <h2 *ngIf="sidebarCollapsed" class="collapsed-title">CV</h2>
+      <img src="assets/images/white.svg" alt="Go Shortlist Logo" class="logo" *ngIf="!sidebarCollapsed">
+      <img src="assets/images/white.svg" alt="Go Shortlist Logo" class="logo-collapsed" *ngIf="sidebarCollapsed">
     </div>
 
     <!-- Navigation Menu -->
@@ -107,3 +105,21 @@
     </main>
   </div>
 </div>
+
+<p-dialog 
+  header="Confirm Logout" 
+  [(visible)]="showLogoutDialog" 
+  [modal]="true" 
+  [closable]="false" 
+  [draggable]="false" 
+  [resizable]="false" 
+  styleClass="action-dialog" 
+  [style]="{width: '350px'}">
+  <div class="dialog-content text-center">
+    <p>Are you sure you want to logout?</p>
+    <div class="action-buttons-container" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+      <button pButton type="button" label="Logout" icon="pi pi-sign-out" class="action-btn p-button-danger" (click)="onLogoutConfirm()"></button>
+      <button pButton type="button" label="Cancel" icon="pi pi-times" class="action-btn p-button-outlined" (click)="onLogoutCancel()"></button>
+    </div>
+  </div>
+</p-dialog>
